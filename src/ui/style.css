@@ -351,3 +351,9 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
 .inferno-row { margin-top: 10px; border: 3px dashed var(--red); border-radius: 12px; padding: 8px 12px; background: rgba(200,54,29,0.1); }
 
 @media (max-height: 500px) { .banner { top: 24%; } .bosscard { top: 14%; } }
+
+.menu-backdrop { position: absolute; inset: 0; background: center/cover no-repeat; z-index: -1; }
+.menu-backdrop::after { content: ''; position: absolute; inset: 0; background: rgba(12,8,6,0.45); }
+.menu-backdrop.blur { inset: -30px; filter: blur(10px) brightness(0.55); }
+.menu-backdrop.blur::after { background: none; }
+.overlay > .panel { position: relative; z-index: 1; }

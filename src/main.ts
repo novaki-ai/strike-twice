@@ -295,6 +295,7 @@ class App {
     const s = this.screens.loadout;
     s.className = 'screen show overlay';
     s.innerHTML = '';
+    this.backdrop(s, 'menu_bg');
     const grid = el('div', { class: 'loadout-grid' });
     let sel = this.starterUnlocked(this.save.startWeapon) ? this.save.startWeapon : 'ember';
     const cards: HTMLElement[] = [];
@@ -340,11 +341,16 @@ class App {
     if (selCard) this.nav.setCurrent(selCard, false);
   }
 
+  backdrop(s: HTMLElement, name: string, blur = true) {
+    s.appendChild(el('div', { class: 'menu-backdrop' + (blur ? ' blur' : ''), style: { backgroundImage: `url(${img(name)})` } }));
+  }
+
   /* ---------------- shop */
   renderShop() {
     const s = this.screens.shop;
     s.className = 'screen show overlay';
     s.innerHTML = '';
+    this.backdrop(s, 'workshop_bg', false);
     const grid = el('div', { class: 'shop-grid' });
     for (const it of SHOP) {
       const rank = this.save.shop[it.id] || 0;
@@ -387,6 +393,7 @@ class App {
     const s = this.screens.settings;
     s.className = 'screen show overlay';
     s.innerHTML = '';
+    if (this.settingsBack === 'menu') this.backdrop(s, 'menu_bg');
     const st = this.save.settings;
     const slider = (label: string, key: 'music' | 'sfx' | 'voice') => {
       const r = el('input', { type: 'range', min: '0', max: '1', step: '0.05', value: String(st[key]), 'data-nav': '1', 'aria-label': label }) as HTMLInputElement;
@@ -464,6 +471,7 @@ class App {
     const s = this.screens.howto;
     s.className = 'screen show overlay';
     s.innerHTML = '';
+    if (this.howtoBack === 'menu') this.backdrop(s, 'menu_bg');
     const back = () => this.show(this.howtoBack);
     const tabs = el('div', { class: 'tabs' });
     const mk = (id: string, label: string) => {
@@ -521,6 +529,7 @@ class App {
     const s = this.screens.records;
     s.className = 'screen show overlay';
     s.innerHTML = '';
+    this.backdrop(s, 'menu_bg');
     const st = this.save.stats;
     const back = () => this.show('menu');
     const rows: [string, string][] = [
