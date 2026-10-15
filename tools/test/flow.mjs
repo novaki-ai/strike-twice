@@ -16,7 +16,7 @@ await page.evaluate(() => window.NOVAKI_QA.killBoss());
 for (let i = 0; i < 60; i++) { const s = await page.evaluate(() => window.NOVAKI_QA.state().screen); if (s === 'stageclear') break; if (s === 'levelup') await page.evaluate(() => window.NOVAKI_QA.chooseUpgrade(0)); await page.waitForTimeout(300); }
 await page.waitForTimeout(600);
 await page.screenshot({ path: OUT + '/f_stageclear.png' });
-for (let i = 0; i < 60; i++) { const s = await page.evaluate(() => window.NOVAKI_QA.state()); if (s.screen === 'playing' && s.stage === 2) break; if (s.screen === 'levelup') await page.evaluate(() => window.NOVAKI_QA.chooseUpgrade(0)); await page.waitForTimeout(300); }
+for (let i = 0; i < 60; i++) { const s = await page.evaluate(() => window.NOVAKI_QA.state()); if (s.screen === 'playing' && s.stage === 2) break; if (s.screen === 'levelup' || s.screen === 'stageclear') await page.evaluate(() => window.NOVAKI_QA.chooseUpgrade(0)); await page.waitForTimeout(300); }
 console.log('auto-advanced to stage 2:', JSON.stringify((await page.evaluate(() => window.NOVAKI_QA.state())).stage));
 await page.evaluate(() => { const g = window.__novaki.game; window.NOVAKI_QA.setInvincible(false); g.player.iframes = 0; g.player.revives = 0; g.hurtPlayer(9999, null); });
 await page.waitForFunction(() => !window.__novaki.game.running, null, { timeout: 20000 });

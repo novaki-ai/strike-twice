@@ -54,6 +54,10 @@ duration stats interact across weapons. Level-up offers 3 cards (4 with a Worksh
 Chests from elites and bosses grant upgrades and prioritise evolutions. Pickups: healing marshmallow, magnet,
 screen-clearing firecracker, time-freezing pocket watch, golden match (invincible + ablaze), coins.
 
+**Relics:** after each boss you pick one of three run-defining relics (9 in total, e.g. *Ashen Ward* blocks a hit
+every 12 s, *Dancing Flame* turns dashes into explosive trails, *Lucky Strike* makes crits spray sparks, *Bellbreaker*
+hurts bosses more). A countdown auto-picks if you wait, so unattended runs never stall.
+
 **Meta-progression (saved in `localStorage`):** cinder coins earned every run (kept on death) are spent in
 *Novaki's Workshop* on 13 permanent upgrades and 5 weapon blueprints that add new weapons to the pool. Nine starting
 weapons unlock through achievements (beat bosses, reach levels, total kills, survive 10 minutes, win). Winning unlocks
@@ -61,16 +65,20 @@ weapons unlock through achievements (beat bosses, reach levels, total kills, sur
 
 **Story & voice:** a voiced, illustrated intro (4 panels) and ending (3 panels) with subtitles, a voiced narrator
 card for each chapter, voiced intro/defeat lines for every boss (plus the Snuffer's phase line), Novaki's own
-deadpan quips (boss reactions, death), and a voiced game-over line. 24 voice clips in total.
+deadpan quips (boss reactions, stage clear, death), and a voiced game-over line. All 25 voice clips of the quota are used.
 
 **Presentation:** Novaki is a generated torso sprite with code-drawn, animated rubber-hose arms and legs (walk cycle,
-swinging gloves, dash pose, hurt flash, KO pose), smoke curling from his charcoal head and a flame when he levels up.
+swinging gloves, dash pose, hurt flash, KO pose), three facial expressions (deadpan, "ouch" when hit, a determined
+scowl in boss fights or when ablaze), smoke curling from his charcoal head and a flame when he levels up. Bosses
+switch to generated attack poses during their big attacks and to defeat poses when they fall. Snuffed street lamps,
+candelabras and braziers relight as Novaki walks past and light up the dark; glowing mushrooms, ground decals
+(puddles reflecting the moon, wax pools, rugs, leaf piles), off-screen chest arrows.
 Dynamic lighting (multiply light map) darkens each stage differently; fire projectiles, explosions and pickups light
 the scene; the final boss can smother the light. Film grain, vignette, rain, hit-flash, knockback, damage numbers,
 screen shake, hit-stop slow-motion on boss deaths, inked "boom" explosions, telegraphs for every dangerous attack.
 
-**Audio:** 17 music clips (menu, intro, three stages x 2, three bosses + final phase, workshop, victory, ending,
-game over) crossfaded into seamless loops in WebAudio; 31 sound effects synthesized in code; music ducks under voice.
+**Audio:** 22 music clips (menu, intro, three stages x 3, boss tracks + final phase, workshop, victory, ending,
+game over) crossfaded into seamless playlists in WebAudio; 31 sound effects synthesized in code; music ducks under voice.
 
 **Menus:** title, main menu, starting-weapon select, Workshop, settings (music / sound / voice volume, screen shake,
 screen flashes, damage numbers, subtitles, FPS counter, fullscreen, reset progress), How to Play (controls, evolution
@@ -88,16 +96,23 @@ per frame).
 `skipTo(stage, point)`, `killBoss()` and `spawnEnemies(count)` as specified. Notes:
 
 - `state().screen` is one of `menu`, `playing`, `paused`, `levelup`, `chest`, `stageclear`, `gameover`, `victory`
-  (also `title`, `loadout`, `shop`, `settings`, `howto`, `records`, `intro`, `loading`). The ending cutscene reports `victory`.
-- `state()` also returns `boss`, `weapons`, `passives`, `levelUpChoices`, `kills`, `seed`, `fps` and `perf` as extras.
-- `start({ seed, weapon, inferno })`: `seed` makes the run deterministic (seeded PRNG + fixed-step simulation);
-  `weapon` picks the starting weapon. It skips the intro cutscene and the weapon-select screen.
+  (also `title`, `loadout`, `shop`, `settings`, `howto`, `records`, `intro`, `loading`, and `transition` during the
+  short fade between stages). The ending cutscene reports `victory`.
+- `state()` also returns `boss`, `weapons`, `passives`, `relics`, `levelUpChoices`, `relicChoices`, `kills`, `seed`,
+  `fps` and `perf` as extras. `upgrades` lists weapon ids, passive ids, `evo_<weapon>` for evolved weapons and
+  `relic_<id>` for relics.
+- `start({ seed, weapon, inferno })`: `seed` makes the run deterministic: all gameplay randomness uses a seeded PRNG
+  and the simulation runs at a fixed 60 Hz step, so the same seed and the same inputs give the same run (verified by
+  `tools/test/determinism.mjs`, which compares two fresh page loads). `weapon` picks the starting weapon. It skips the
+  intro cutscene and the weapon-select screen.
+- `setInvincible(on)` persists across runs until turned off. `chooseUpgrade(index)` also picks a relic on the stage-clear
+  screen (`state().relicChoices`). `spawnEnemies(count)` uses its own seeded stream and is capped at 2000 per call.
 - `skipTo(stage, 'start' | 'boss')`: when jumping ahead it grants catch-up levels (level 12 for stage 2, 22 for stage 3,
   upgrades picked by the seeded RNG) so the later content is fair; runs that used `skipTo` are marked "QA-assisted" and do
   not set best times.
-- `killBoss()` uses the normal defeat path (death animation, voiced line, boss XP and treasure, stage clear, next stage
-  or ending + victory). Boss XP can trigger level-ups first; the stage-clear screen waits for them and then
-  auto-advances after a few seconds.
+- `killBoss()` uses the normal defeat path (death animation, voiced line, boss XP and treasure, stage clear with relic
+  choice, next stage, or the ending + victory screen after the third boss). Boss XP can trigger level-ups first; the
+  stage-clear screen waits for them, then auto-picks a relic after 20 s if nobody chooses.
 
 ## Assets
 
@@ -106,6 +121,14 @@ Every image, voice line and music track was generated with `varlik` (see `tools/
 (not committed); `tools/process.py` despills the magenta key, trims, slices sprite sheets, makes ground textures
 seamless and exports WebP; `tools/audio.sh` loudness-normalizes voices and music. Fonts (Luckiest Guy, Fredoka) are
 open-source npm packages (`@fontsource`). Sound effects are synthesized in code.
+
+## How I tested
+
+Playwright scripts in `tools/test/` drive the real game in headless Chromium on the GPU: screen flows on desktop,
+phone portrait/landscape with touch, a simulated gamepad, every weapon and evolution, high-DPI sizing, a 1080p stress
+test, a 4-minute real-time soak (60 FPS minimum, stable heap), a determinism check, and a fast-forward bot
+(`bot.mjs`) that plays complete runs to tune pacing and difficulty. An independent code review pass found 15 issues
+(an enemy-pool double-listing bug, determinism leaks, timers outliving a run, and more), all fixed.
 
 ## What I would improve with more time
 

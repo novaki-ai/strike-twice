@@ -1,0 +1,17 @@
+import { chromium } from 'playwright';
+const OUT = process.env.OUT;
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+await page.evaluate(() => { window.NOVAKI_QA.start({ seed: 4 }); window.NOVAKI_QA.setInvincible(true); window.__novaki.clearBanners(); window.__novaki.game.director.update = () => {}; });
+await page.waitForTimeout(3000);
+const clip = { x: 560, y: 250, width: 160, height: 160 };
+await page.screenshot({ path: OUT + '/face_normal.png', clip });
+await page.evaluate(() => { const g = window.__novaki.game; g.player.invincible = false; g.player.iframes = 0; g.hurtPlayer(5, null); });
+await page.waitForTimeout(90);
+await page.screenshot({ path: OUT + '/face_ouch.png', clip });
+await page.evaluate(() => { const g = window.__novaki.game; g.player.invincible = true; g.player.goldT = 3; g.player.ignite = 3; });
+await page.waitForTimeout(500);
+await page.screenshot({ path: OUT + '/face_angry.png', clip });
+await browser.close();
