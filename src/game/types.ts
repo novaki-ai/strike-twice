@@ -174,6 +174,8 @@ export interface Particle {
   drag: number; grav: number;
   z: number; vz: number; // fake height
   layer: number;
+  aspect: number;
+  sy: number;
 }
 
 export interface DmgNum {

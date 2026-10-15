@@ -168,9 +168,11 @@ export function makeFxTextures(): FxTex {
   });
   t.light = canvasTex(128, 128, (c) => {
     const g = c.createRadialGradient(64, 64, 0, 64, 64, 64);
-    g.addColorStop(0, 'rgba(255,255,255,1)');
-    g.addColorStop(0.5, 'rgba(255,255,255,0.55)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
+    for (let i = 0; i <= 10; i++) {
+      const f = i / 10;
+      const v = Math.pow(1 - f, 1.6);
+      g.addColorStop(f, `rgba(255,255,255,${v.toFixed(3)})`);
+    }
     c.fillStyle = g; c.fillRect(0, 0, 128, 128);
   });
   t.shadow = canvasTex(64, 32, (c) => {
@@ -224,6 +226,22 @@ export function makeFxTextures(): FxTex {
   t.ring = canvasTex(128, 128, (c) => {
     c.strokeStyle = '#fff'; c.lineWidth = 10;
     c.beginPath(); c.arc(64, 64, 56, 0, Math.PI * 2); c.stroke();
+  });
+  // cartoon smoke ring: a chain of inked puffs around a circle
+  t.smokering = canvasTex(256, 256, (c) => {
+    const n = 26, R = 108;
+    const pts: [number, number, number][] = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const r = 11 + ((i * 7) % 5);
+      pts.push([128 + Math.cos(a) * R, 128 + Math.sin(a) * R, r]);
+    }
+    c.fillStyle = 'rgba(27,22,18,0.85)';
+    for (const [x, y, r] of pts) { c.beginPath(); c.arc(x, y, r + 3, 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = '#f4ede0';
+    for (const [x, y, r] of pts) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = 'rgba(200,190,175,0.9)';
+    for (const [x, y, r] of pts) { c.beginPath(); c.arc(x + 2, y + 3, r * 0.45, 0, Math.PI * 2); c.fill(); }
   });
   t.softring = canvasTex(256, 256, (c) => {
     const g = c.createRadialGradient(128, 128, 60, 128, 128, 128);
@@ -335,6 +353,24 @@ export function makeFxTextures(): FxTex {
     }
     c.putImageData(id, 0, 0);
   }, false);
+  // flame-whip crescent (pointing right)
+  t.slash = canvasTex(256, 64, (c) => {
+    c.lineCap = 'round';
+    const grad = c.createLinearGradient(0, 0, 256, 0);
+    grad.addColorStop(0, 'rgba(255,120,40,0)'); grad.addColorStop(0.3, '#ff7a2a'); grad.addColorStop(0.75, '#ffd060'); grad.addColorStop(1, '#fff3c0');
+    c.strokeStyle = '#1b1612'; c.lineWidth = 22;
+    c.beginPath(); c.moveTo(10, 44); c.quadraticCurveTo(128, -6, 246, 36); c.stroke();
+    c.strokeStyle = grad; c.lineWidth = 14;
+    c.beginPath(); c.moveTo(10, 44); c.quadraticCurveTo(128, -6, 246, 36); c.stroke();
+    c.strokeStyle = 'rgba(255,255,220,0.9)'; c.lineWidth = 4;
+    c.beginPath(); c.moveTo(60, 30); c.quadraticCurveTo(140, 6, 236, 34); c.stroke();
+  });
+  t.beam = canvasTex(256, 32, (c) => {
+    const g = c.createLinearGradient(0, 0, 0, 32);
+    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.35, 'rgba(255,255,255,0.7)'); g.addColorStop(0.5, 'rgba(255,255,255,1)');
+    g.addColorStop(0.65, 'rgba(255,255,255,0.7)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = g; c.fillRect(0, 0, 256, 32);
+  });
   t.vignette = canvasTex(256, 256, (c) => {
     const g = c.createRadialGradient(128, 128, 60, 128, 128, 182);
     g.addColorStop(0, 'rgba(10,6,4,0)');

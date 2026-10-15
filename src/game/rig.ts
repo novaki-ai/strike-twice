@@ -6,6 +6,7 @@ import { vrange } from '../core/rng';
 
 const INK = 0x14100d;
 const TORSO_H = 64;
+const K = 1.25; // overall rig scale
 
 export class NovakiRig {
   root = new Container();
@@ -30,8 +31,8 @@ export class NovakiRig {
     this.torso.scale.set(s);
     this.shadow = new Sprite(fx.shadow);
     this.shadow.anchor.set(0.5);
-    this.shadow.width = 40;
-    this.shadow.height = 14;
+    this.shadow.width = 46;
+    this.shadow.height = 16;
     const flameBox = new Container();
     for (let i = 0; i < 3; i++) {
       const f = new Sprite(fx.flame);
@@ -59,8 +60,8 @@ export class NovakiRig {
     this.root.x = x;
     this.root.y = y;
     this.root.zIndex = y;
-    this.root.scale.x = face;
-    this.root.scale.y = 1;
+    this.root.scale.x = face * K;
+    this.root.scale.y = K;
     this.shadow.x = x;
     this.shadow.y = y;
 
@@ -127,7 +128,7 @@ export class NovakiRig {
     if (this.smokeT <= 0) {
       const lowHp = p.hp < p.stats.maxHp * 0.3;
       this.smokeT = fire ? 0.04 : lowHp ? 0.07 : 0.16;
-      const hx = x + (Math.sin(lean) * 50 + 3) * face, hy = y + hipY - TORSO_H + 6;
+      const hx = x + (Math.sin(lean) * 50 + 3) * face * K, hy = y + (hipY - TORSO_H + 6) * K;
       const pt = g.particle(hx, hy, this.fx.puff, {
         layer: 2, vx: vrange(-8, 8) - p.vx * 0.2, vy: vrange(-45, -30), life: vrange(0.9, 1.4), s0: 0.08, s1: lowHp ? 0.5 : 0.32,
         a0: fire ? 0.35 : 0.55, tint: lowHp ? 0x8a8278 : 0xe4dccb, drag: 0.6, vrot: vrange(-1.5, 1.5),

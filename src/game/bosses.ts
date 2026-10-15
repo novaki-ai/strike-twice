@@ -28,19 +28,19 @@ export interface BossDef {
 
 export const BOSSES: Record<string, BossDef> = {
   duchess: {
-    name: 'Duchess Dustwing', title: 'Matriarch of the Mothwood', tex: 'b_duchess', hp: 4200, size: 175, r: 52, speed: 70, dmg: 14, xp: 0,
+    name: 'Duchess Dustwing', title: 'Matriarch of the Mothwood', tex: 'b_duchess', hp: 3200, size: 175, r: 52, speed: 70, dmg: 14, xp: 0,
     anim: 'fly', animSpeed: 5, noFlip: true, light: 0xe8c8ff, shadowW: 160, anchorY: 0.85,
     attacks: [['spiral', 'swoop', 'gust', 'brood'], ['spiral', 'swoop', 'gust', 'brood', 'swoop']],
     phases: [0.5], desc: 'A vain moth duchess who hoards every light she can find.',
   },
   baron: {
-    name: 'Baron von Drizzle', title: 'Lord of the Endless Rain', tex: 'b_baron', hp: 9800, size: 180, r: 58, speed: 60, dmg: 18, xp: 0,
+    name: 'Baron von Drizzle', title: 'Lord of the Endless Rain', tex: 'b_baron', hp: 8000, size: 180, r: 58, speed: 60, dmg: 18, xp: 0,
     anim: 'float', noFlip: true, light: 0xbfe0ff, shadowW: 170, anchorY: 0.8,
     attacks: [['downpour', 'lightning', 'umbrella', 'summon'], ['downpour', 'lightning', 'umbrella', 'rain', 'summon', 'lightning']],
     phases: [0.5], desc: 'A pompous storm cloud who rains on every parade.',
   },
   snuffer: {
-    name: 'The Snuffer', title: 'Extinguisher of All Flames', tex: 'b_snuffer', hp: 20500, size: 215, r: 50, speed: 55, dmg: 22, xp: 0,
+    name: 'The Snuffer', title: 'Extinguisher of All Flames', tex: 'b_snuffer', hp: 16000, size: 215, r: 50, speed: 55, dmg: 22, xp: 0,
     anim: 'float', noFlip: true, light: 0xd0d8ff, shadowW: 150, anchorY: 0.9,
     attacks: [['slam', 'spokes', 'sweep', 'snuffers'], ['slam', 'spokes', 'lightsout', 'sweep', 'slam'], ['slam', 'spokes', 'sweep', 'lightsout', 'slam', 'spokes']],
     phases: [0.6, 0.25], desc: 'The cold hand that put out every light in Tinderbox.',
@@ -110,7 +110,7 @@ export function updateBoss(g: Game, e: Enemy, dt: number) {
   // movement
   if (!B.attack || !B.data.lockMove) {
     let tx = p.x, ty = p.y - 40;
-    const want = B.id === 'snuffer' ? 150 : 220;
+    const want = B.id === 'snuffer' ? 125 : B.id === 'baron' ? 165 : 160;
     const dx = e.x - p.x, dy = e.y - p.y;
     const d = Math.hypot(dx, dy) || 1;
     // orbit around the player at a comfortable distance
@@ -349,6 +349,7 @@ const ATTACKS: Record<string, AttackFn> = {
     const up = 0.35, track = 1.25 / fast, lock = 0.45 / fast;
     const t = B.at;
     const tl = B.data.tele;
+    e.intangible = t < up + track + lock * 0.6;
     if (t < up) {
       e.alpha = 1 - t / up;
       e.hop = (t / up) * 400;
@@ -380,6 +381,7 @@ const ATTACKS: Record<string, AttackFn> = {
     }
     if (t > up + track + lock + 0.7) {
       B.data.lockMove = false;
+      e.intangible = false;
       e.hop = 0; e.alpha = 1; B.invuln = false;
       return true;
     }
@@ -491,9 +493,10 @@ function bossDeath(g: Game, e: Enemy, dt: number) {
     for (let i = 0; i < 12; i++) g.dropPickup('xp', e.x + vrange(-90, 90), e.y + vrange(-60, 60), 20);
     g.dropPickup('heal', e.x, e.y + 30);
     g.magnetAll();
-    e.alive = false;
-    e.sp.visible = false;
-    e.sh.visible = false;
+    g.releaseEnemy(e);
+    e.intangible = false;
+    e.hop = 0;
+    e.alpha = 1;
     g.boss = null;
     g.bossActive = false;
     g.arena = null;

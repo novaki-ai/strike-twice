@@ -48,19 +48,19 @@ export interface StageDef {
 export const STAGES: StageDef[] = [
   {
     id: 1, name: 'The Mothwood', chapter: 'Chapter One', subtitle: 'Where every little light draws hungry wings',
-    tile: 'tile_forest', groundTint: 0xd8d4c4,
+    tile: 'tile_forest', groundTint: 0xf4efe0,
     props: [
       { tex: 'p1_tree', size: 150 }, { tex: 'p1_shrooms', size: 70 }, { tex: 'p1_boulder', size: 64 },
       { tex: 'p1_log', size: 52 }, { tex: 'p1_fern', size: 60 }, { tex: 'p1_tree', size: 170 }, { tex: 'p1_fern', size: 50 },
     ],
-    darkness: 0.28, ambient: [0.5, 0.75, 0.7], music: ['stage1_a', 'stage1_b'], bossMusic: ['boss1'],
+    darkness: 0.22, ambient: [0.35, 0.55, 0.55], music: ['stage1_a', 'stage1_b'], bossMusic: ['boss1'],
     hpMul: 1, dmgMul: 1, duration: 270, boss: 'duchess', arenaColor: 0xd9a35a, propEnemy: 'lanternprop', voice: 'chapter1',
     waves: [
-      { t: 0, rate: 1.1, max: 40, mix: { mold: 3, moth: 1 } },
-      { t: 35, rate: 1.9, max: 70, mix: { mold: 3, moth: 3 } },
-      { t: 85, rate: 2.5, max: 100, mix: { mold: 2, moth: 3, toadstool: 1.5 } },
-      { t: 145, rate: 3.2, max: 140, mix: { mold: 2, moth: 2, toadstool: 1.4, beetle: 1.6 } },
-      { t: 205, rate: 4.0, max: 180, mix: { mold: 2, moth: 2, toadstool: 1, beetle: 1.5, stump: 0.9 } },
+      { t: 0, rate: 1.6, max: 50, mix: { mold: 3, moth: 1 } },
+      { t: 30, rate: 2.6, max: 85, mix: { mold: 3, moth: 3 } },
+      { t: 80, rate: 3.2, max: 120, mix: { mold: 2, moth: 3, toadstool: 1.5 } },
+      { t: 140, rate: 3.8, max: 160, mix: { mold: 2, moth: 2, toadstool: 1.4, beetle: 1.6 } },
+      { t: 200, rate: 4.6, max: 200, mix: { mold: 2, moth: 2, toadstool: 1, beetle: 1.5, stump: 0.9 } },
     ],
     events: [
       { t: 60, kind: 'swarm', type: 'moth', n: 22 },
@@ -73,12 +73,12 @@ export const STAGES: StageDef[] = [
   },
   {
     id: 2, name: 'Drizzleport', chapter: 'Chapter Two', subtitle: 'It has not stopped raining in a hundred years',
-    tile: 'tile_docks', groundTint: 0xc8d0dc,
+    tile: 'tile_docks', groundTint: 0xe4e8f0,
     props: [
       { tex: 'p2_lamp', size: 130 }, { tex: 'p2_crates', size: 80 }, { tex: 'p2_anchor', size: 62 },
       { tex: 'p2_hydrant', size: 50 }, { tex: 'p2_bollard', size: 60 }, { tex: 'p2_lamp', size: 120 },
     ],
-    darkness: 0.36, ambient: [0.45, 0.55, 0.8], rain: true, music: ['stage2_a', 'stage2_b'], bossMusic: ['boss2'],
+    darkness: 0.4, ambient: [0.3, 0.4, 0.75], rain: true, music: ['stage2_a', 'stage2_b'], bossMusic: ['boss2'],
     hpMul: 2.3, dmgMul: 1.35, duration: 300, boss: 'baron', arenaColor: 0x7fb6e6, propEnemy: 'barrelprop', voice: 'chapter2',
     waves: [
       { t: 0, rate: 1.9, max: 70, mix: { raindrop: 3, slime: 1 } },
@@ -98,12 +98,12 @@ export const STAGES: StageDef[] = [
   },
   {
     id: 3, name: "The Snuffer's Spire", chapter: 'Chapter Three', subtitle: 'Cold wax, black smoke, and not one candle burning',
-    tile: 'tile_spire', groundTint: 0xc4bccc,
+    tile: 'tile_spire', groundTint: 0xe0d8e8,
     props: [
       { tex: 'p3_candelabra', size: 110 }, { tex: 'p3_pillar', size: 120 }, { tex: 'p3_gargoyle', size: 80 },
       { tex: 'p3_brazier', size: 60 }, { tex: 'p3_books', size: 56 }, { tex: 'p3_candelabra', size: 95 },
     ],
-    darkness: 0.5, ambient: [0.55, 0.45, 0.8], music: ['stage3_a', 'stage3_b'], bossMusic: ['boss3', 'boss3_b'],
+    darkness: 0.58, ambient: [0.3, 0.22, 0.5], music: ['stage3_a', 'stage3_b'], bossMusic: ['boss3', 'boss3_b'],
     hpMul: 4.6, dmgMul: 1.75, duration: 300, boss: 'snuffer', arenaColor: 0xb48aff, propEnemy: 'candleprop', voice: 'chapter3',
     waves: [
       { t: 0, rate: 2.2, max: 80, mix: { waxghost: 2, snufflet: 2 } },

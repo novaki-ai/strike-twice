@@ -185,7 +185,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
             // swirl + pull
             e.x += (dx / d) * pullK + (-dy / d) * pullK * 0.8;
             e.y += (dy / d) * pullK + (dx / d) * pullK * 0.8;
-            if (z.tickT <= 0) g.damageEnemy(e, z.dmg, z.w, { noKnock: true, slow: z.slow });
+            if (z.tickT <= 0) g.damageEnemy(e, z.dmg, z.w, { noKnock: true, slow: z.slow, small: true });
           }
         });
         if (z.tickT <= 0) z.tickT = z.tick;
@@ -195,8 +195,9 @@ export const WEAPONS: Record<string, WeaponDef> = {
       if (z.kind === 2 && z.sp) {
         const f = z.t / z.maxLife;
         z.sp.x = z.x; z.sp.y = z.y - 10;
-        z.sp.scale.set((z.r * 2) / 256 * 1.15, (z.r * 2) / 256 * 0.95);
-        z.sp.alpha = 0.85 * (1 - f * f);
+        z.sp.scale.set((z.r * 2) / 216, (z.r * 2) / 216 * 0.82);
+        z.sp.rotation = z.t * 0.8;
+        z.sp.alpha = 0.95 * (1 - f * f * f);
       } else if (z.kind === 3 && z.sp) {
         z.sp.x = z.x; z.sp.y = z.y - 10;
         z.sp.scale.set((z.r * 2.1) / 256);
@@ -352,7 +353,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
       const p = g.player;
       const lx = w.data.lx ?? p.x, ly = w.data.ly ?? p.y;
       const moved = Math.hypot(p.x - lx, p.y - ly);
-      const spacing = w.evo ? 26 : 24;
+      const spacing = w.evo ? 30 : 34;
       if (moved > spacing || (!p.moving && (w.t += dt) > 0.8)) {
         w.t = 0;
         w.data.lx = p.x; w.data.ly = p.y;
@@ -396,7 +397,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
       g.query(z.x, z.y - 10, z.r + 30, (e) => {
         const dx = e.x - z.x, dy = e.y - z.y;
         if (dx * dx + dy * dy < (z.r + e.r * 0.5) ** 2) {
-          g.damageEnemy(e, z.dmg, z.w, { knock: z.knock, slow: z.slow, fromX: z.x, fromY: z.y });
+          g.damageEnemy(e, z.dmg, z.w, { knock: z.knock, slow: z.slow, fromX: z.x, fromY: z.y, small: true });
           hits++;
         }
       });
@@ -476,7 +477,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
           if (n >= 3) return true;
           if (Math.hypot(e.x - p.x, e.y - p.y) < 110) {
             n++;
-            g.damageEnemy(e, 9 + (p.w?.level ?? 0), p.w, { noKnock: true });
+            g.damageEnemy(e, 9 + (p.w?.level ?? 0), p.w, { noKnock: true, small: true });
             g.bolt([p.x, p.y, (p.x + e.x) / 2 + vrange(-10, 10), (p.y + e.y - 20) / 2 + vrange(-10, 10), e.x, e.y - 20], 0xfff27a, 2);
           }
         });
@@ -589,7 +590,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
           if (da > cone + 0.15) return;
           if (e.hitCd[w.slot] > g.time) return;
           e.hitCd[w.slot] = g.time + 0.13;
-          g.damageEnemy(e, dmg, w, { knock: 0.35, burn: ev ? 10 : 3, fromX: ox, fromY: oy });
+          g.damageEnemy(e, dmg, w, { knock: 0.35, burn: ev ? 10 : 3, fromX: ox, fromY: oy, small: true });
         });
         if ((w.t -= dt) <= 0) { w.t = 0.25; audio.sfx('flame', 0.3); }
         return;
@@ -745,9 +746,9 @@ function smokeRing(g: Game, w: WeaponInst) {
     kind: 2, w, x: p.x, y: p.y, r: 14, r0: 14, r1: maxR, dmg: L(w, [8, 8, 11, 11, 14, 14, 14, 19]), life: 0.85 * p.stats.duration,
     slow: 0.45, hitSet: new Set<number>(), data: { pool: 'ring' },
   });
-  z.sp = g.pool('ring', g.projLayer, g.fx.softring);
+  z.sp = g.pool('ring', g.projLayer, g.fx.smokering);
   z.sp.anchor.set(0.5);
-  z.sp.tint = 0xe8e0d0;
+  z.sp.tint = 0xffffff;
   audio.sfx('ring', 0.35);
 }
 
@@ -770,4 +771,8 @@ function drawBeam(g: Game, w: WeaponInst, a: number, len: number, width: number,
   if (pt) { pt.sy = (width * 2.2 / 32) / (len / 256); }
   g.particle(ox, oy, g.fx.glow, { add: true, life: 0.2, s0: 0.6, s1: 0.3, tint: 0xfff6c0 });
   for (let i = 0; i < 4; i++) g.addLight(ox + cx * len * (i / 4), oy + cy * len * (i / 4), 120, 0.15, 0xfff0b0);
+}
+
+export function updateWeapon(g: Game, w: WeaponInst, dt: number) {
+  WEAPONS[w.id]?.update(g, w, dt);
 }

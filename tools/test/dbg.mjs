@@ -1,0 +1,21 @@
+import { chromium } from 'playwright';
+const URL = process.env.URL || 'http://localhost:4317/games/novaki/';
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+page.on('pageerror', (e) => console.log('pageerror: ' + e.message));
+page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log(m.type(), m.text()); });
+await page.goto(URL);
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+await page.evaluate(() => { window.NOVAKI_QA.skipTo(3, 'start'); window.NOVAKI_QA.setInvincible(true); });
+await page.waitForTimeout(1500);
+const r = await page.evaluate(() => {
+  const A = window.__novaki; const g = A.game;
+  const ex = A.app.renderer.extract;
+  const res = ex.pixels(g.lightRT);
+  const { pixels, width, height } = res;
+  const at = (x, y) => Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 4));
+  return { w: width, h: height, corner: at(2, 2), center: at(Math.floor(width / 2), Math.floor(height / 2) - 10), dark: g.darkness, vis: g.lightSprite.visible, blend: g.lightSprite.blendMode, lights: g.lightScene.children.length, ambTint: g.lightScene.children[0].tint, ambW: g.lightScene.children[0].width, rtW: g.lightRT.width, sw: g.lightSprite.width };
+});
+console.log(JSON.stringify(r));
+await page.screenshot({ path: process.env.OUT + '/dbg.png' });
+await browser.close();

@@ -30,8 +30,8 @@ export interface EnemyDef {
 
 export const ENEMIES: Record<string, EnemyDef> = {
   // ---- Stage 1: The Mothwood
-  moth: { name: 'Mothling', tex: 'e_moth', hp: 7, speed: 92, dmg: 5, r: 13, size: 36, xp: 1, ai: 'weave', anim: 'fly', animSpeed: 14, noFlip: true, desc: 'Flutters toward any light in a wobbly zig-zag.' },
-  mold: { name: 'Mold Blob', tex: 'e_mold', hp: 11, speed: 58, dmg: 6, r: 14, size: 38, xp: 1, ai: 'chase', anim: 'wobble', animSpeed: 6, desc: 'Damp, slow and relentless.' },
+  moth: { name: 'Mothling', tex: 'e_moth', hp: 6, speed: 92, dmg: 5, r: 13, size: 36, xp: 1, ai: 'weave', anim: 'fly', animSpeed: 14, noFlip: true, desc: 'Flutters toward any light in a wobbly zig-zag.' },
+  mold: { name: 'Mold Blob', tex: 'e_mold', hp: 9, speed: 58, dmg: 6, r: 14, size: 38, xp: 1, ai: 'chase', anim: 'wobble', animSpeed: 6, desc: 'Damp, slow and relentless.' },
   toadstool: { name: 'Toadstool', tex: 'e_toadstool', hp: 24, speed: 44, dmg: 7, r: 16, size: 50, xp: 2, ai: 'spore', anim: 'walk', desc: 'Stops to puff rings of soggy spores.' },
   beetle: { name: 'Stag Beetle', tex: 'e_beetle', hp: 34, speed: 52, dmg: 10, r: 17, size: 40, xp: 3, ai: 'charge', anim: 'walk', animSpeed: 12, faceRight: true, desc: 'Lowers its horns, then charges in a straight line.' },
   stump: { name: 'Soggy Stump', tex: 'e_stump', hp: 110, speed: 34, dmg: 12, r: 24, size: 72, xp: 6, ai: 'chase', anim: 'stomp', animSpeed: 5, kbRes: 0.25, desc: 'A waterlogged brute. Barely flinches.' },

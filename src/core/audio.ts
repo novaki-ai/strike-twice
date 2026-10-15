@@ -34,6 +34,7 @@ export class AudioSys {
   private sfxActive: Record<string, number> = {};
   private voiceSrc: AudioBufferSourceNode | null = null;
   private voiceToken = 0;
+  private voiceDone: (() => void) | null = null;
   vol = { music: 0.7, sfx: 0.8, voice: 1 };
   muted = false;
   base = './assets/';
@@ -277,7 +278,10 @@ export class AudioSys {
     this.stopVoice();
     const token = ++this.voiceToken;
     if (!c) return Promise.resolve();
-    return new Promise<void>((resolve) => {
+    return new Promise<void>((resolve0) => {
+      let settled = false;
+      const resolve = () => { if (settled) return; settled = true; if (this.voiceDone === resolve) this.voiceDone = null; resolve0(); };
+      this.voiceDone = resolve;
       const go = (b: AudioBuffer | null) => {
         if (token !== this.voiceToken) return resolve();
         if (!b) { onStart?.(0); return resolve(); }
@@ -317,6 +321,9 @@ export class AudioSys {
 
   stopVoice() {
     this.voiceToken++;
+    const done = this.voiceDone;
+    this.voiceDone = null;
+    done?.();
     if (this.voiceSrc) {
       const s = this.voiceSrc;
       this.voiceSrc = null;

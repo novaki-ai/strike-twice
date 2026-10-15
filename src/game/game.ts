@@ -254,7 +254,7 @@ export class Game {
     this.stats = { kills: 0, dmgTaken: 0, coins: 0, maxLevel: 1, bossesKilled: [], chests: 0, heals: 0, stageReached: 1, evolutions: 0 };
     const base: Stats = {
       maxHp: 100, regen: 0, armor: 0, speed: 150, might: 1, area: 1, cooldown: 1, amount: 0, projSpeed: 1,
-      duration: 1, magnet: 70, luck: 1, growth: 1, greed: 1, crit: 0.05, critMult: 1.75, burn: 1, ignite: 0,
+      duration: 1, magnet: 88, luck: 1, growth: 1, greed: 1, crit: 0.05, critMult: 1.75, burn: 1, ignite: 0,
       revives: 0, dashCd: 1.8, pierce: 0,
     };
     for (const [k, v] of Object.entries(meta.stats)) {
@@ -289,6 +289,7 @@ export class Game {
     for (const p of this.particles) if (p.alive) { p.alive = false; this.unpool('part' + p.layer, p.sp); }
     this.particles.length = 0;
     for (const n of this.nums) { n.alive = false; n.c.visible = false; }
+    this.numsActive = 0;
     for (const b of this.bolts) { b.alive = false; b.g.visible = false; }
     this.boss = null;
     this.bossActive = false;
@@ -300,7 +301,7 @@ export class Game {
     this.clearDecor();
   }
 
-  startStage(n: number) {
+  startStage(n: number, quiet = false) {
     // clear field but keep player build
     for (const e of this.enemies) this.releaseEnemy(e);
     this.enemies.length = 0;
@@ -329,7 +330,7 @@ export class Game {
     this.clearDecor();
     this.director = new StageDirector(this, this.stageDef);
     this.buildRain(this.stageDef.rain ? 90 : 0);
-    this.hooks.stageIntro(n);
+    if (!quiet) this.hooks.stageIntro(n);
   }
 
   /* ------------------------------------------------------------------ weapons & stats */
@@ -547,7 +548,7 @@ export class Game {
   /* ------------------------------------------------------------------ enemies */
 
   spawnEnemy(type: string, x: number, y: number, opts: { elite?: boolean; small?: boolean; hpMul?: number; noXp?: boolean; boss?: any } = {}): Enemy | null {
-    const def = ENEMIES[type] || BOSSES[type];
+    const def: any = ENEMIES[type] || BOSSES[type];
     if (!def) return null;
     let e = this.enemyPool.pop();
     if (!e) {
@@ -580,7 +581,7 @@ export class Game {
     e.r = def.r * sizeMul;
     e.speed = def.speed * (1 + (this.stage - 1) * 0.06) * (e.elite ? 0.85 : 1);
     e.dmg = def.dmg * st.dmgMul * (e.elite ? 1.5 : 1);
-    e.xp = def.xp * (e.elite ? 20 : 1) * (e.small ? 0.5 : 1);
+    e.xp = def.xp * (e.elite ? 20 : 1) * (e.small ? 0.5 : 1) * (1 + (this.stage - 1) * 0.5);
     e.state = 0; e.t = 0; e.t2 = 0; e.ang = this.rng.angle(); e.tx = 0; e.ty = 0;
     e.flash = 0; e.burnT = 0; e.burnDps = 0; e.burnTick = 0; e.slowT = 0; e.slowF = 1; e.freezeT = 0;
     e.boss = opts.boss || null;
@@ -690,14 +691,21 @@ export class Game {
     if (maxR < 400) {
       this.query(x, y, maxR, (e) => {
         if (e.intangible || e.prop || (exclude && exclude.has(e.id))) return;
-        const d = (e.x - x) ** 2 + (e.y - y) ** 2;
+        let d = (e.x - x) ** 2 + (e.y - y) ** 2;
+        if (e.boss) d *= 0.3;
         if (d < bd) { bd = d; best = e; }
       });
+      const b = this.boss;
+      if (b && b.alive && !b.intangible && !(exclude && exclude.has(b.id))) {
+        const d = ((b.x - x) ** 2 + (b.y - y) ** 2) * 0.3;
+        if (d < bd && d < maxR * maxR) best = b;
+      }
       return best;
     }
     for (const e of this.enemies) {
       if (!e.alive || e.intangible || e.prop || (exclude && exclude.has(e.id))) continue;
-      const d = (e.x - x) ** 2 + (e.y - y) ** 2;
+      let d = (e.x - x) ** 2 + (e.y - y) ** 2;
+      if (e.boss) d *= 0.3;
       if (d < bd) { bd = d; best = e; }
     }
     return best;
@@ -708,8 +716,9 @@ export class Game {
     const out: { e: Enemy; d: number }[] = [];
     for (const e of this.enemies) {
       if (!e.alive || e.intangible || e.prop) continue;
-      const d = (e.x - x) ** 2 + (e.y - y) ** 2;
+      let d = (e.x - x) ** 2 + (e.y - y) ** 2;
       if (d > maxR * maxR) continue;
+      if (e.boss) d *= 0.2;
       if (out.length < n) { out.push({ e, d }); out.sort((a, b) => a.d - b.d); }
       else if (d < out[n - 1].d) { out[n - 1] = { e, d }; out.sort((a, b) => a.d - b.d); }
     }
@@ -753,7 +762,7 @@ export class Game {
   }
 
   /** Central damage pipeline for player-sourced damage. Returns damage dealt. */
-  damageEnemy(e: Enemy, amount: number, w: WeaponInst | null, o: { kx?: number; ky?: number; knock?: number; burn?: number; noKnock?: boolean; burnTick?: boolean; noCrit?: boolean; slow?: number; fromX?: number; fromY?: number } = {}): number {
+  damageEnemy(e: Enemy, amount: number, w: WeaponInst | null, o: { kx?: number; ky?: number; knock?: number; burn?: number; noKnock?: boolean; burnTick?: boolean; noCrit?: boolean; slow?: number; fromX?: number; fromY?: number; small?: boolean } = {}): number {
     if (!e.alive || e.intangible) return 0;
     const p = this.player;
     const s = p.stats;
@@ -795,7 +804,8 @@ export class Game {
       e.burnDps = Math.max(e.burnDps, b);
     }
     if (o.slow) { e.slowT = 1.2; e.slowF = Math.min(e.slowF < 1 && e.slowT > 0 ? e.slowF : 1, 1 - o.slow); }
-    if (this.settings.dmgNumbers && dmg >= 0.5) {
+    const quiet = (o.burnTick && dmg < 6) || (o.small && !crit && dmg < 12) || (!crit && this.numsActive > 32 && dmg < 40);
+    if (this.settings.dmgNumbers && dmg >= 0.5 && !quiet) {
       const col = blocked ? 0x9a9a9a : o.burnTick ? 0xff9a3c : crit ? 0xffd23a : 0xffffff;
       this.dmgNumber(e.x + vrange(-8, 8), e.y - e.def.size * e.scale * 0.8, dmg, col, crit ? 1.25 : o.burnTick ? 0.7 : 0.85);
     }
@@ -975,9 +985,14 @@ export class Game {
         z.tickT -= dt;
         if (z.tickT <= 0) {
           z.tickT = z.tick;
+          const slot = z.w ? z.w.slot : 15;
           this.query(z.x, z.y, z.r + 30, (e) => {
             const dx = e.x - z.x, dy = e.y - z.y;
-            if (dx * dx + dy * dy < (z.r + e.r * 0.6) ** 2) this.damageEnemy(e, z.dmg, z.w, { knock: z.knock, burn: z.burn, slow: z.slow, fromX: z.x, fromY: z.y, noKnock: z.knock <= 0 });
+            if (dx * dx + dy * dy >= (z.r + e.r * 0.6) ** 2) return;
+            // overlapping zones from the same weapon don't stack damage
+            if (e.hitCd[slot] > this.time) return;
+            e.hitCd[slot] = this.time + z.tick * 0.9;
+            this.damageEnemy(e, z.dmg, z.w, { knock: z.knock, burn: z.burn, slow: z.slow, fromX: z.x, fromY: z.y, noKnock: z.knock <= 0, small: true });
           });
         }
       }
@@ -1245,10 +1260,10 @@ export class Game {
     for (let i = 0; i < this.particles.length; i++) if (!this.particles[i].alive) { pt = this.particles[i]; break; }
     const layer = o.add ? 1 : (o.layer ?? 0);
     if (!pt) {
-      pt = { alive: true, x, y, vx: 0, vy: 0, life: 1, max: 1, sp: null as any, s0: 1, s1: 0, a0: 1, rot: 0, vrot: 0, drag: 0, grav: 0, z: 0, vz: 0, layer };
+      pt = { alive: true, x, y, vx: 0, vy: 0, life: 1, max: 1, sp: null as any, s0: 1, s1: 0, a0: 1, rot: 0, vrot: 0, drag: 0, grav: 0, z: 0, vz: 0, layer, aspect: 1, sy: 1 };
       this.particles.push(pt);
     }
-    Object.assign(pt, { alive: true, x, y, vx: 0, vy: 0, life: 1, s0: 1, s1: 0, a0: 1, rot: 0, vrot: 0, drag: 0, grav: 0, z: 0, vz: 0 }, o);
+    Object.assign(pt, { alive: true, x, y, vx: 0, vy: 0, life: 1, s0: 1, s1: 0, a0: 1, rot: 0, vrot: 0, drag: 0, grav: 0, z: 0, vz: 0, aspect: 1, sy: 1 }, o);
     pt.layer = layer;
     pt.max = pt.life;
     const L = layer === 1 ? this.addLayer : layer === 2 ? this.topLayer : this.projLayer;
@@ -1297,9 +1312,11 @@ export class Game {
     this.lights.push({ x, y, r, life, max: life, tint });
   }
 
+  numsActive = 0;
   dmgNumber(x: number, y: number, v: number, tint: number, scale = 1) {
     let n: DmgNum | undefined;
     for (let i = 0; i < this.nums.length; i++) if (!this.nums[i].alive) { n = this.nums[i]; break; }
+    if (n || this.nums.length < 90) this.numsActive++;
     if (!n) {
       if (this.nums.length >= 90) {
         // recycle oldest (lowest life)
@@ -1337,8 +1354,8 @@ export class Game {
     n.alive = true;
     n.x = x; n.y = y;
     n.vy = -70;
-    n.life = 0.75;
-    n.scale = scale * 0.42;
+    n.life = 0.6;
+    n.scale = scale * 0.4;
     c.visible = true;
     c.alpha = 1;
   }
@@ -1480,7 +1497,7 @@ export class Game {
       const ex = ix(e.px, e.x), ey = ix(e.py, e.y);
       const def = e.def;
       const sp = e.sp;
-      const tex = e.flash > 0 ? this.T.flash[def.tex] : this.T.tex[def.tex];
+      const tex = e.flash > 0 && !e.boss ? this.T.flash[def.tex] : this.T.tex[def.tex];
       if (tex && sp.texture !== tex) sp.texture = tex;
       const base = (def.size * e.scale) / (this.T.tex[def.tex]?.height || 100);
       let bob = 0, sqx = 1, sqy = 1, rot = 0;
@@ -1493,6 +1510,7 @@ export class Game {
         case 'stomp': bob = -Math.abs(Math.sin(ph * 0.5)) * 4; rot = Math.sin(ph * 0.5) * 0.06; break;
         default: bob = -Math.abs(Math.sin(ph)) * 5; rot = Math.sin(ph) * 0.08; sqy = 1 + Math.abs(Math.cos(ph)) * 0.05; break;
       }
+      if (def.anim !== 'hop') bob -= e.hop;
       if (e.state === 9) { // generic windup shake
         rot += Math.sin(t * 60) * 0.12;
       }
@@ -1504,7 +1522,8 @@ export class Game {
       sp.scale.set(base * sqx * face * spawnS, base * sqy * spawnS);
       sp.rotation = rot + (e.boss?.rot || 0);
       sp.alpha = e.alpha;
-      if (!e.elite && !e.boss) sp.tint = e.burnT > 0 ? 0xffb38a : e.freezeT > 0 || this.freezeT > 0 ? 0x9fd8ff : e.slowT > 0 ? 0xc8d8ff : 0xffffff;
+      if (e.boss) sp.tint = e.flash > 0 ? 0xff8f7a : 0xffffff;
+      else if (!e.elite) sp.tint = e.burnT > 0 ? 0xffb38a : e.freezeT > 0 || this.freezeT > 0 ? 0x9fd8ff : e.slowT > 0 ? 0xc8d8ff : 0xffffff;
       sp.zIndex = ey;
       e.sh.x = ex;
       e.sh.y = ey;
@@ -1567,7 +1586,7 @@ export class Game {
       pt.rot += pt.vrot * frameDt;
       const s = pt.s0 + (pt.s1 - pt.s0) * f;
       pt.sp.x = pt.x; pt.sp.y = pt.y - pt.z;
-      pt.sp.scale.set(s);
+      pt.sp.scale.set(s * pt.aspect, s * pt.sy);
       pt.sp.rotation = pt.rot;
       pt.sp.alpha = pt.a0 * (f < 0.7 ? 1 : 1 - (f - 0.7) / 0.3);
     }
@@ -1576,10 +1595,10 @@ export class Game {
     for (const n of this.nums) {
       if (!n.alive) continue;
       n.life -= frameDt;
-      if (n.life <= 0) { n.alive = false; n.c.visible = false; continue; }
+      if (n.life <= 0) { n.alive = false; n.c.visible = false; this.numsActive = Math.max(0, this.numsActive - 1); continue; }
       n.y += n.vy * frameDt;
       n.vy *= Math.exp(-3 * frameDt);
-      const age = 0.75 - n.life;
+      const age = 0.6 - n.life;
       const pop = age < 0.1 ? 0.6 + age * 6 : 1.2 - Math.min(0.2, (age - 0.1) * 0.8);
       n.c.x = n.x; n.c.y = n.y;
       n.c.scale.set(n.scale * pop);
@@ -1705,15 +1724,15 @@ export class Game {
     const p = this.player;
     // player light
     const pr = 230 * (this.player.goldT > 0 || this.player.ignite > 0 ? 1.5 : 1) * (1 - this.extraDark * 0.35);
-    this.pushLight(this.rig.x, this.rig.y - 40, pr * 2, 0xffd9a0, 1);
-    this.pushLight(this.rig.x, this.rig.y - 40, pr * 1.2, 0xffffff, 0.6);
+    this.pushLight(this.rig.x, this.rig.y - 40, pr * 2.3, 0xfff0d8, 1);
+    this.pushLight(this.rig.x, this.rig.y - 40, pr * 1.1, 0xffffff, 0.5);
     if (this.boss && this.boss.alive) this.pushLight(this.boss.x, this.boss.y - 60, 300, this.boss.def.light ?? 0xb0c0ff, 0.6);
     const amb = this.lightScene.children[0] as Sprite;
     amb.width = this.screenW / 4 + 4;
     amb.height = this.screenH / 4 + 4;
-    const c = this.stageDef?.ambient ?? [0.55, 0.6, 0.75];
-    const lv = 1 - d;
-    const r = Math.round(255 * (lv + (1 - lv) * c[0] * 0.25)), gg = Math.round(255 * (lv + (1 - lv) * c[1] * 0.25)), b = Math.round(255 * (lv + (1 - lv) * c[2] * 0.25));
+    const c = this.stageDef?.ambient ?? [0.3, 0.3, 0.5];
+    const ch = (k: number) => Math.max(0, Math.min(255, Math.round(255 * (1 - d + d * c[k]))));
+    const r = ch(0), gg = ch(1), b = ch(2);
     amb.tint = (r << 16) | (gg << 8) | b;
     for (let i = this.lightUsed; i < this.lightPool.length; i++) this.lightPool[i].visible = false;
     this.app.renderer.render({ container: this.lightScene, target: this.lightRT, clear: true });
@@ -1728,7 +1747,7 @@ export const PICKUP_ICON: Record<string, string> = {
 
 export function xpFor(level: number): number {
   const L = level - 1;
-  return Math.floor(5 + L * 7 + Math.pow(L, 1.75) * 0.6);
+  return Math.floor(5 + L * 4.5 + Math.pow(L, 1.8) * 0.25);
 }
 
 export function hash3(a: number, b: number, c: number): number {
