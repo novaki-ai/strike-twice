@@ -79,7 +79,7 @@ export const STAGES: StageDef[] = [
       { tex: 'p2_hydrant', size: 50 }, { tex: 'p2_bollard', size: 60 }, { tex: 'p2_lamp', size: 120 },
     ],
     darkness: 0.4, ambient: [0.3, 0.4, 0.75], rain: true, music: ['stage2_a', 'stage2_b'], bossMusic: ['boss2'],
-    hpMul: 2.3, dmgMul: 1.35, duration: 300, boss: 'baron', arenaColor: 0x7fb6e6, propEnemy: 'barrelprop', voice: 'chapter2',
+    hpMul: 2.3, dmgMul: 1.25, duration: 300, boss: 'baron', arenaColor: 0x7fb6e6, propEnemy: 'barrelprop', voice: 'chapter2',
     waves: [
       { t: 0, rate: 1.9, max: 70, mix: { raindrop: 3, slime: 1 } },
       { t: 45, rate: 2.6, max: 100, mix: { raindrop: 3, slime: 2, frog: 1.5 } },
@@ -104,7 +104,7 @@ export const STAGES: StageDef[] = [
       { tex: 'p3_brazier', size: 60 }, { tex: 'p3_books', size: 56 }, { tex: 'p3_candelabra', size: 95 },
     ],
     darkness: 0.58, ambient: [0.3, 0.22, 0.5], music: ['stage3_a', 'stage3_b'], bossMusic: ['boss3', 'boss3_b'],
-    hpMul: 4.6, dmgMul: 1.75, duration: 300, boss: 'snuffer', arenaColor: 0xb48aff, propEnemy: 'candleprop', voice: 'chapter3',
+    hpMul: 4.6, dmgMul: 1.55, duration: 300, boss: 'snuffer', arenaColor: 0xb48aff, propEnemy: 'candleprop', voice: 'chapter3',
     waves: [
       { t: 0, rate: 2.2, max: 80, mix: { waxghost: 2, snufflet: 2 } },
       { t: 50, rate: 2.8, max: 110, mix: { waxghost: 2, snufflet: 2, wisp: 1.4 } },
@@ -214,7 +214,7 @@ export class StageDirector {
     // destructible props
     this.propT -= dt;
     if (this.propT <= 0) {
-      this.propT = 24;
+      this.propT = 20;
       let props = 0;
       for (const e of g.enemies) if (e.alive && e.prop) props++;
       if (props < 3) {

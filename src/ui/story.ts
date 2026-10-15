@@ -40,9 +40,12 @@ export const BOSS_LINES: Record<string, { intro: Line; quip?: Line; defeat: Line
   },
   snuffer: {
     intro: { voice: 'snuffer_intro', who: 'The Snuffer', text: 'A spent match, come all this way. How thoughtful. Allow me to put you out... properly.' },
+    quip: { voice: 'novaki_boss3', who: 'Novaki', text: "Yeah, yeah. Let's get this over with." },
     phase: { voice: 'snuffer_phase', who: 'The Snuffer', text: 'Enough! Let the dark swallow you whole!' },
     defeat: { voice: 'snuffer_defeat', who: 'The Snuffer', text: 'No... not the light... anything but the light...' },
   },
 };
+
+export const DEATH_LINE: Line = { voice: 'novaki_death', who: 'Novaki', text: 'Ugh. Not again.' };
 
 export const GAMEOVER_LINE: Line = { voice: 'gameover', text: 'The ember flickers... but a stubborn match always strikes again.' };

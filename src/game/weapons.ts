@@ -76,12 +76,12 @@ export const WEAPONS: Record<string, WeaponDef> = {
     levels: ['+1 ember', '+3 damage', '+1 ember', '+1 pierce, +3 damage', '+1 ember', '+3 damage', '+1 pierce, +3 damage, faster'],
     evo: { passive: 'sulfur', name: 'Sulfur Storm', desc: 'A rapid barrage of embers that explode on impact.' },
     update(g, w, dt) {
-      const cd = w.evo ? 0.55 : L(w, [1.05, 1.05, 1.0, 1.0, 0.95, 0.95, 0.9, 0.8]);
+      const cd = w.evo ? 0.55 : L(w, [0.9, 0.9, 0.88, 0.88, 0.85, 0.85, 0.8, 0.72]);
       cooldown(g, w, dt, cd, () => {
         const p = g.player;
         const n = L(w, [1, 2, 2, 3, 3, 4, 4, 4]) + p.stats.amount + (w.evo ? 2 : 0);
         const targets = g.nearestN(p.x, p.y, n, 520);
-        const dmg = L(w, [10, 10, 13, 13, 16, 16, 19, 22]) * (w.evo ? 1.2 : 1);
+        const dmg = L(w, [12, 12, 15, 15, 18, 18, 21, 24]) * (w.evo ? 1.2 : 1);
         const pierce = L(w, [1, 1, 1, 1, 2, 2, 2, 3]) + p.stats.pierce;
         const spd = 400 * p.stats.projSpeed;
         for (let i = 0; i < n; i++) {

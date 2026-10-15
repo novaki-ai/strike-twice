@@ -33,10 +33,10 @@ export const ENEMIES: Record<string, EnemyDef> = {
   moth: { name: 'Mothling', tex: 'e_moth', hp: 6, speed: 84, dmg: 3, r: 13, size: 36, xp: 1, ai: 'weave', anim: 'fly', animSpeed: 14, noFlip: true, desc: 'Flutters toward any light in a wobbly zig-zag.' },
   mold: { name: 'Mold Blob', tex: 'e_mold', hp: 9, speed: 56, dmg: 5, r: 14, size: 38, xp: 1, ai: 'chase', anim: 'wobble', animSpeed: 6, desc: 'Damp, slow and relentless.' },
   toadstool: { name: 'Toadstool', tex: 'e_toadstool', hp: 24, speed: 44, dmg: 7, r: 16, size: 50, xp: 2, ai: 'spore', anim: 'walk', desc: 'Stops to puff rings of soggy spores.' },
-  beetle: { name: 'Stag Beetle', tex: 'e_beetle', hp: 34, speed: 52, dmg: 10, r: 17, size: 40, xp: 3, ai: 'charge', anim: 'walk', animSpeed: 12, faceRight: true, desc: 'Lowers its horns, then charges in a straight line.' },
-  stump: { name: 'Soggy Stump', tex: 'e_stump', hp: 110, speed: 34, dmg: 12, r: 24, size: 72, xp: 6, ai: 'chase', anim: 'stomp', animSpeed: 5, kbRes: 0.25, desc: 'A waterlogged brute. Barely flinches.' },
+  beetle: { name: 'Stag Beetle', tex: 'e_beetle', hp: 34, speed: 52, dmg: 9, r: 17, size: 40, xp: 3, ai: 'charge', anim: 'walk', animSpeed: 12, faceRight: true, desc: 'Lowers its horns, then charges in a straight line.' },
+  stump: { name: 'Soggy Stump', tex: 'e_stump', hp: 110, speed: 34, dmg: 11, r: 24, size: 72, xp: 6, ai: 'chase', anim: 'stomp', animSpeed: 5, kbRes: 0.25, desc: 'A waterlogged brute. Barely flinches.' },
   // ---- Stage 2: Drizzleport
-  raindrop: { name: 'Raindrop', tex: 'e_raindrop', hp: 10, speed: 112, dmg: 6, r: 12, size: 38, xp: 1, ai: 'chase', anim: 'walk', animSpeed: 13, desc: 'Fast, angry and very wet.' },
+  raindrop: { name: 'Raindrop', tex: 'e_raindrop', hp: 10, speed: 102, dmg: 5, r: 12, size: 38, xp: 1, ai: 'chase', anim: 'walk', animSpeed: 13, desc: 'Fast, angry and very wet.' },
   slime: { name: 'Puddle Slime', tex: 'e_slime', hp: 34, speed: 50, dmg: 8, r: 19, size: 48, xp: 2, ai: 'chase', anim: 'wobble', animSpeed: 5, desc: 'Splits into two smaller puddles when popped.' },
   frog: { name: 'Bullfrog', tex: 'e_frog', hp: 30, speed: 0, dmg: 9, r: 17, size: 44, xp: 3, ai: 'hop', anim: 'hop', faceRight: true, desc: 'Leaps at you in big bounding hops.' },
   cloud: { name: 'Storm Cloud', tex: 'e_cloud', hp: 26, speed: 70, dmg: 0, r: 18, size: 48, xp: 3, ai: 'artillery', anim: 'float', noFlip: true, desc: 'Keeps its distance and calls down lightning.' },
@@ -359,7 +359,7 @@ export function onEnemyDeath(g: Game, e: Enemy, w: WeaponInst | null) {
   // drops
   if (e.prop) {
     const r = g.rng.next();
-    const kind = r < 0.35 ? 'heal' : r < 0.55 ? 'coin' : r < 0.7 ? 'magnet' : r < 0.82 ? 'bomb' : r < 0.92 ? 'freeze' : 'goldmatch';
+    const kind = r < 0.42 ? 'heal' : r < 0.6 ? 'coin' : r < 0.73 ? 'magnet' : r < 0.84 ? 'bomb' : r < 0.93 ? 'freeze' : 'goldmatch';
     g.dropPickup(kind, e.x, e.y - 10, kind === 'coin' ? 5 : 1);
     return;
   }

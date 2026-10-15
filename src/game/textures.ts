@@ -9,7 +9,7 @@ export const SPRITES = [
   'p2_lamp', 'p2_barrel', 'p2_crates', 'p2_anchor', 'p2_hydrant', 'p2_bollard',
   'p3_candelabra', 'p3_pillar', 'p3_candles', 'p3_gargoyle', 'p3_brazier', 'p3_books',
 ];
-export const BIG_SPRITES = ['b_duchess', 'b_baron', 'b_snuffer'];
+export const BIG_SPRITES = ['b_duchess', 'b_baron', 'b_snuffer', 'novaki_ko'];
 export const ICONS = [
   'marshmallow', 'magnet', 'coin', 'chest', 'ember', 'goldmatch', 'firecracker', 'watch', 'heartcandle',
 ];

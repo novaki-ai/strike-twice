@@ -256,7 +256,7 @@ export class Game {
     this.stats = { kills: 0, dmgTaken: 0, coins: 0, maxLevel: 1, bossesKilled: [], chests: 0, heals: 0, stageReached: 1, evolutions: 0, dmgBy: {}, assisted: false };
     const base: Stats = {
       maxHp: 100, regen: 0, armor: 0, speed: 150, might: 1, area: 1, cooldown: 1, amount: 0, projSpeed: 1,
-      duration: 1, magnet: 88, luck: 1, growth: 1, greed: 1, crit: 0.05, critMult: 1.75, burn: 1, ignite: 0,
+      duration: 1, magnet: 100, luck: 1, growth: 1, greed: 1, crit: 0.05, critMult: 1.75, burn: 1, ignite: 0,
       revives: 0, dashCd: 1.8, pierce: 0,
     };
     for (const [k, v] of Object.entries(meta.stats)) {
@@ -273,6 +273,7 @@ export class Game {
       ignite: 0,
     };
     this.addWeapon(meta.startWeapon || 'ember');
+    this.rig.reset();
     this.running = true;
   }
 
@@ -535,6 +536,9 @@ export class Game {
       p.hp = 0;
       this.over = true;
       this.running = false;
+      this.rig.knockOut(this);
+      this.shake(12, 0.5);
+      for (let i = 0; i < 8; i++) this.puff(p.x + vrange(-20, 20), p.y - vrange(10, 50), 0xbfb6a6, 0.8, 1.2);
       this.hooks.playerDied();
     }
   }
@@ -831,6 +835,14 @@ export class Game {
     if (!e.prop) {
       this.stats.kills++;
       if (w) w.kills++;
+    }
+    if (!e.prop && this.particles.length < 1200) {
+      const tex = this.T.flash[e.def.tex];
+      if (tex) {
+        const base = (e.def.size * e.scale) / tex.height;
+        const pt = this.particle(e.x, e.y - e.def.size * e.scale * 0.45, tex, { life: 0.14, s0: base, s1: base * 1.45, a0: 0.85, layer: 0 });
+        if (pt) pt.sp.anchor.set(0.5);
+      }
     }
     onEnemyDeath(this, e, w);
     this.enemyPool.push(e);
@@ -1517,6 +1529,12 @@ export class Game {
         default: bob = -Math.abs(Math.sin(ph)) * 5; rot = Math.sin(ph) * 0.08; sqy = 1 + Math.abs(Math.cos(ph)) * 0.05; break;
       }
       if (def.anim !== 'hop') bob -= e.hop;
+      if (e.boss) {
+        const id = e.boss.id;
+        if (id === 'duchess') { sqx *= 0.88 + 0.12 * Math.abs(Math.sin(t * 7)); if (this.frameCount % 5 === 0) this.particle(ex + vrange(-80, 80), ey - vrange(40, 150), this.fx.puff, { vy: 30, vx: vrange(-20, 20), life: 1, s0: 0.15, s1: 0.3, a0: 0.5, tint: 0xe8d8b0 }); }
+        else if (id === 'baron') { if (this.frameCount % 2 === 0) this.particle(ex + vrange(-60, 60), ey - 30 + vrange(-10, 10), this.fx.streak, { vy: 420, life: 0.35, s0: 0.5, s1: 0.5, a0: 0.6, tint: 0x9fd0ff, layer: 0 }); if (Math.random() < 0.01) { this.bolt([ex + vrange(-40, 40), ey - 140, ex + vrange(-30, 30), ey - 80, ex + vrange(-40, 40), ey - 20], 0xfff3a0, 2); } }
+        else if (id === 'snuffer') { if (this.frameCount % 3 === 0) this.particle(ex + vrange(-50, 50), ey - vrange(0, 120), this.fx.puff, { vy: -40, vx: vrange(-15, 15), life: 1.2, s0: 0.25, s1: 0.6, a0: 0.55, tint: 0x2a2430 }); }
+      }
       if (e.state === 9) { // generic windup shake
         rot += Math.sin(t * 60) * 0.12;
       }
@@ -1534,6 +1552,9 @@ export class Game {
       e.sh.x = ex;
       e.sh.y = ey;
       e.sh.alpha = e.alpha * (def.anim === 'fly' || def.anim === 'float' ? 0.6 : 1);
+      if (e.elite && this.frameCount % 3 === 0) {
+        this.particle(ex + vrange(-e.r, e.r), ey - def.size * e.scale * vrange(0.1, 0.9), this.fx.star, { add: true, vy: -30, life: 0.5, s0: 0.35, s1: 0, tint: 0xffd23a });
+      }
       // burn flicker particles
       if (e.burnT > 0 && Math.random() < 0.08) {
         this.particle(ex + vrange(-e.r, e.r), ey - def.size * e.scale * vrange(0.2, 0.7), this.fx.flame, { vy: -60, life: 0.35, s0: 0.18, s1: 0.02, drag: 1 });
@@ -1763,7 +1784,7 @@ export const PICKUP_ICON: Record<string, string> = {
 
 export function xpFor(level: number): number {
   const L = level - 1;
-  return Math.floor(5 + L * 4.5 + Math.pow(L, 1.8) * 0.25);
+  return Math.floor(6 + L * 8 + Math.pow(L, 1.8) * 0.55);
 }
 
 export function hash3(a: number, b: number, c: number): number {

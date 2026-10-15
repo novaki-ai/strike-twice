@@ -44,8 +44,35 @@ export class NovakiRig {
     this.root.addChild(this.legs, this.backArm, this.torso, this.frontArm, flameBox);
   }
 
+  ko: Sprite | null = null;
+  knockOut(g: Game) {
+    if (!this.ko) {
+      this.ko = new Sprite(g.T.tex.novaki_ko);
+      this.ko.anchor.set(0.5, 0.85);
+      g.actorLayer.addChild(this.ko);
+    }
+    const tex = g.T.tex.novaki_ko;
+    this.ko.texture = tex;
+    this.ko.scale.set(110 / tex.width);
+    this.ko.x = this.x;
+    this.ko.y = this.y;
+    this.ko.zIndex = this.y;
+    this.ko.visible = true;
+    this.root.visible = false;
+  }
+  reset() {
+    if (this.ko) this.ko.visible = false;
+    this.root.visible = true;
+  }
+
   update(g: Game, x: number, y: number, dt: number) {
     const p = g.player;
+    if (this.ko && this.ko.visible) {
+      // dizzy stars over the knocked-out match
+      if (Math.random() < 0.15) g.particle(this.ko.x + vrange(-30, 30), this.ko.y - 40 + vrange(-6, 6), this.fx.star, { add: true, vx: vrange(-20, 20), vy: -20, life: 0.6, s0: 0.5, s1: 0.1, tint: 0xffe066, layer: 1 });
+      if (Math.random() < 0.08) g.puff(this.ko.x - 30, this.ko.y - 30, 0x9a9288, 0.4, 1);
+      return;
+    }
     if (!this.lastShadowParent) { g.shadowLayer.addChild(this.shadow); this.lastShadowParent = true; }
     this.x = x;
     this.y = y;

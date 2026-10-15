@@ -14,7 +14,7 @@ import { STAGES } from './game/stages';
 import { ENEMIES } from './game/enemies';
 import { BOSSES } from './game/bosses';
 import { el, button, icon, img, FocusNav, ASSET } from './ui/dom';
-import { INTRO, ENDING, CHAPTER_LINES, BOSS_LINES, GAMEOVER_LINE, Line, Panel } from './ui/story';
+import { INTRO, ENDING, CHAPTER_LINES, BOSS_LINES, GAMEOVER_LINE, DEATH_LINE, Line, Panel } from './ui/story';
 
 type Screen = 'loading' | 'title' | 'menu' | 'loadout' | 'shop' | 'settings' | 'howto' | 'records' | 'intro' | 'playing' | 'paused'
   | 'levelup' | 'chest' | 'stageclear' | 'gameover' | 'victory' | 'ending';
@@ -50,6 +50,9 @@ class App {
   ui = document.getElementById('ui')!;
   screens: Record<string, HTMLElement> = {};
   hud!: HTMLElement;
+  fadeEl!: HTMLElement;
+  dangerEl!: HTMLElement;
+  hintsShown = 0;
   hudEls: Record<string, HTMLElement> = {};
   toasts!: HTMLElement;
   subtitle!: HTMLElement;
@@ -115,6 +118,8 @@ class App {
     this.input.onDigit = (n) => { if (this.screen === 'levelup' && performance.now() >= this.navLockUntil) this.pickChoice(n - 1); };
     this.input.onAnyInput = () => { if (this.screen === 'title') this.leaveTitle(); };
     app.ticker.add((t) => this.tick(t.deltaMS / 1000));
+    const autoPause = () => { if (this.screen === 'playing') this.pause(); };
+    document.addEventListener('visibilitychange', () => { if (document.hidden) autoPause(); });
     this.installQA();
     this.setProgress(1, 'Ready');
     this.show('title');
@@ -157,6 +162,10 @@ class App {
       timer: q('.timer'), stage: q('.stagename'), kills: q('.kills'), coins: q('.coins'), boss: q('.bossbar'), bossName: q('.bossbar .name'),
       bossFill: q('.bossbar .fill'), dash: q('.dash-ind .ring'), dashLabel: q('.dash-label'), fps: q('.fps'), dashInd: q('.dash-ind'),
     };
+    this.fadeEl = el('div', { id: 'fade', class: 'passthrough' });
+    this.ui.appendChild(this.fadeEl);
+    this.dangerEl = el('div', { id: 'danger', class: 'passthrough' });
+    this.ui.appendChild(this.dangerEl);
     this.toasts = el('div', { id: 'toasts', class: 'passthrough' });
     this.ui.appendChild(this.toasts);
     this.subtitle = el('div', { id: 'subtitle', class: 'passthrough' });
@@ -252,7 +261,7 @@ class App {
       button('Workshop', () => this.show('shop')),
       button('How to Play', () => { this.howtoBack = 'menu'; this.show('howto'); }),
       button('Settings', () => { this.settingsBack = 'menu'; this.show('settings'); }),
-      button('Records', () => this.show('records')),
+      button('Records & Credits', () => this.show('records')),
       this.save.seenIntro ? button('Replay Intro', () => this.playIntro(() => this.show('menu'))) : null,
     );
     m.append(
@@ -518,7 +527,11 @@ class App {
     const grid = el('div', { class: 'results' });
     for (const [k, v] of rows) grid.append(el('div', { class: 'k' }, k), el('div', { class: 'v' }, v));
     const unl = el('div', { style: { marginTop: '10px', fontWeight: '600' } }, 'Starting sparks unlocked: ' + STARTERS.filter((id) => this.starterUnlocked(id)).map((id) => WEAPONS[id].name).join(', '));
-    s.appendChild(el('div', { class: 'panel paper', style: { width: 'min(620px, 94vw)' } }, el('h2', {}, 'Records'), el('div', { class: 'scroll' }, grid, unl), el('div', { class: 'footer' }, button('Back', back))));
+    const credits = el('div', { class: 'credits', html: `<h3>Credits</h3>
+      <p><b>Novaki: Strike Twice</b> was built for the Novaki AI game test.</p>
+      <p>All illustrations, sprites and icons were generated with <b>varlik image</b> (GPT image model); the soundtrack with <b>varlik music</b> (Lyria); every voice line with <b>varlik voice</b> (Gemini TTS). Sound effects are synthesized in code. Novaki is based on the official reference sheet.</p>
+      <p>Code, design and writing by an AI coding agent. Engine: PixiJS. Fonts: Luckiest Guy &amp; Fredoka (SIL Open Font License).</p>` });
+    s.appendChild(el('div', { class: 'panel paper', style: { width: 'min(620px, 94vw)' } }, el('h2', {}, 'Records'), el('div', { class: 'scroll' }, grid, unl, credits), el('div', { class: 'footer' }, button('Back', back))));
     this.nav.setRoot(s, back);
   }
 
@@ -665,8 +678,10 @@ class App {
     this.runActive = true;
     this.runResult = null;
     this.pendingVictory = false;
+    this.pendingClear = null;
     this.interruptBarks();
     this.clearBanners();
+    this.hintsShown = 0;
     this.acc = 0;
     this.game.startStage(1);
     this.lastHud = {};
@@ -707,7 +722,7 @@ class App {
     s.appendChild(el('div', { class: 'panel paper', style: { width: 'min(760px, 94vw)' } },
       el('h2', {}, 'Paused'),
       el('div', { style: { textAlign: 'center', fontWeight: '600' } }, `${STAGES[g.stage - 1].name} - ${fmtTime(g.time)} - Level ${g.player.level} - ${g.stats.kills} snuffed`),
-      el('div', { class: 'scroll' }, list),
+      el('div', { class: 'scroll' }, list, this.statsRow()),
       el('div', { class: 'footer' },
         button('Resume', () => this.resume(), 'primary'),
         button('Settings', () => { this.settingsBack = 'paused'; this.show('settings'); }),
@@ -716,6 +731,19 @@ class App {
       ),
     ));
     this.nav.setRoot(s, () => this.resume());
+  }
+
+  statsRow() {
+    const s = this.game.player.stats;
+    const pct = (v: number) => (v >= 0 ? '+' : '') + Math.round(v * 100) + '%';
+    const items: [string, string][] = [
+      ['Max HP', String(Math.round(s.maxHp))], ['Armor', String(s.armor)], ['Damage', pct(s.might - 1)], ['Area', pct(s.area - 1)],
+      ['Cooldown', pct(s.cooldown - 1)], ['Projectiles', '+' + s.amount], ['Speed', String(Math.round(s.speed))], ['Crit', Math.round(s.crit * 100) + '%'],
+      ['Pickup range', String(Math.round(s.magnet))], ['Revives', String(this.game.player.revives)],
+    ];
+    const row = el('div', { class: 'stat-row' });
+    for (const [k, v] of items) row.appendChild(el('div', { class: 'stat-chip' }, el('span', {}, k), el('b', {}, v)));
+    return row;
   }
 
   /* ---------------- level up */
@@ -784,7 +812,7 @@ class App {
     }
     applyChoice(g, c);
     audio.sfx(c.kind === 'evo' ? 'chest' : 'click', 0.8);
-    if (c.kind === 'evo') this.toast(`${c.name}! ${WEAPONS[c.id].name} evolved!`, 'gold');
+    if (c.kind === 'evo') this.evoBanner(c);
     this.afterChoice();
     return c.id;
   }
@@ -801,8 +829,23 @@ class App {
     }
   }
 
+  evoBanner(c: Choice) {
+    const b = el('div', { class: 'banner anim evo-banner', style: { '--hold': '2.2s' } as any },
+      el('img', { src: icon(c.icon), alt: '' }),
+      el('div', { class: 'small' }, 'EVOLUTION!'),
+      el('div', { class: 'big' }, c.name),
+      el('div', { class: 'tiny' }, c.text));
+    this.addBanner(b, 3000);
+    const g = this.game;
+    g.player.ignite = Math.max(g.player.ignite, 3);
+    if (g.settings.flashes) { g.flashT = 0.2; g.flashColor = 0xffd27a; }
+    g.shake(6, 0.3);
+  }
+
   /* ---------------- chests */
   showChest(items: Choice[], title = 'Treasure Matchbox!') {
+    const evo = items.find((c) => c.kind === 'evo');
+    if (evo) setTimeout(() => this.evoBanner(evo), 100);
     const s = this.screens.chest;
     s.className = 'screen show overlay';
     s.innerHTML = '';
@@ -834,13 +877,21 @@ class App {
     audio.sfx('stageclear', 0.8);
     const g = this.game;
     const rewards = rollChest(g, 3);
-    const stage = g.stage;
     this.bark([lines.defeat]);
-    setTimeout(() => {
-      if (!this.runActive || g.stage !== stage) return;
-      if (stage >= 3) this.victory();
-      else this.showStageClear(id, rewards);
-    }, 4200);
+    this.pendingClear = { id, rewards, stage: g.stage, t: 4.2 };
+  }
+
+  pendingClear: { id: string; rewards: Choice[]; stage: number; t: number } | null = null;
+  /** stage clear waits for the defeat line and any level-up choices to finish */
+  updatePendingClear(dt: number) {
+    const pc = this.pendingClear;
+    if (!pc || !this.runActive) return;
+    pc.t -= dt;
+    if (pc.t > 0 || this.screen !== 'playing' || this.game.pendingLevels > 0) return;
+    this.pendingClear = null;
+    if (this.game.stage !== pc.stage) return;
+    if (pc.stage >= 3) this.victory();
+    else this.showStageClear(pc.id, pc.rewards);
   }
 
   showStageClear(id: string, rewards: Choice[]) {
@@ -852,7 +903,8 @@ class App {
     for (const c of rewards) list.appendChild(el('div', { class: 'reward' + (c.kind === 'evo' ? ' evo' : '') }, el('img', { src: icon(c.icon), alt: '' }), el('div', { class: 'nm' }, c.name), el('div', { class: 'lv' }, c.kind === 'evo' ? 'EVOLVED!' : c.isNew ? 'NEW' : 'Level ' + c.level)));
     const next = STAGES[g.stage];
     const cont = button('Onward!', () => this.nextStage(), 'primary');
-    s.appendChild(el('div', { class: 'panel paper', style: { width: 'min(700px, 94vw)', alignItems: 'center', textAlign: 'center' } },
+    s.appendChild(el('div', { class: 'panel paper', style: { width: 'min(700px, 94vw)', alignItems: 'center', textAlign: 'center', marginTop: '40px' } },
+      el('img', { class: 'result-art', src: img('novaki_cheer'), alt: '' }),
       el('h2', { class: 'result-title' }, 'Stage Clear!'),
       el('div', { style: { fontWeight: '700', fontSize: '18px' } }, `${BOSSES[id].name} has been snuffed out!`),
       el('div', { style: { marginTop: '6px', fontFamily: 'var(--font-h)', fontSize: '18px' } }, "Boss treasure:"),
@@ -873,10 +925,22 @@ class App {
   nextStage() {
     if (this.screen !== 'stageclear') return;
     const g = this.game;
-    g.heal(g.player.stats.maxHp * 0.35);
-    g.startStage(g.stage + 1);
-    this.acc = 0;
-    this.show('playing');
+    this.screen = 'playing'; // block double triggers while fading
+    this.fade(() => {
+      g.heal(g.player.stats.maxHp * 0.35);
+      g.startStage(g.stage + 1);
+      this.acc = 0;
+      this.show('playing');
+    });
+  }
+
+  fade(mid: () => void) {
+    const f = this.fadeEl;
+    f.classList.add('on');
+    setTimeout(() => {
+      mid();
+      requestAnimationFrame(() => setTimeout(() => f.classList.remove('on'), 120));
+    }, 380);
   }
 
   victory() {
@@ -985,7 +1049,9 @@ class App {
         this.game.slowmoT = 0;
         audio.stopMusic(0.5);
         audio.sfx('bossdie', 0.7, 1.4);
-        this.runActive && setTimeout(() => this.endRun(false), 1200);
+        this.interruptBarks();
+        this.bark([DEATH_LINE]);
+        this.runActive && setTimeout(() => this.endRun(false), 2200);
       },
       chest: (contents) => {
         if (contents.length && contents[0].id === 'boss') return;
@@ -1030,7 +1096,9 @@ class App {
     if (!g || !this.runActive && this.screen !== 'gameover') {
       return;
     }
-    if (this.screen === 'playing') {
+    if (this.screen === 'playing' && !g.running) {
+      g.render(1, dt * 0.5);
+    } else if (this.screen === 'playing') {
       if (this.input.consumePause()) { this.pause(); }
       else {
         g.input.x = this.input.moveX;
@@ -1066,6 +1134,7 @@ class App {
     } else {
       g.render(1, 0);
     }
+    this.updatePendingClear(dt);
     // dash readiness for touch button
     const p = g.player;
     this.input.dashReady = p ? 1 - Math.max(0, p.dashCd) / p.stats.dashCd : 1;
@@ -1109,6 +1178,10 @@ class App {
       this.setHud('bossName', b!.def.name, (v) => { H.bossName.textContent = v; });
       this.setHud('bossHp', (Math.max(0, b!.hp) / b!.maxHp * 100).toFixed(1), (v) => { H.bossFill.style.width = v + '%'; });
     }
+    const hpF = p.hp / p.stats.maxHp;
+    const danger = this.screen === 'playing' && hpF < 0.35 ? (0.35 - hpF) / 0.35 : 0;
+    this.setHud('danger', danger.toFixed(2), (v) => { this.dangerEl.style.opacity = String(Math.min(0.85, Number(v) * 1.2)); });
+    this.maybeHint();
     const dashP = 1 - Math.max(0, p.dashCd) / p.stats.dashCd;
     this.setHud('dash', dashP.toFixed(2), (v) => { H.dash.style.setProperty('--p', v); });
     this.setHud('dashLabel', this.input.device, (v) => {
@@ -1116,6 +1189,22 @@ class App {
       H.dashInd.style.display = v === 'touch' ? 'none' : 'flex';
     });
     if (this.save.settings.showFps) this.setHud('fps', `${Math.round(this.fps)} FPS - ${g.enemyCount()} foes`, (v) => { H.fps.textContent = v; });
+  }
+
+  /** first-runs onboarding hints */
+  maybeHint() {
+    const g = this.game;
+    if (this.screen !== 'playing' || this.save.stats.runs >= 2 || g.stats.assisted) return;
+    const touch = this.input.device === 'touch', pad = this.input.device === 'gamepad';
+    const hints: [number, string][] = [
+      [3, touch ? 'Drag anywhere to move. Novaki attacks on his own!' : pad ? 'Move with the left stick. Novaki attacks on his own!' : 'Move with WASD or the arrow keys. Novaki attacks on his own!'],
+      [12, 'Collect the glowing embers to level up.'],
+      [22, touch ? 'Tap DASH to zip through danger.' : pad ? 'Press A to dash through danger.' : 'Press SPACE to dash through danger.'],
+      [40, 'Smash lanterns, barrels and candles for treats.'],
+    ];
+    if (g.stage !== 1 || this.hintsShown >= hints.length) return;
+    const [t, text] = hints[this.hintsShown];
+    if (g.stageTime >= t) { this.hintsShown++; this.toast(text, 'info'); }
   }
 
   /* ================================================================ QA interface */

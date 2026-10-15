@@ -31,6 +31,8 @@ for (let iter = 0; iter < 3000; iter++) {
       if (A.screen === 'stageclear') { A.nextStage(); out.events.push('next stage @' + g.time.toFixed(0)); continue; }
       if (A.screen !== 'playing') break;
       const p = g.player;
+      // horde centroid (for circling)
+      { let sx = 0, sy = 0, n = 0; for (const e of g.enemies) { if (!e.alive || e.prop) continue; const d = Math.hypot(e.x - p.x, e.y - p.y); if (d < 450) { sx += e.x; sy += e.y; n++; } } if (n > 3) { g.__cx = sx / n; g.__cy = sy / n; } else { g.__cx = undefined; } }
       // sample 16 directions, score danger 0.35s ahead
       let bestDir = -1, bestScore = 1e9, danger = 0;
       const look = 0.35, spd = p.stats.speed;
@@ -66,8 +68,17 @@ for (let iter = 0; iter < 3000; iter++) {
         if (g.arena) { const d = Math.hypot(fx - g.arena.x, fy - g.arena.y); if (d > g.arena.r * 0.75) s += (d - g.arena.r * 0.75) * 0.5; }
         // pickups pull
         for (const q of g.pickups) { if (!q.alive) continue; const d = Math.hypot(q.x - fx, q.y - fy); if (d < 320) s -= (q.kind === 'heal' && p.hp < p.stats.maxHp * 0.6 ? 6 : q.kind === 'chest' ? 5 : 1.2) * 30 / (d + 30); }
-        // prefer continuing direction a bit (smooth kiting)
-        if (k >= 0) s -= 0.15 * (ax * (g.__botX || 0) + ay * (g.__botY || 0));
+        // prefer continuing direction a bit (smooth kiting) and circling around the horde
+        if (k >= 0) {
+          s -= 0.15 * (ax * (g.__botX || 0) + ay * (g.__botY || 0));
+          if (g.__cx !== undefined) {
+            const rx = p.x - g.__cx, ry = p.y - g.__cy; const rl = Math.hypot(rx, ry) || 1;
+            const tx = -ry / rl, ty = rx / rl; // tangent
+            s -= 0.6 * (ax * tx + ay * ty);
+            const want = 230; const radial = (want - rl) / want; // push out if too close, in if too far
+            s -= 0.5 * radial * (ax * rx / rl + ay * ry / rl);
+          }
+        }
         if (s < bestScore) { bestScore = s; bestDir = k; }
         if (k < 0) danger = s;
       }
