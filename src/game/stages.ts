@@ -27,7 +27,7 @@ export interface StageDef {
   subtitle: string;
   tile: string;
   groundTint?: number;
-  props: { tex: string; size: number; flat?: boolean }[];
+  props: { tex: string; size: number; flat?: boolean; lamp?: [number, number][]; glow?: number }[];
   propTint?: number;
   darkness: number;
   ambient: [number, number, number];
@@ -50,8 +50,8 @@ export const STAGES: StageDef[] = [
     id: 1, name: 'The Mothwood', chapter: 'Chapter One', subtitle: 'Where every little light draws hungry wings',
     tile: 'tile_forest', groundTint: 0xf4efe0,
     props: [
-      { tex: 'p1_tree', size: 150 }, { tex: 'p1_shrooms', size: 70 }, { tex: 'p1_boulder', size: 64 },
-      { tex: 'p1_log', size: 52 }, { tex: 'p1_fern', size: 60 }, { tex: 'p1_tree', size: 170 }, { tex: 'p1_fern', size: 50 },
+      { tex: 'p1_tree', size: 150 }, { tex: 'p1_shrooms', size: 70, glow: 0x7ff0e0 }, { tex: 'p1_boulder', size: 64 },
+      { tex: 'p1_log', size: 52 }, { tex: 'p1_fern', size: 60 }, { tex: 'p1_tree', size: 170 }, { tex: 'p1_fern', size: 50 }, { tex: 'p1_shrooms', size: 60, glow: 0x7ff0e0 },
     ],
     darkness: 0.22, ambient: [0.35, 0.55, 0.55], music: ['stage1_a', 'stage1_b'], bossMusic: ['boss1'],
     hpMul: 1, dmgMul: 0.9, duration: 270, boss: 'duchess', arenaColor: 0xd9a35a, propEnemy: 'lanternprop', voice: 'chapter1',
@@ -75,17 +75,17 @@ export const STAGES: StageDef[] = [
     id: 2, name: 'Drizzleport', chapter: 'Chapter Two', subtitle: 'It has not stopped raining in a hundred years',
     tile: 'tile_docks', groundTint: 0xe4e8f0,
     props: [
-      { tex: 'p2_lamp', size: 130 }, { tex: 'p2_crates', size: 80 }, { tex: 'p2_anchor', size: 62 },
-      { tex: 'p2_hydrant', size: 50 }, { tex: 'p2_bollard', size: 60 }, { tex: 'p2_lamp', size: 120 },
+      { tex: 'p2_lamp', size: 130, lamp: [[0, 0.86]] }, { tex: 'p2_crates', size: 80 }, { tex: 'p2_anchor', size: 62 },
+      { tex: 'p2_hydrant', size: 50 }, { tex: 'p2_bollard', size: 60 }, { tex: 'p2_lamp', size: 120, lamp: [[0, 0.86]] }, { tex: 'p2_lamp', size: 125, lamp: [[0, 0.86]] },
     ],
     darkness: 0.4, ambient: [0.3, 0.4, 0.75], rain: true, music: ['stage2_a', 'stage2_b'], bossMusic: ['boss2'],
     hpMul: 2.3, dmgMul: 1.25, duration: 300, boss: 'baron', arenaColor: 0x7fb6e6, propEnemy: 'barrelprop', voice: 'chapter2',
     waves: [
       { t: 0, rate: 1.9, max: 70, mix: { raindrop: 3, slime: 1 } },
-      { t: 45, rate: 2.6, max: 100, mix: { raindrop: 3, slime: 2, frog: 1.5 } },
-      { t: 105, rate: 3.2, max: 130, mix: { raindrop: 2, slime: 2, frog: 1.5, balloon: 1.6, cloud: 0.8 } },
-      { t: 170, rate: 3.8, max: 160, mix: { raindrop: 2, slime: 1.5, frog: 1.4, balloon: 2, cloud: 1, wateringcan: 0.8 } },
-      { t: 235, rate: 4.6, max: 200, mix: { raindrop: 2.5, slime: 1.5, frog: 1.5, balloon: 2, cloud: 1.1, wateringcan: 0.9 } },
+      { t: 45, rate: 2.4, max: 95, mix: { raindrop: 2.6, slime: 2, frog: 1.5 } },
+      { t: 105, rate: 2.9, max: 120, mix: { raindrop: 2, slime: 2, frog: 1.5, balloon: 1.5, cloud: 0.8 } },
+      { t: 170, rate: 3.5, max: 150, mix: { raindrop: 2, slime: 1.5, frog: 1.4, balloon: 2, cloud: 1, wateringcan: 0.8 } },
+      { t: 235, rate: 4.2, max: 185, mix: { raindrop: 2.5, slime: 1.5, frog: 1.5, balloon: 2, cloud: 1.1, wateringcan: 0.9 } },
     ],
     events: [
       { t: 70, kind: 'swarm', type: 'raindrop', n: 26 },
@@ -100,8 +100,8 @@ export const STAGES: StageDef[] = [
     id: 3, name: "The Snuffer's Spire", chapter: 'Chapter Three', subtitle: 'Cold wax, black smoke, and not one candle burning',
     tile: 'tile_spire', groundTint: 0xe0d8e8,
     props: [
-      { tex: 'p3_candelabra', size: 110 }, { tex: 'p3_pillar', size: 120 }, { tex: 'p3_gargoyle', size: 80 },
-      { tex: 'p3_brazier', size: 60 }, { tex: 'p3_books', size: 56 }, { tex: 'p3_candelabra', size: 95 },
+      { tex: 'p3_candelabra', size: 110, lamp: [[-0.33, 0.9], [0, 0.97], [0.33, 0.9]] }, { tex: 'p3_pillar', size: 120 }, { tex: 'p3_gargoyle', size: 80 },
+      { tex: 'p3_brazier', size: 60, lamp: [[0, 0.78]] }, { tex: 'p3_books', size: 56 }, { tex: 'p3_candelabra', size: 95, lamp: [[-0.33, 0.9], [0, 0.97], [0.33, 0.9]] }, { tex: 'p3_brazier', size: 64, lamp: [[0, 0.78]] },
     ],
     darkness: 0.58, ambient: [0.3, 0.22, 0.5], music: ['stage3_a', 'stage3_b'], bossMusic: ['boss3', 'boss3_b'],
     hpMul: 4.6, dmgMul: 1.55, duration: 300, boss: 'snuffer', arenaColor: 0xb48aff, propEnemy: 'candleprop', voice: 'chapter3',

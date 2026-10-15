@@ -37,7 +37,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   stump: { name: 'Soggy Stump', tex: 'e_stump', hp: 110, speed: 34, dmg: 11, r: 24, size: 72, xp: 6, ai: 'chase', anim: 'stomp', animSpeed: 5, kbRes: 0.25, desc: 'A waterlogged brute. Barely flinches.' },
   // ---- Stage 2: Drizzleport
   raindrop: { name: 'Raindrop', tex: 'e_raindrop', hp: 10, speed: 102, dmg: 5, r: 12, size: 38, xp: 1, ai: 'chase', anim: 'walk', animSpeed: 13, desc: 'Fast, angry and very wet.' },
-  slime: { name: 'Puddle Slime', tex: 'e_slime', hp: 34, speed: 50, dmg: 8, r: 19, size: 48, xp: 2, ai: 'chase', anim: 'wobble', animSpeed: 5, desc: 'Splits into two smaller puddles when popped.' },
+  slime: { name: 'Puddle Slime', tex: 'e_slime', hp: 34, speed: 50, dmg: 7, r: 19, size: 48, xp: 2, ai: 'chase', anim: 'wobble', animSpeed: 5, desc: 'Splits into two smaller puddles when popped.' },
   frog: { name: 'Bullfrog', tex: 'e_frog', hp: 30, speed: 0, dmg: 9, r: 17, size: 44, xp: 3, ai: 'hop', anim: 'hop', faceRight: true, desc: 'Leaps at you in big bounding hops.' },
   cloud: { name: 'Storm Cloud', tex: 'e_cloud', hp: 26, speed: 70, dmg: 0, r: 18, size: 48, xp: 3, ai: 'artillery', anim: 'float', noFlip: true, desc: 'Keeps its distance and calls down lightning.' },
   balloon: { name: 'Water Balloon', tex: 'e_balloon', hp: 14, speed: 100, dmg: 0, r: 15, size: 44, xp: 2, ai: 'kamikaze', anim: 'wobble', animSpeed: 9, desc: 'Rushes in and bursts with a big splash.' },

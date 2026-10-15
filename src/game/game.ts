@@ -140,6 +140,9 @@ export class Game {
   arenaG = new Graphics();
   rig!: NovakiRig;
   decor = new Map<string, Sprite[]>();
+  litProps = new Set<string>();
+  lightsRelit = 0;
+  flamePool: Sprite[] = [];
   decorPool: Sprite[] = [];
   stageDef: any;
   private spritePools: Record<string, Sprite[]> = {};
@@ -256,6 +259,7 @@ export class Game {
     this.choiceCount = meta.choices;
     this.inferno = !!meta.inferno;
     this.stats = { kills: 0, dmgTaken: 0, coins: 0, maxLevel: 1, bossesKilled: [], chests: 0, heals: 0, stageReached: 1, evolutions: 0, dmgBy: {}, assisted: false };
+    this.lightsRelit = 0;
     const base: Stats = {
       maxHp: 120, regen: 0, armor: 0, speed: 150, might: 1, area: 1, cooldown: 1, amount: 0, projSpeed: 1,
       duration: 1, magnet: 100, luck: 1, growth: 1, greed: 1, crit: 0.05, critMult: 1.75, burn: 1, ignite: 0,
@@ -1421,8 +1425,43 @@ export class Game {
   }
 
   private clearDecor() {
-    for (const arr of this.decor.values()) for (const s of arr) { s.visible = false; this.decorPool.push(s); }
+    for (const arr of this.decor.values()) for (const s of arr) this.recycleDecor(s);
     this.decor.clear();
+    this.litProps.clear();
+  }
+
+  private recycleDecor(s: Sprite) {
+    s.visible = false;
+    const d = s as any;
+    if (d.flames) { for (const f of d.flames) { f.visible = false; this.flamePool.push(f); } d.flames = null; }
+    d.lamp = null; d.glow = 0; d.lit = false;
+    this.decorPool.push(s);
+  }
+
+  private igniteDecor(s: Sprite, silent = false) {
+    const d = s as any;
+    if (d.lit || !d.lamp) return;
+    d.lit = true;
+    d.flames = [];
+    const h = Math.abs(s.height), w = Math.abs(s.width);
+    for (const [fx, fy] of d.lamp as [number, number][]) {
+      const f = this.flamePool.pop() || new Sprite(this.fx.flame);
+      if (!f.parent) this.actorLayer.addChild(f);
+      f.texture = this.fx.flame;
+      f.anchor.set(0.5, 0.9);
+      f.visible = true;
+      f.x = s.x + fx * w * Math.sign(s.scale.x || 1);
+      f.y = s.y - fy * h;
+      f.zIndex = s.y + 1;
+      (f as any).base = 0.16 + h / 1000;
+      d.flames.push(f);
+      if (!silent) { this.spark(f.x, f.y, 0xffc040, 5, 90); this.puff(f.x, f.y - 6, 0xd8d0c0, 0.3, 0.6); }
+    }
+    if (!silent) {
+      this.litProps.add(d.key);
+      this.lightsRelit++;
+      audio.sfx('strike', 0.25, 1.4, 0.2);
+    }
   }
 
   private updateDecor() {
@@ -1462,8 +1501,14 @@ export class Game {
           s.alpha = 1;
           s.tint = st.propTint ?? 0xffffff;
           (s as any).flat = !!pr.flat;
+          const dk = Math.round(px) + ':' + Math.round(py);
+          (s as any).key = dk;
+          (s as any).lamp = pr.lamp || null;
+          (s as any).glow = pr.glow || 0;
+          (s as any).lit = false;
           if (pr.flat) { s.zIndex = -100000; this.decalLayer.addChild(s); }
           else this.actorLayer.addChild(s);
+          if (pr.lamp && this.litProps.has(dk)) this.igniteDecor(s, true);
           arr.push(s);
         }
         this.decor.set(key, arr);
@@ -1471,8 +1516,26 @@ export class Game {
     }
     for (const [k, arr] of this.decor) {
       if (keep.has(k)) continue;
-      for (const s of arr) { s.visible = false; this.decorPool.push(s); }
+      for (const s of arr) this.recycleDecor(s);
       this.decor.delete(k);
+    }
+    // relight snuffed lamps that Novaki walks past; glowing props light the dark
+    const p = this.player;
+    const t = this.time;
+    for (const arr of this.decor.values()) {
+      for (const s of arr) {
+        const d = s as any;
+        if (d.lamp && !d.lit && (s.x - p.x) ** 2 + (s.y - 30 - p.y) ** 2 < 115 * 115) this.igniteDecor(s);
+        if (d.lit && d.flames) {
+          for (const f of d.flames) {
+            const k = 0.85 + 0.2 * Math.sin(t * 17 + f.x * 0.1) + 0.08 * Math.sin(t * 31 + f.y);
+            f.scale.set(f.base * k, f.base * 1.15 * k);
+            if (this.darkness > 0.05) this.pushLight(f.x, f.y - 10, 150, 0xffc070, 0.75);
+          }
+        } else if (d.glow && this.darkness > 0.05) {
+          this.pushLight(s.x, s.y - Math.abs(s.height) * 0.4, 120, d.glow, 0.45 + 0.1 * Math.sin(t * 2 + s.x));
+        }
+      }
     }
   }
 

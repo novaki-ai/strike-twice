@@ -347,3 +347,4 @@ export class AudioSys {
 }
 
 export const audio = new AudioSys();
+(window as any).__audio = audio;
