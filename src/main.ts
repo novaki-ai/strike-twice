@@ -11,6 +11,7 @@ import { loadSpriteAtlas, loadTiles, loadIcons, makeFxTextures, makeDigitTexture
 import { WEAPONS } from './game/weapons';
 import { PASSIVES, rollChoices, applyChoice, rollChest, Choice, SHOP, metaStats, STARTERS } from './game/upgrades';
 import { STAGES } from './game/stages';
+import { RELICS, RELIC_ICONS, rollRelics, grantRelic, RelicDef } from './game/relics';
 import { ENEMIES } from './game/enemies';
 import { BOSSES } from './game/bosses';
 import { el, button, icon, img, FocusNav, ASSET } from './ui/dom';
@@ -97,7 +98,7 @@ class App {
     const T = await loadSpriteAtlas(ASSET, (p) => this.setProgress(0.15 + p * 0.6, 'Gathering kindling...'));
     this.setProgress(0.8, 'Painting the backdrops...');
     const tiles = await loadTiles(ASSET);
-    const iconNames = [...ICONS, ...Object.values(WEAPONS).map((w) => w.icon), ...Object.values(PASSIVES).map((p) => p.icon), 'reroll', 'banish', 'skull', 'trophy', 'hourglass', 'heart', 'star'];
+    const iconNames = [...ICONS, ...Object.values(WEAPONS).map((w) => w.icon), ...Object.values(PASSIVES).map((p) => p.icon), 'reroll', 'banish', 'skull', 'trophy', 'hourglass', 'heart', 'star', ...RELIC_ICONS];
     const icons = await loadIcons(ASSET, Array.from(new Set(iconNames)));
     this.setProgress(0.95, 'Almost lit...');
     // preload a few UI images in the browser cache
@@ -115,7 +116,11 @@ class App {
     this.ui.addEventListener('click', (e) => {
       if (performance.now() < this.navLockUntil) { e.stopPropagation(); e.preventDefault(); }
     }, true);
-    this.input.onDigit = (n) => { if (this.screen === 'levelup' && performance.now() >= this.navLockUntil) this.pickChoice(n - 1); };
+    this.input.onDigit = (n) => {
+      if (performance.now() < this.navLockUntil) return;
+      if (this.screen === 'levelup') this.pickChoice(n - 1);
+      else if (this.screen === 'stageclear') this.pickRelic(n - 1);
+    };
     this.input.onAnyInput = () => { if (this.screen === 'title') this.leaveTitle(); };
     app.ticker.add((t) => this.tick(t.deltaMS / 1000));
     const autoPause = () => { if (this.screen === 'playing') this.pause(); };
@@ -730,6 +735,10 @@ class App {
       const d = PASSIVES[q.id];
       list.appendChild(el('div', { class: 'reward' }, el('img', { src: icon(d.icon), alt: '' }), el('div', { class: 'nm' }, d.name), el('div', { class: 'lv' }, 'Level ' + q.level)));
     }
+    for (const rid of g.relics) {
+      const d = RELICS[rid];
+      list.appendChild(el('div', { class: 'reward relic-owned', title: d.desc }, el('img', { src: icon(d.icon), alt: '' }), el('div', { class: 'nm' }, d.name), el('div', { class: 'lv' }, 'Relic')));
+    }
     let quitArmed = false;
     const quit = button('Quit Run', () => {
       if (!quitArmed) { quitArmed = true; quit.textContent = 'Quit? Click again'; return; }
@@ -910,32 +919,60 @@ class App {
     else this.showStageClear(pc.id, pc.rewards);
   }
 
+  relicChoices: RelicDef[] = [];
   showStageClear(id: string, rewards: Choice[]) {
     const g = this.game;
     const s = this.screens.stageclear;
     s.className = 'screen show overlay';
     s.innerHTML = '';
-    const list = el('div', { class: 'reward-list' });
+    const list = el('div', { class: 'reward-list small' });
     for (const c of rewards) list.appendChild(el('div', { class: 'reward' + (c.kind === 'evo' ? ' evo' : '') }, el('img', { src: icon(c.icon), alt: '' }), el('div', { class: 'nm' }, c.name), el('div', { class: 'lv' }, c.kind === 'evo' ? 'EVOLVED!' : c.isNew ? 'NEW' : 'Level ' + c.level)));
     const next = STAGES[g.stage];
-    const cont = button('Onward!', () => this.nextStage(), 'primary');
-    s.appendChild(el('div', { class: 'panel paper', style: { width: 'min(700px, 94vw)', alignItems: 'center', textAlign: 'center', marginTop: '40px' } },
+    this.relicChoices = rollRelics(g, 3);
+    const relics = el('div', { class: 'relic-list' });
+    this.relicChoices.forEach((r, i) => {
+      const card = el('div', { class: 'relic paper', 'data-nav': '1' },
+        el('div', { class: 'key' }, el('span', { class: 'keycap' }, String(i + 1))),
+        el('img', { src: icon(r.icon), alt: '' }),
+        el('div', { class: 'nm' }, r.name),
+        el('div', { class: 'tx' }, r.desc));
+      card.addEventListener('click', () => this.pickRelic(i));
+      relics.appendChild(card);
+    });
+    this.countdownEl = el('div', { class: 'countdown' }, '');
+    s.appendChild(el('div', { class: 'panel paper stageclear-panel', style: { width: 'min(820px, 96vw)', alignItems: 'center', textAlign: 'center', marginTop: '40px' } },
       el('img', { class: 'result-art', src: img('novaki_cheer'), alt: '' }),
       el('h2', { class: 'result-title' }, 'Stage Clear!'),
-      el('div', { style: { fontWeight: '700', fontSize: '18px' } }, `${BOSSES[id].name} has been snuffed out!`),
-      el('div', { style: { marginTop: '6px', fontFamily: 'var(--font-h)', fontSize: '18px' } }, "Boss treasure:"),
+      el('div', { style: { fontWeight: '700', fontSize: '17px' } }, `${BOSSES[id].name} has been snuffed out!  Time ${fmtTime(g.time)} - Level ${g.player.level}`),
+      el('div', { class: 'sc-label' }, 'Boss treasure'),
       list,
-      el('div', { style: { fontWeight: '600' } }, `Time ${fmtTime(g.time)} - Level ${g.player.level} - ${g.stats.kills} snuffed - ${g.coinsRun} coins`),
-      el('div', { style: { marginTop: '8px', fontStyle: 'italic' } }, next ? `Next: ${next.chapter} - ${next.name}` : ''),
-      el('div', { class: 'footer' }, cont),
+      el('div', { class: 'sc-label' }, 'Choose a relic for the road ahead'),
+      relics,
+      this.countdownEl,
+      el('div', { style: { marginTop: '4px', fontStyle: 'italic' } }, next ? `Next: ${next.chapter} - ${next.name}` : ''),
     ));
     this.screen = 'stageclear';
     for (const [k, e] of Object.entries(this.screens)) e.classList.toggle('show', k === 'stageclear');
     this.hud.classList.add('show');
     this.input.setTouchActive(false);
+    document.body.classList.add('overlay-open');
     this.nav.setRoot(s, null);
-    this.stageClearT = 8;
+    this.navLockUntil = performance.now() + 600;
+    this.stageClearT = 20;
     audio.playMusic('victory', MUSIC.victory, 0.5);
+  }
+  countdownEl: HTMLElement | null = null;
+
+  pickRelic(i: number): string | null {
+    if (this.screen !== 'stageclear') return null;
+    const r = this.relicChoices[i];
+    if (!r) return null;
+    grantRelic(this.game, r.id);
+    audio.sfx('chest', 0.8);
+    this.toast(`Relic gained: ${r.name}`, 'gold');
+    this.relicChoices = [];
+    this.nextStage();
+    return r.id;
   }
 
   nextStage() {
@@ -1146,7 +1183,8 @@ class App {
       g.render(1, 0);
     } else if (this.screen === 'stageclear') {
       this.stageClearT -= dt;
-      if (this.stageClearT <= 0) this.nextStage();
+      if (this.countdownEl) this.countdownEl.textContent = `Auto-picking in ${Math.max(0, Math.ceil(this.stageClearT))}s`;
+      if (this.stageClearT <= 0) { if (this.relicChoices.length) this.pickRelic(0); else this.nextStage(); }
       g.render(1, dt * 0.3);
     } else if (this.screen === 'gameover') {
       g.render(1, dt * 0.2);
@@ -1242,7 +1280,9 @@ class App {
           enemies: p && inRun ? g.enemyCount() : 0,
           bossActive: !!(g.bossActive && g.boss && g.boss.alive),
           boss: g.boss && g.boss.alive ? { id: g.boss.boss.id, hp: Math.round(g.boss.hp), maxHp: g.boss.maxHp, phase: g.boss.boss.phase } : null,
-          upgrades: p ? [...p.weapons.map((w) => w.id), ...p.passives.map((q) => q.id), ...p.weapons.filter((w) => w.evo).map((w) => 'evo_' + w.id)] : [],
+          upgrades: p ? [...p.weapons.map((w) => w.id), ...p.passives.map((q) => q.id), ...p.weapons.filter((w) => w.evo).map((w) => 'evo_' + w.id), ...[...g.relics].map((r) => 'relic_' + r)] : [],
+          relics: [...g.relics],
+          relicChoices: self.screen === 'stageclear' ? self.relicChoices.map((r) => r.id) : [],
           weapons: p ? p.weapons.map((w) => ({ id: w.id, level: w.level, evolved: w.evo })) : [],
           passives: p ? p.passives.map((q) => ({ id: q.id, level: q.level })) : [],
           levelUpChoices: self.screen === 'levelup' ? self.choices.map((c) => ({ id: c.id, kind: c.kind, level: c.level, name: c.name })) : [],
@@ -1273,7 +1313,10 @@ class App {
         if (g.pendingLevels > 0 && self.screen === 'playing') self.openLevelUp();
         return true;
       },
-      chooseUpgrade(index: number) { return self.pickChoice(index); },
+      chooseUpgrade(index: number) {
+        if (self.screen === 'stageclear') return self.pickRelic(index);
+        return self.pickChoice(index);
+      },
       skipTo(stage: number, point: 'start' | 'boss' = 'start') {
         stage = Math.max(1, Math.min(3, Math.floor(stage) || 1));
         if (!self.runActive) qa.start({});

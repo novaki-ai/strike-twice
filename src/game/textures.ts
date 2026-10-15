@@ -9,7 +9,7 @@ export const SPRITES = [
   'p2_lamp', 'p2_barrel', 'p2_crates', 'p2_anchor', 'p2_hydrant', 'p2_bollard',
   'p3_candelabra', 'p3_pillar', 'p3_candles', 'p3_gargoyle', 'p3_brazier', 'p3_books',
 ];
-export const BIG_SPRITES = ['b_duchess', 'b_baron', 'b_snuffer', 'novaki_ko'];
+export const BIG_SPRITES = ['b_duchess', 'b_baron', 'b_snuffer', 'novaki_ko', 'b_duchess_atk', 'b_duchess_ko', 'b_baron_atk', 'b_baron_ko', 'b_snuffer_atk', 'b_snuffer_ko'];
 export const ICONS = [
   'marshmallow', 'magnet', 'coin', 'chest', 'ember', 'goldmatch', 'firecracker', 'watch', 'heartcandle',
 ];
@@ -77,13 +77,17 @@ export async function loadSpriteAtlas(base: string, onProgress: (p: number) => v
   let cur = new Atlas(2048);
   atlases.push(cur);
   // big ones first in their own atlas
-  const big = new Atlas(2048);
+  let big = new Atlas(2048);
+  atlases.push(big);
   for (const n of BIG_SPRITES) {
     const im = imgs[n];
     if (!im) continue;
-    big.add(n, im, im.width, im.height);
+    if (!big.add(n, im, im.width, im.height)) {
+      big = new Atlas(2048);
+      atlases.push(big);
+      big.add(n, im, im.width, im.height);
+    }
   }
-  atlases.push(big);
   for (const n of SPRITES) {
     const im = imgs[n];
     if (!im) continue;

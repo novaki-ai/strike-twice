@@ -10,6 +10,7 @@ import { PASSIVES, applyPassives } from './upgrades';
 import { STAGES, StageDirector } from './stages';
 import { updateBoss, BOSSES } from './bosses';
 import { NovakiRig } from './rig';
+import { applyRelics, relicDamageMul, relicOnCrit, relicOnKill, relicOnHurt, relicUpdate } from './relics';
 
 export const STEP = 1 / 60;
 const GRID = 64;
@@ -97,6 +98,11 @@ export class Game {
   metaBonus: Partial<Stats> = {};
   choiceCount = 3;
   inferno = false;
+  relics = new Set<string>();
+  wardT = 0;
+  danceT = 0;
+  kindlingCount = 0;
+  wardSprite: Sprite | null = null;
 
   // grid
   private grid = new Map<number, Enemy[]>();
@@ -258,6 +264,10 @@ export class Game {
     this.banished.clear();
     this.choiceCount = meta.choices;
     this.inferno = !!meta.inferno;
+    this.relics.clear();
+    this.wardT = 0;
+    this.danceT = 0;
+    this.kindlingCount = 0;
     this.stats = { kills: 0, dmgTaken: 0, coins: 0, maxLevel: 1, bossesKilled: [], chests: 0, heals: 0, stageReached: 1, evolutions: 0, dmgBy: {}, assisted: false };
     this.lightsRelit = 0;
     const base: Stats = {
@@ -356,6 +366,7 @@ export class Game {
   recalcStats() {
     const s: Stats = { ...this.baseStats };
     applyPassives(s, this.player.passives);
+    applyRelics(s, this.relics);
     const p = this.player;
     const hpFrac = p.hp / p.stats.maxHp;
     const oldMax = p.stats.maxHp;
@@ -376,6 +387,7 @@ export class Game {
     const p = this.player;
 
     this.updatePlayer(dt);
+    if (this.relics.size) relicUpdate(this, dt);
     this.buildGrid();
     if (this.freezeT > 0) this.freezeT -= dt;
 
@@ -511,6 +523,7 @@ export class Game {
   hurtPlayer(dmg: number, src: Enemy | null, opts: { pierceArmor?: boolean; by?: string } = {}) {
     const p = this.player;
     if (p.iframes > 0 || p.invincible || p.goldT > 0 || this.over) return;
+    if (this.relics.size && relicOnHurt(this, src)) return;
     const armor = opts.pierceArmor ? 0 : p.stats.armor;
     const d = Math.max(1, dmg - armor);
     p.hp -= d;
@@ -780,7 +793,7 @@ export class Game {
     if (!e.alive || e.intangible) return 0;
     const p = this.player;
     const s = p.stats;
-    let dmg = amount * (o.burnTick ? s.burn : s.might);
+    let dmg = amount * (o.burnTick ? s.burn : s.might) * (this.relics.size ? relicDamageMul(this, e) : 1);
     if (p.goldT > 0) dmg *= 1.5;
     let crit = false;
     if (!o.burnTick && !o.noCrit && this.rng.next() < s.crit) { dmg *= s.critMult; crit = true; }
@@ -824,6 +837,7 @@ export class Game {
       this.dmgNumber(e.x + vrange(-8, 8), e.y - e.def.size * e.scale * 0.8, dmg, col, crit ? 1.25 : o.burnTick ? 0.7 : 0.85);
     }
     if (!o.burnTick) audio.sfx(blocked ? 'tick' : 'hit', 0.32, crit ? 1.25 : 1, 0.05);
+    if (crit && this.relics.size) relicOnCrit(this, e, dmg);
     if (e.hp <= 0) this.killEnemy(e, w);
     return dmg;
   }
@@ -841,6 +855,7 @@ export class Game {
     if (!e.prop) {
       this.stats.kills++;
       if (w) w.kills++;
+      if (this.relics.size) relicOnKill(this);
     }
     if (!e.prop && this.particles.length < 1200) {
       const tex = this.T.flash[e.def.tex];
@@ -1572,6 +1587,22 @@ export class Game {
 
     // player rig
     this.rig.update(this, pxi, pyi, frameDt);
+    const wardOn = this.relics.has('ward') && this.wardT <= 0 && !this.over;
+    if (wardOn && !this.wardSprite) {
+      this.wardSprite = new Sprite(this.fx.smokering);
+      this.wardSprite.anchor.set(0.5);
+      this.topLayer.addChild(this.wardSprite);
+    }
+    if (this.wardSprite) {
+      this.wardSprite.visible = wardOn;
+      if (wardOn) {
+        this.wardSprite.x = pxi; this.wardSprite.y = pyi - 34;
+        this.wardSprite.scale.set(0.42, 0.36);
+        this.wardSprite.rotation = this.time * 0.6;
+        this.wardSprite.alpha = 0.45 + 0.1 * Math.sin(this.time * 4);
+        this.wardSprite.tint = 0xcfc6b6;
+      }
+    }
 
     // enemies
     const t = this.time;
@@ -1580,9 +1611,15 @@ export class Game {
       const ex = ix(e.px, e.x), ey = ix(e.py, e.y);
       const def = e.def;
       const sp = e.sp;
-      const tex = e.flash > 0 && !e.boss ? this.T.flash[def.tex] : this.T.tex[def.tex];
+      let texName = def.tex;
+      if (e.boss) {
+        const B = e.boss;
+        if (B.dying && def.koTex && this.T.tex[def.koTex]) texName = def.koTex;
+        else if (B.attack && def.posed && def.posed.includes(B.attack) && def.atkTex && this.T.tex[def.atkTex]) texName = def.atkTex;
+      }
+      const tex = e.flash > 0 && !e.boss ? this.T.flash[texName] : this.T.tex[texName];
       if (tex && sp.texture !== tex) sp.texture = tex;
-      const base = (def.size * e.scale) / (this.T.tex[def.tex]?.height || 100);
+      const base = (def.size * e.scale) / (this.T.tex[texName]?.height || 100);
       let bob = 0, sqx = 1, sqy = 1, rot = 0;
       const ph = t * (def.animSpeed ?? 8) + e.phase;
       switch (def.anim) {

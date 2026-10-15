@@ -357,3 +357,25 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
 .menu-backdrop.blur { inset: -30px; filter: blur(10px) brightness(0.55); }
 .menu-backdrop.blur::after { background: none; }
 .overlay > .panel { position: relative; z-index: 1; }
+
+.sc-label { font-family: var(--font-h); font-size: 17px; margin-top: 6px; }
+.reward-list.small .reward { width: 120px; padding: 5px; }
+.reward-list.small .reward img { width: 44px; height: 44px; }
+.relic-list { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 8px 0 4px; }
+.relic { width: min(230px, 90vw); padding: 10px; cursor: pointer; position: relative; display: flex; flex-direction: column; align-items: center; background-color: #fff0cf; transition: transform 0.1s; animation: card-deal 0.35s cubic-bezier(.2,1.4,.4,1) backwards; }
+.relic:nth-child(2) { animation-delay: 0.08s; } .relic:nth-child(3) { animation-delay: 0.16s; }
+.relic img { width: 64px; height: 64px; object-fit: contain; filter: drop-shadow(2px 3px 0 rgba(0,0,0,0.25)); }
+.relic .nm { font-family: var(--font-h); font-size: 18px; margin-top: 4px; }
+.relic .tx { font-size: 13px; font-weight: 600; margin-top: 4px; line-height: 1.25; }
+.relic .key { position: absolute; top: 6px; right: 8px; }
+.relic:hover, .relic.focus { transform: translateY(-5px) rotate(-1deg); background-color: #ffe2a0; box-shadow: 9px 11px 0 var(--ink); }
+.countdown { font-size: 13px; font-weight: 700; opacity: 0.7; }
+.reward.relic-owned { background: #ffe9b0; }
+@media (max-width: 700px), (max-height: 600px) {
+  .stageclear-panel .result-art { display: none; }
+  .stageclear-panel { margin-top: 0 !important; }
+  .relic { width: min(300px, 90vw); flex-direction: row; text-align: left; gap: 10px; align-items: center; padding: 8px; }
+  .relic img { width: 44px; height: 44px; flex-shrink: 0; }
+  .relic .nm { margin-top: 0; font-size: 16px; }
+  .reward-list.small { display: none; }
+}

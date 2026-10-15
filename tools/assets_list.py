@@ -35,3 +35,13 @@ if want('icons'):
     grid_sheet('icons_w2', ['glare','cinders','breath','boomerang','sentry','sulfur','kindling','powder','bellows'], 128, 128, outdir=OUT+'/icons')
     grid_sheet('icons_p1', ['luckybox','varnish','shoes','lens','wool','oil','coal','twinwick','ash'], 128, 128, outdir=OUT+'/icons')
     grid_sheet('icons_p2', ['foil','phoenix','reroll','banish','skull','trophy','hourglass','heart','star'], 128, 128, outdir=OUT+'/icons')
+
+if want('extra'):
+    picture('workshop_bg', 1280, 720)
+    grid_sheet('icons_relics', ['r_kindling','r_wrath','r_ward','r_tithe','r_dance','r_coat','r_spare','r_lucky','r_bane'], 128, 128, outdir=OUT+'/icons')
+    sprite('b_baron_atk', 480, 480)
+    sprite('b_baron_ko', 460, 420)
+    sprite('b_duchess_ko', 520, 420)
+    sprite('b_duchess_atk', 560, 440)
+    sprite('b_snuffer_atk', 440, 560)
+    sprite('b_snuffer_ko', 440, 520)
