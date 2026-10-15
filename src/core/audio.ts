@@ -1,5 +1,5 @@
 /** WebAudio engine: crossfaded music playlists, voice lines with ducking, synthesized SFX. */
-import { SFX } from './sfx';
+import { SFX, AMBIENCE } from './sfx';
 
 const XF = 2.0; // music crossfade seconds
 const MAX_DECODED_MUSIC = 6;
@@ -33,6 +33,8 @@ export class AudioSys {
   private sfxLast: Record<string, number> = {};
   private sfxActive: Record<string, number> = {};
   private voiceSrc: AudioBufferSourceNode | null = null;
+  private ambBuf: Record<string, AudioBuffer> = {};
+  private amb: { id: string; src: AudioBufferSourceNode; gain: GainNode } | null = null;
   private voiceToken = 0;
   private voiceDone: (() => void) | null = null;
   vol = { music: 0.7, sfx: 0.8, voice: 1 };
@@ -111,6 +113,40 @@ export class AudioSys {
         console.warn('sfx build failed', name, e);
       }
     }
+  }
+
+  /** Looping synthesized ambience (on the sound bus). Pass null to fade it out. */
+  ambience(id: string | null, vol = 0.5) {
+    const c = this.ctx;
+    if (!c) return;
+    if (this.amb && this.amb.id === id) return;
+    const t = c.currentTime;
+    if (this.amb) {
+      const old = this.amb;
+      old.gain.gain.cancelScheduledValues(t);
+      old.gain.gain.setValueAtTime(old.gain.gain.value, t);
+      old.gain.gain.linearRampToValueAtTime(0.0001, t + 1.5);
+      try { old.src.stop(t + 1.6); } catch { /* ignore */ }
+      this.amb = null;
+    }
+    if (!id || !AMBIENCE[id]) return;
+    let b = this.ambBuf[id];
+    if (!b) {
+      const data = AMBIENCE[id](c.sampleRate);
+      b = c.createBuffer(1, data.length, c.sampleRate);
+      b.copyToChannel(data as Float32Array<ArrayBuffer>, 0);
+      this.ambBuf[id] = b;
+    }
+    const src = c.createBufferSource();
+    src.buffer = b;
+    src.loop = true;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol, t + 2);
+    src.connect(g);
+    g.connect(this.sfxBus);
+    src.start();
+    this.amb = { id, src, gain: g };
   }
 
   /** Play a synthesized sound. Throttled per sound so hordes don't explode the mixer. */

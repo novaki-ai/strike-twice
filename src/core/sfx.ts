@@ -294,3 +294,75 @@ export const SFX: Record<string, Gen> = {
     });
   },
 };
+
+/** Seamless ambience loops (rendered once). The tail is crossfaded into the head so the loop has no seam. */
+function loopify(data: Float32Array, sr: number, xf = 0.5): Float32Array {
+  const n = data.length, x = Math.floor(xf * sr);
+  const out = new Float32Array(n - x);
+  for (let i = 0; i < out.length; i++) out[i] = data[i];
+  for (let i = 0; i < x; i++) {
+    const t = i / x;
+    out[i] = data[i] * t + data[n - x + i] * (1 - t);
+  }
+  return out;
+}
+
+export const AMBIENCE: Record<string, Gen> = {
+  // dusk forest: soft wind bed + cricket trills
+  forest: (sr) => {
+    const nz = new Noise(); const lp = new LP(); const lp2 = new LP();
+    const dur = 8;
+    const crickets: [number, number, number][] = [];
+    let ct = 0.2;
+    while (ct < dur) { crickets.push([ct, 4200 + (nz.next() + 1) * 600, 0.25 + (nz.next() + 1) * 0.25]); ct += 0.35 + (nz.next() + 1) * 0.9; }
+    let ci = 0;
+    const d = make(dur + 0.5, sr, (t) => {
+      let v = lp2.step(lp.step(nz.next(), 0.02), 0.2) * 0.6 * (0.7 + 0.3 * Math.sin(t * 0.7));
+      while (ci < crickets.length && crickets[ci][0] + crickets[ci][2] < t) ci++;
+      for (let k = ci; k < crickets.length && crickets[k][0] <= t; k++) {
+        const [st, f, len] = crickets[k];
+        if (t < st + len) {
+          const tt = t - st;
+          const chirp = Math.sin(TAU * f * tt) * (Math.sin(TAU * 28 * tt) > 0 ? 1 : 0) * Math.sin(Math.PI * tt / len);
+          v += chirp * 0.05;
+        }
+      }
+      return v;
+    });
+    return loopify(d, sr);
+  },
+  // rain: dense filtered noise + random drips
+  rain: (sr) => {
+    const nz = new Noise(); const lp = new LP(); const hp = new LP();
+    const dur = 6;
+    const drips: [number, number][] = [];
+    let dt = 0.05;
+    while (dt < dur) { drips.push([dt, 900 + (nz.next() + 1) * 900]); dt += 0.05 + (nz.next() + 1) * 0.18; }
+    let di = 0;
+    const d = make(dur + 0.5, sr, (t) => {
+      const n = nz.next();
+      let v = (lp.step(n, 0.35) - hp.step(n, 0.04)) * 0.5;
+      while (di < drips.length && drips[di][0] + 0.04 < t) di++;
+      for (let k = di; k < drips.length && drips[k][0] <= t; k++) {
+        const [st, f] = drips[k];
+        const tt = t - st; v += Math.sin(TAU * f * tt * (1 + tt * 8)) * Math.exp(-tt * 90) * 0.12;
+      }
+      return v;
+    });
+    return loopify(d, sr);
+  },
+  // tower: moaning wind with a slow sweep and a far-off bell toll
+  tower: (sr) => {
+    const nz = new Noise(); const bp1 = new LP(); const bp2 = new LP();
+    const dur = 10;
+    const d = make(dur + 0.5, sr, (t) => {
+      const sweep = 0.015 + 0.012 * Math.sin(t * 0.6) + 0.006 * Math.sin(t * 1.7);
+      const n = nz.next();
+      let v = (bp1.step(n, sweep * 3) - bp2.step(n, sweep)) * 3.2 * (0.6 + 0.4 * Math.sin(t * 0.45));
+      const bt = t - 3.2;
+      if (bt > 0 && bt < 5) v += (Math.sin(TAU * 196 * bt) * 0.6 + Math.sin(TAU * 293 * bt) * 0.25 + Math.sin(TAU * 523 * bt) * 0.12) * Math.exp(-bt * 0.9) * 0.08;
+      return v;
+    });
+    return loopify(d, sr);
+  },
+};

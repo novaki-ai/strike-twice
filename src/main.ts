@@ -1041,6 +1041,7 @@ class App {
     const before = new Set(this.save.unlocks);
     this.save.coins += earned;
     st.runs++;
+    audio.ambience(null);
     const fair = !g.stats.assisted;
     if (win) { st.wins++; if (fair && (!st.bestTime || g.time < st.bestTime)) st.bestTime = Math.floor(g.time); } else if (!quit) st.deaths++;
     st.kills += g.stats.kills;
@@ -1148,6 +1149,7 @@ class App {
         this.clearBanners();
         this.addBanner(b, 4400);
         audio.playMusic('stage' + n, st.music, 1.2);
+        audio.ambience(st.ambience, n === 2 ? 0.55 : 0.4);
         this.interruptBarks();
         this.bark([CHAPTER_LINES[n]]);
         audio.preloadMusic(st.bossMusic);
@@ -1377,6 +1379,7 @@ class App {
         g.startStage(stage, point === 'boss');
         if (point === 'boss') {
           audio.playMusic('stage' + stage, STAGES[stage - 1].music, 0.5);
+          audio.ambience(STAGES[stage - 1].ambience, stage === 2 ? 0.55 : 0.4);
           g.stageTime = STAGES[stage - 1].duration;
           g.director.startBoss();
         }

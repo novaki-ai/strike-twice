@@ -43,6 +43,7 @@ export interface StageDef {
   events: StageEvent[];
   propEnemy: string;
   voice: string;
+  ambience: string;
 }
 
 export const STAGES: StageDef[] = [
@@ -55,7 +56,7 @@ export const STAGES: StageDef[] = [
       { tex: 'd1_moss', size: 100, flat: true }, { tex: 'd1_leaves', size: 85, flat: true }, { tex: 'd1_ring', size: 115, flat: true },
     ],
     darkness: 0.22, ambient: [0.35, 0.55, 0.55], music: ['stage1_a', 'stage1_b', 'stage1_c'], bossMusic: ['boss1', 'boss1_b'],
-    hpMul: 1, dmgMul: 0.9, duration: 270, boss: 'duchess', arenaColor: 0xd9a35a, propEnemy: 'lanternprop', voice: 'chapter1',
+    hpMul: 1, dmgMul: 0.9, duration: 270, boss: 'duchess', arenaColor: 0xd9a35a, propEnemy: 'lanternprop', voice: 'chapter1', ambience: 'forest',
     waves: [
       { t: 0, rate: 1.2, max: 40, mix: { mold: 3, moth: 1 } },
       { t: 35, rate: 2.3, max: 75, mix: { mold: 3, moth: 2.5 } },
@@ -81,7 +82,7 @@ export const STAGES: StageDef[] = [
       { tex: 'd2_puddle', size: 120, flat: true }, { tex: 'd2_manhole', size: 72, flat: true }, { tex: 'd2_net', size: 95, flat: true },
     ],
     darkness: 0.4, ambient: [0.3, 0.4, 0.75], rain: true, music: ['stage2_a', 'stage2_b', 'stage2_c'], bossMusic: ['boss2', 'boss2_b'],
-    hpMul: 2.3, dmgMul: 1.25, duration: 300, boss: 'baron', arenaColor: 0x7fb6e6, propEnemy: 'barrelprop', voice: 'chapter2',
+    hpMul: 2.3, dmgMul: 1.25, duration: 300, boss: 'baron', arenaColor: 0x7fb6e6, propEnemy: 'barrelprop', voice: 'chapter2', ambience: 'rain',
     waves: [
       { t: 0, rate: 1.9, max: 70, mix: { raindrop: 3, slime: 1 } },
       { t: 45, rate: 2.4, max: 95, mix: { raindrop: 2.6, slime: 2, frog: 1.5 } },
@@ -107,7 +108,7 @@ export const STAGES: StageDef[] = [
       { tex: 'd3_wax', size: 85, flat: true }, { tex: 'd3_rug', size: 140, flat: true }, { tex: 'd3_bones', size: 95, flat: true },
     ],
     darkness: 0.58, ambient: [0.3, 0.22, 0.5], music: ['stage3_a', 'stage3_b', 'stage3_c'], bossMusic: ['boss3'],
-    hpMul: 4.6, dmgMul: 1.55, duration: 300, boss: 'snuffer', arenaColor: 0xb48aff, propEnemy: 'candleprop', voice: 'chapter3',
+    hpMul: 4.6, dmgMul: 1.55, duration: 300, boss: 'snuffer', arenaColor: 0xb48aff, propEnemy: 'candleprop', voice: 'chapter3', ambience: 'tower',
     waves: [
       { t: 0, rate: 2.2, max: 80, mix: { waxghost: 2, snufflet: 2 } },
       { t: 50, rate: 2.8, max: 110, mix: { waxghost: 2, snufflet: 2, wisp: 1.4 } },
