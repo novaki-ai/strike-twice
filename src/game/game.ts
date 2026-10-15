@@ -103,6 +103,7 @@ export class Game {
   danceT = 0;
   kindlingCount = 0;
   wardSprite: Sprite | null = null;
+  chestArrows: Container[] = [];
 
   // grid
   private grid = new Map<number, Enemy[]>();
@@ -1739,6 +1740,7 @@ export class Game {
       if (b.life <= 0) { b.alive = false; b.g.visible = false; continue; }
       b.g.alpha = b.life / b.max;
     }
+    this.renderChestArrows();
     this.renderTeles();
     this.renderArena();
     this.renderLight(frameDt);
@@ -1763,6 +1765,40 @@ export class Game {
         this.particle(wx, wy, this.fx.ring, { life: 0.4, s0: 0.03, s1: 0.18, a0: 0.4, tint: 0xbcd4ea });
       }
     }
+  }
+
+  /** edge-of-screen arrows pointing at off-screen treasure chests */
+  private renderChestArrows() {
+    let used = 0;
+    const W = this.screenW, H = this.screenH, z = this.zoom;
+    for (const pk of this.pickups) {
+      if (!pk.alive || pk.kind !== 'chest' || used >= 3) continue;
+      const sx = (pk.x - this.camX) * z + W / 2, sy = (pk.y - this.camY) * z + H / 2;
+      const m = 48;
+      if (sx > m && sx < W - m && sy > 140 && sy < H - m) continue;
+      let c = this.chestArrows[used];
+      if (!c) {
+        c = new Container();
+        const arrow = new Graphics();
+        arrow.poly([26, 0, 6, -12, 6, 12]).fill(0xffd23a).stroke({ width: 3, color: 0x1b1612 });
+        const ic = new Sprite(this.icons.chest || Texture.WHITE);
+        ic.anchor.set(0.5);
+        ic.scale.set(30 / Math.max(ic.texture.width, ic.texture.height));
+        c.addChild(arrow, ic);
+        this.screenLayer.addChild(c);
+        this.chestArrows.push(c);
+      }
+      used++;
+      const cx = Math.max(m, Math.min(W - m, sx)), cy = Math.max(150, Math.min(H - m, sy));
+      const ang = Math.atan2(sy - cy, sx - cx);
+      c.visible = true;
+      c.x = cx; c.y = cy;
+      const arrow = c.children[0] as Graphics;
+      arrow.rotation = ang;
+      arrow.x = Math.cos(ang) * 4; arrow.y = Math.sin(ang) * 4;
+      c.scale.set(1 + 0.08 * Math.sin(this.time * 6));
+    }
+    for (let i = used; i < this.chestArrows.length; i++) this.chestArrows[i].visible = false;
   }
 
   private renderTeles() {
