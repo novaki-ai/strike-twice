@@ -483,7 +483,7 @@ class App {
       const b = button(label, () => this.renderHowto(id), 'small' + (tab === id ? ' active' : ''));
       tabs.appendChild(b);
     };
-    mk('basics', 'Basics'); mk('evos', 'Evolutions'); mk('bestiary', 'Bestiary');
+    mk('basics', 'Basics'); mk('evos', 'Evolutions'); mk('relics', 'Relics'); mk('bestiary', 'Bestiary');
     let body: HTMLElement;
     if (tab === 'basics') {
       body = el('div', { class: 'howto-cols', html: `
@@ -508,6 +508,12 @@ class App {
           el('div', {}, el('div', { style: { fontFamily: 'var(--font-h)', fontSize: '15px' } }, w.evo.name), el('div', {}, `${w.name} (Lv 8) + ${pas.name}`)),
         ));
       }
+    } else if (tab === 'relics') {
+      body = el('div', {});
+      body.appendChild(el('p', { style: { fontWeight: '600', textAlign: 'center', marginTop: '0' } }, 'After each boss you choose one of three relics. Each can only be found once per run.'));
+      const grid = el('div', { class: 'evo-table' });
+      for (const r of Object.values(RELICS)) grid.appendChild(el('div', { class: 'evo-row' }, el('img', { src: icon(r.icon), alt: '' }), el('div', {}, el('div', { style: { fontFamily: 'var(--font-h)', fontSize: '15px' } }, r.name), el('div', {}, r.desc))));
+      body.appendChild(grid);
     } else {
       body = el('div', { class: 'bestiary' });
       for (const st of STAGES) {

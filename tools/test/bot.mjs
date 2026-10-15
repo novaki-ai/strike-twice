@@ -28,7 +28,7 @@ for (let iter = 0; iter < 3000; iter++) {
         continue;
       }
       if (A.screen === 'chest') { A.closeChest(); continue; }
-      if (A.screen === 'stageclear') { A.nextStage(); out.events.push('next stage @' + g.time.toFixed(0)); continue; }
+      if (A.screen === 'stageclear') { const rid = A.pickRelic(0); out.events.push('next stage @' + g.time.toFixed(0) + ' relic ' + rid); continue; }
       if (A.screen !== 'playing') break;
       const p = g.player;
       // horde centroid (for circling)
