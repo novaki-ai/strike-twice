@@ -1824,8 +1824,13 @@ export class Game {
     for (let i = used; i < this.chestArrows.length; i++) this.chestArrows[i].visible = false;
   }
 
+  private teleDrawn = false;
   private renderTeles() {
     const g = this.teleLayer;
+    let any = false;
+    for (const t of this.teles) if (t.alive) { any = true; break; }
+    if (!any) { if (this.teleDrawn) { g.clear(); this.teleDrawn = false; } return; }
+    this.teleDrawn = true;
     g.clear();
     for (const t of this.teles) {
       if (!t.alive) continue;
