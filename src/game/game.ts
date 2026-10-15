@@ -96,6 +96,7 @@ export class Game {
   unlockedWeapons: string[] = [];
   metaBonus: Partial<Stats> = {};
   choiceCount = 3;
+  inferno = false;
 
   // grid
   private grid = new Map<number, Enemy[]>();
@@ -236,7 +237,7 @@ export class Game {
 
   /* ------------------------------------------------------------------ run lifecycle */
 
-  newRun(seed: number, meta: { stats: Partial<Stats>; weapons: string[]; startWeapon: string; rerolls: number; banishes: number; choices: number }) {
+  newRun(seed: number, meta: { stats: Partial<Stats>; weapons: string[]; startWeapon: string; rerolls: number; banishes: number; choices: number; inferno?: boolean }) {
     this.clearAll();
     this.seed = seed >>> 0;
     this.rng = new RNG(this.seed);
@@ -253,9 +254,10 @@ export class Game {
     this.banishes = meta.banishes;
     this.banished.clear();
     this.choiceCount = meta.choices;
+    this.inferno = !!meta.inferno;
     this.stats = { kills: 0, dmgTaken: 0, coins: 0, maxLevel: 1, bossesKilled: [], chests: 0, heals: 0, stageReached: 1, evolutions: 0, dmgBy: {}, assisted: false };
     const base: Stats = {
-      maxHp: 100, regen: 0, armor: 0, speed: 150, might: 1, area: 1, cooldown: 1, amount: 0, projSpeed: 1,
+      maxHp: 120, regen: 0, armor: 0, speed: 150, might: 1, area: 1, cooldown: 1, amount: 0, projSpeed: 1,
       duration: 1, magnet: 100, luck: 1, growth: 1, greed: 1, crit: 0.05, critMult: 1.75, burn: 1, ignite: 0,
       revives: 0, dashCd: 1.8, pierce: 0,
     };
@@ -510,7 +512,7 @@ export class Game {
     p.hp -= d;
     const by = opts.by || (src ? src.type : 'bullet');
     this.stats.dmgBy[by] = (this.stats.dmgBy[by] || 0) + d;
-    p.iframes = 0.65;
+    p.iframes = 0.75;
     p.hurtT = 0.3;
     this.stats.dmgTaken += d;
     audio.sfx('hurt', 0.8);
@@ -585,10 +587,10 @@ export class Game {
     e.prop = !!def.prop;
     const sizeMul = (e.elite ? 1.55 : 1) * (e.small ? 0.6 : 1);
     e.scale = sizeMul;
-    e.maxHp = e.hp = Math.max(1, def.hp * hpScale * (e.elite ? 10 : 1) * (e.small ? 0.35 : 1) * (opts.hpMul || 1));
+    e.maxHp = e.hp = Math.max(1, def.hp * hpScale * (e.elite ? 10 : 1) * (e.small ? 0.35 : 1) * (opts.hpMul || 1) * (this.inferno && !opts.boss ? 1.6 : 1));
     e.r = def.r * sizeMul;
     e.speed = def.speed * (1 + (this.stage - 1) * 0.06) * (e.elite ? 0.85 : 1);
-    e.dmg = def.dmg * st.dmgMul * (e.elite ? 1.5 : 1);
+    e.dmg = def.dmg * st.dmgMul * (e.elite ? 1.5 : 1) * (this.inferno ? 1.4 : 1);
     e.xp = def.xp * (e.elite ? 20 : 1) * (e.small ? 0.5 : 1) * (1 + (this.stage - 1) * 0.5);
     e.state = 0; e.t = 0; e.t2 = 0; e.ang = this.rng.angle(); e.tx = 0; e.ty = 0;
     e.flash = 0; e.burnT = 0; e.burnDps = 0; e.burnTick = 0; e.slowT = 0; e.slowF = 1; e.freezeT = 0;
@@ -1195,7 +1197,7 @@ export class Game {
         audio.sfx('xp', 0.25, 1 + Math.min(0.5, (this.frameCount % 20) * 0.02), 0.03);
         break;
       case 'coin': {
-        const v = Math.max(1, Math.round(pk.value * p.stats.greed));
+        const v = Math.max(1, Math.round(pk.value * p.stats.greed * (this.inferno ? 1.5 : 1)));
         this.coinsRun += v;
         this.stats.coins += v;
         audio.sfx('coin', 0.35);

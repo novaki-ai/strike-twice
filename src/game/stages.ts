@@ -54,20 +54,20 @@ export const STAGES: StageDef[] = [
       { tex: 'p1_log', size: 52 }, { tex: 'p1_fern', size: 60 }, { tex: 'p1_tree', size: 170 }, { tex: 'p1_fern', size: 50 },
     ],
     darkness: 0.22, ambient: [0.35, 0.55, 0.55], music: ['stage1_a', 'stage1_b'], bossMusic: ['boss1'],
-    hpMul: 1, dmgMul: 1, duration: 270, boss: 'duchess', arenaColor: 0xd9a35a, propEnemy: 'lanternprop', voice: 'chapter1',
+    hpMul: 1, dmgMul: 0.9, duration: 270, boss: 'duchess', arenaColor: 0xd9a35a, propEnemy: 'lanternprop', voice: 'chapter1',
     waves: [
       { t: 0, rate: 1.2, max: 40, mix: { mold: 3, moth: 1 } },
       { t: 35, rate: 2.3, max: 75, mix: { mold: 3, moth: 2.5 } },
       { t: 80, rate: 3.2, max: 120, mix: { mold: 2, moth: 3, toadstool: 1.5 } },
-      { t: 140, rate: 3.4, max: 135, mix: { mold: 2.4, moth: 2, toadstool: 1.2, beetle: 1.2 } },
-      { t: 200, rate: 4.0, max: 165, mix: { mold: 2.4, moth: 2, toadstool: 1, beetle: 1.2, stump: 0.8 } },
+      { t: 140, rate: 3.3, max: 130, mix: { mold: 2.6, moth: 2, toadstool: 1.2, beetle: 0.85 } },
+      { t: 200, rate: 3.9, max: 160, mix: { mold: 2.6, moth: 2, toadstool: 1, beetle: 0.85, stump: 0.75 } },
     ],
     events: [
-      { t: 60, kind: 'swarm', type: 'moth', n: 22 },
+      { t: 60, kind: 'swarm', type: 'moth', n: 16 },
       { t: 118, kind: 'elite', type: 'beetle' },
       { t: 175, kind: 'ring', type: 'mold', n: 30 },
       { t: 200, kind: 'elite', type: 'stump' },
-      { t: 238, kind: 'swarm', type: 'moth', n: 30 },
+      { t: 238, kind: 'swarm', type: 'moth', n: 22 },
       { t: 255, kind: 'warning', text: 'Something flutters in the dark...' },
     ],
   },
@@ -241,7 +241,7 @@ export class StageDirector {
           const x = p.x - dx * startR - dy * off + vrange(-15, 15);
           const y = p.y - dy * startR + dx * off + vrange(-15, 15);
           const e = g.spawnEnemy(ev.type!, x, y);
-          if (e) { e.state = 7; e.tx = dx * 190; e.ty = dy * 190; e.kbRes = 0.3; }
+          if (e) { e.state = 7; e.tx = dx * 165; e.ty = dy * 165; e.kbRes = 0.3; }
         }
         g.hooks.toast('A swarm is passing through - get out of the way!', 'warn');
         break;

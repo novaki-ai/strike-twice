@@ -50,6 +50,11 @@ export class AudioSys {
 
   /** Must be called from a user gesture. */
   unlock() {
+    try {
+      // Safari 17+: play through the ringer/silent switch like a media app
+      const nav = navigator as any;
+      if (nav.audioSession && nav.audioSession.type !== 'playback') nav.audioSession.type = 'playback';
+    } catch { /* not supported */ }
     if (!this.ctx) {
       const AC: typeof AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
       if (!AC) return;

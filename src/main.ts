@@ -105,7 +105,7 @@ class App {
     this.game = new Game(app, T, fx, icons, tiles, digits, this.hooks());
     app.stage.addChild(this.game.root);
     app.stage.visible = false;
-    const onResize = () => this.game.resize(app.renderer.width / app.renderer.resolution, app.renderer.height / app.renderer.resolution);
+    const onResize = () => this.game.resize(app.screen.width, app.screen.height);
     app.renderer.on('resize', onResize);
     onResize();
     this.applySettings();
@@ -190,8 +190,7 @@ class App {
     t.addEventListener('pointerdown', () => this.leaveTitle());
     // the whole document unlocks audio on first gesture
     const unlock = () => audio.unlock();
-    window.addEventListener('pointerdown', unlock, { capture: true });
-    window.addEventListener('keydown', unlock, { capture: true });
+    for (const ev of ['pointerdown', 'touchend', 'click', 'keydown']) window.addEventListener(ev, unlock, { capture: true, passive: true });
     // pause button (touch / mouse)
     this.input.pauseBtn.addEventListener('click', () => {});
   }
@@ -321,12 +320,18 @@ class App {
     const start = () => {
       this.save.startWeapon = sel;
       writeSave(this.save);
-      this.startRun({ weapon: sel });
+      this.startRun({ weapon: sel, inferno: this.inferno && this.save.stats.wins > 0 });
     };
+    let infernoRow: HTMLElement | null = null;
+    if (this.save.stats.wins > 0) {
+      const tg = el('div', { class: 'toggle' + (this.inferno ? ' on' : ''), 'data-nav': '1', role: 'switch', 'aria-label': 'Inferno mode' });
+      tg.addEventListener('click', () => { this.inferno = !this.inferno; tg.classList.toggle('on', this.inferno); audio.sfx(this.inferno ? 'strike' : 'click', 0.6); });
+      infernoRow = el('div', { class: 'row inferno-row' }, el('span', {}, el('b', {}, 'Inferno Mode'), ' - tougher foes and bosses, +50% coins'), tg);
+    }
     const panel = el('div', { class: 'panel paper' },
       el('h2', {}, 'Choose Your Spark'),
       el('div', { style: { textAlign: 'center', fontWeight: '600', marginBottom: '10px' } }, 'Pick the weapon Novaki starts with. Unlock more by playing.'),
-      el('div', { class: 'scroll' }, grid),
+      el('div', { class: 'scroll' }, grid, infernoRow),
       el('div', { class: 'footer' }, button('Back', () => this.show('menu')), button('Strike!', start, 'primary')),
     );
     s.appendChild(panel);
@@ -666,7 +671,8 @@ class App {
   }
 
   /* ================================================================ run lifecycle */
-  startRun(opts: { seed?: number; weapon?: string; skipIntroCard?: boolean } = {}) {
+  inferno = false;
+  startRun(opts: { seed?: number; weapon?: string; skipIntroCard?: boolean; inferno?: boolean } = {}) {
     const seed = opts.seed ?? this.seedNext ?? ((Math.random() * 0xffffffff) >>> 0);
     this.seedNext = null;
     const sh = this.save.shop;
@@ -674,6 +680,7 @@ class App {
     this.game.newRun(seed, {
       stats: metaStats(sh), weapons: unlockedWeapons, startWeapon: opts.weapon || this.save.startWeapon || 'ember',
       rerolls: sh.reroll || 0, banishes: sh.banish || 0, choices: (sh.choice || 0) > 0 ? 4 : 3,
+      inferno: !!opts.inferno,
     });
     this.runActive = true;
     this.runResult = null;
@@ -974,8 +981,10 @@ class App {
     for (const b of g.stats.bossesKilled) st.bosses[b] = (st.bosses[b] || 0) + 1;
     for (const [id, u] of Object.entries(STARTER_UNLOCKS)) if (u && u.check(this.save) && !this.save.unlocks.includes('start_' + id)) this.save.unlocks.push('start_' + id);
     if (win && !this.save.unlocks.includes('victory')) this.save.unlocks.push('victory');
+    if (win && g.inferno && !this.save.unlocks.includes('inferno_victory')) this.save.unlocks.push('inferno_victory');
     writeSave(this.save);
     const newUnlocks = this.save.unlocks.filter((u) => !before.has(u) && u.startsWith('start_')).map((u) => WEAPONS[u.slice(6)]?.name).filter(Boolean);
+    if (win && !before.has('victory')) newUnlocks.push('Inferno Mode (toggle it when choosing your spark)');
     this.runResult = { win, earned, bonus, newUnlocks, quit };
     if (quit) { this.show('menu'); return; }
     if (win) {
@@ -1010,9 +1019,10 @@ class App {
       el('img', { class: 'result-art', src: img(win ? 'novaki_cheer' : 'novaki_ko'), alt: '' }),
       el('h2', { class: 'result-title' }, win ? 'Tinderbox Is Lit!' : 'Snuffed Out!'),
       g.stats.assisted ? el('div', { style: { textAlign: 'center', fontSize: '13px', opacity: '0.7' } }, '(QA-assisted run: stage skips used, best times not recorded)') : null,
+      g.inferno ? el('div', { style: { textAlign: 'center', fontFamily: 'var(--font-h)', color: '#c8361d' } }, 'INFERNO MODE') : null,
       el('div', { style: { textAlign: 'center', fontStyle: 'italic', fontWeight: '600', marginBottom: '6px' } }, win ? 'Novaki relit every flame in the land. Not bad for a spent match.' : GAMEOVER_LINE.text),
       el('div', { class: 'scroll' }, grid, wt,
-        r.newUnlocks.length ? el('div', { class: 'unlock-note' }, 'New starting spark unlocked: ' + r.newUnlocks.join(', ') + '!') : null),
+        r.newUnlocks.length ? el('div', { class: 'unlock-note' }, 'Unlocked: ' + r.newUnlocks.join(', ') + '!') : null),
       el('div', { class: 'footer' }, again, button('Workshop', () => this.show('shop')), button('Main Menu', () => this.show('menu'))),
     ));
     this.show(id as Screen);
@@ -1234,14 +1244,14 @@ class App {
           meta: { currency: self.save.coins, unlocks: [...self.save.unlocks], shop: { ...self.save.shop }, stats: { ...self.save.stats } },
         };
       },
-      start(options: { seed?: number; weapon?: string } = {}) {
+      start(options: { seed?: number; weapon?: string; inferno?: boolean } = {}) {
         audio.unlock();
         self.cutsceneToken++;
         self.cutsceneDone = null;
         audio.stopVoice();
         self.hideSubtitle();
         if (self.runActive) { self.runActive = false; self.game.running = false; }
-        self.startRun({ seed: typeof options.seed === 'number' ? options.seed : undefined, weapon: options.weapon });
+        self.startRun({ seed: typeof options.seed === 'number' ? options.seed : undefined, weapon: options.weapon && WEAPONS[options.weapon] ? options.weapon : undefined, inferno: !!options.inferno });
         return true;
       },
       setInvincible(on: boolean) { if (self.game.player) self.game.player.invincible = !!on; return !!on; },

@@ -56,10 +56,10 @@ export function startBossFight(g: Game, id: string) {
     boss: { id, phase: 1, attack: null, at: 0, cdT: 2.6, invuln: true, dying: false, deathT: 0, rot: 0, entry: 0, data: {}, last: '', tx: bx, ty: by, count: 0 },
   });
   if (!e) return;
-  e.maxHp = e.hp = def.hp;
+  e.maxHp = e.hp = def.hp * (g.inferno ? 1.7 : 1);
   e.r = def.r;
   e.speed = def.speed;
-  e.dmg = def.dmg;
+  e.dmg = def.dmg * (g.inferno ? 1.4 : 1);
   e.spawnT = 0;
   g.boss = e;
   g.bossActive = true;
@@ -163,7 +163,7 @@ const ATTACKS: Record<string, AttackFn> = {
       const o = bulletOrigin(e);
       for (let i = 0; i < arms; i++) {
         const a = B.data.a + (i / arms) * Math.PI * 2;
-        g.spawnBullet(o.x, o.y, Math.cos(a) * 150, Math.sin(a) * 150, { r: 9, dmg: 10, life: 5, tint: 0xd9b8ff });
+        g.spawnBullet(o.x, o.y, Math.cos(a) * 150, Math.sin(a) * 150, { r: 9, dmg: 8, life: 5, tint: 0xd9b8ff });
       }
       B.data.a += 0.23;
       audio.sfx('eshoot', 0.12, 0.8);
@@ -188,7 +188,7 @@ const ATTACKS: Record<string, AttackFn> = {
       e.y += Math.sin(B.data.a) * sp * dt;
       if (g.frameCount % 3 === 0) {
         const pa = B.data.a + Math.PI / 2 * (g.frameCount % 6 === 0 ? 1 : -1);
-        g.spawnBullet(e.x, e.y - 60, Math.cos(pa) * 60, Math.sin(pa) * 60, { r: 8, dmg: 9, life: 3, tint: 0xe8d8b0, acc: 30 });
+        g.spawnBullet(e.x, e.y - 60, Math.cos(pa) * 60, Math.sin(pa) * 60, { r: 8, dmg: 7, life: 3, tint: 0xe8d8b0, acc: 30 });
         g.puff(e.x, e.y - 40, 0xe8d8b0, 0.7, 0.8);
       }
       if (g.arena && Math.hypot(e.x - g.arena.x, e.y - g.arena.y) > g.arena.r - 70) B.at = tWind + 0.9;
@@ -215,7 +215,7 @@ const ATTACKS: Record<string, AttackFn> = {
       const n = B.phase > 1 ? 9 : 7;
       for (let i = 0; i < n; i++) {
         const a = a0 + (i - (n - 1) / 2) * 0.16;
-        g.spawnBullet(o.x, o.y, Math.cos(a) * 215, Math.sin(a) * 215, { r: 9, dmg: 11, life: 4, tint: 0xf0e0b0 });
+        g.spawnBullet(o.x, o.y, Math.cos(a) * 205, Math.sin(a) * 205, { r: 9, dmg: 9, life: 4, tint: 0xf0e0b0 });
       }
       audio.sfx('dash', 0.5, 0.7);
       g.puff(o.x, o.y, 0xf0e0b0, 1.2, 0.8);
