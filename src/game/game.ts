@@ -1507,10 +1507,12 @@ export class Game {
           if (!tex) continue;
           const s = this.decorPool.pop() || new Sprite(tex);
           s.texture = tex;
-          s.anchor.set(0.5, 0.95);
+          s.anchor.set(0.5, pr.flat ? 0.5 : 0.95);
           const hh = pr.size * (0.85 + ((h >> 8) % 30) / 100);
-          s.scale.set(hh / tex.height);
+          if (pr.flat) s.scale.set(hh / tex.width, (hh / tex.width) * 0.62);
+          else s.scale.set(hh / tex.height);
           if ((h >> 4) & 1) s.scale.x *= -1;
+          s.rotation = 0;
           s.x = px; s.y = py;
           s.zIndex = py;
           s.visible = true;

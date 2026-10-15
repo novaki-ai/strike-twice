@@ -8,6 +8,7 @@ export const SPRITES = [
   'p1_tree', 'p1_shrooms', 'p1_boulder', 'p1_log', 'p1_fern', 'p1_lantern',
   'p2_lamp', 'p2_barrel', 'p2_crates', 'p2_anchor', 'p2_hydrant', 'p2_bollard',
   'p3_candelabra', 'p3_pillar', 'p3_candles', 'p3_gargoyle', 'p3_brazier', 'p3_books',
+  'd1_moss', 'd1_leaves', 'd1_ring', 'd2_puddle', 'd2_manhole', 'd2_net', 'd3_wax', 'd3_rug', 'd3_bones',
 ];
 export const BIG_SPRITES = ['b_duchess', 'b_baron', 'b_snuffer', 'novaki_ko', 'b_duchess_atk', 'b_duchess_ko', 'b_baron_atk', 'b_baron_ko', 'b_snuffer_atk', 'b_snuffer_ko'];
 export const ICONS = [
