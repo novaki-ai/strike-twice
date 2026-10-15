@@ -15,7 +15,7 @@ import { RELICS, RELIC_ICONS, rollRelics, grantRelic, RelicDef } from './game/re
 import { ENEMIES } from './game/enemies';
 import { BOSSES } from './game/bosses';
 import { el, button, icon, img, FocusNav, ASSET } from './ui/dom';
-import { INTRO, ENDING, CHAPTER_LINES, BOSS_LINES, GAMEOVER_LINE, DEATH_LINE, Line, Panel } from './ui/story';
+import { INTRO, ENDING, CHAPTER_LINES, BOSS_LINES, GAMEOVER_LINE, DEATH_LINE, CLEAR_LINE, Line, Panel } from './ui/story';
 
 type Screen = 'loading' | 'title' | 'menu' | 'loadout' | 'shop' | 'settings' | 'howto' | 'records' | 'intro' | 'playing' | 'paused'
   | 'levelup' | 'chest' | 'stageclear' | 'gameover' | 'victory' | 'ending';
@@ -966,6 +966,7 @@ class App {
     this.navLockUntil = performance.now() + 600;
     this.stageClearT = 20;
     audio.playMusic('victory', MUSIC.victory, 0.5);
+    this.bark([CLEAR_LINE]);
   }
   countdownEl: HTMLElement | null = null;
 

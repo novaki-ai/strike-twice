@@ -178,12 +178,12 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
       if (e.t > 3.6 && d < 480) {
         e.t = 0;
         const tx = p.x + p.vx * 0.35, ty = p.y + p.vy * 0.35;
-        const dmg = 13 * g.stageDef.dmgMul;
+        const dmg = 11 * g.stageDef.dmgMul;
         g.tele({
           kind: 'circle', x: tx, y: ty, r: 42, dur: 1.05, color: 0xffd23a,
           onDone: () => {
             const ddx = g.player.x - tx, ddy = g.player.y - ty;
-            if (ddx * ddx + ddy * ddy < 46 * 46) g.hurtPlayer(dmg, null);
+            if (ddx * ddx + ddy * ddy < 46 * 46) g.hurtPlayer(dmg, null, { by: 'lightning' });
             g.bolt([tx + vrange(-20, 20), ty - 420, tx + vrange(-30, 30), ty - 260, tx + vrange(-20, 20), ty - 120, tx, ty], 0xfff3a0, 3);
             g.explosionFx(tx, ty, 34, 0xfff3a0);
             audio.sfx('zap', 0.5, 0.7);
@@ -197,16 +197,16 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
         moveToward(g, e, p.x, p.y, e.speed, dt);
         if (distP < 58) {
           e.state = 9; e.t = 0; audio.sfx('buzz', 0.3, 1.6);
-          const tl = g.tele({ kind: 'circle', x: e.x, y: e.y, r: 78, dur: 0.6, color: 0x7fb6e6 });
+          const tl = g.tele({ kind: 'circle', x: e.x, y: e.y, r: 72, dur: 0.6, color: 0x7fb6e6 });
           e.ang = g.teles.indexOf(tl);
         }
       } else if (e.state === 9) {
         e.scale = (e.elite ? 1.55 : 1) * (1 + e.t * 0.5);
         moveToward(g, e, p.x, p.y, e.speed * 0.25, dt);
         if (e.t > 0.6) {
-          const r = 78;
+          const r = 72;
           const ddx = p.x - e.x, ddy = p.y - e.y;
-          if (ddx * ddx + ddy * ddy < r * r) g.hurtPlayer(17 * g.stageDef.dmgMul, null);
+          if (ddx * ddx + ddy * ddy < r * r) g.hurtPlayer(14 * g.stageDef.dmgMul, null, { by: 'balloon' });
           splashFx(g, e.x, e.y, r);
           e.noXp = true;
           g.killEnemy(e, null);

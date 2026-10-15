@@ -46,6 +46,8 @@ export const BOSS_LINES: Record<string, { intro: Line; quip?: Line; defeat: Line
   },
 };
 
+export const CLEAR_LINE: Line = { voice: 'novaki_clear', who: 'Novaki', text: 'Hmph. That was the easy part.' };
+
 export const DEATH_LINE: Line = { voice: 'novaki_death', who: 'Novaki', text: 'Ugh. Not again.' };
 
 export const GAMEOVER_LINE: Line = { voice: 'gameover', text: 'The ember flickers... but a stubborn match always strikes again.' };
