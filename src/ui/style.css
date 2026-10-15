@@ -384,3 +384,17 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
 
 .card .syn { margin-top: auto; padding-top: 6px; font-size: 12px; font-weight: 700; color: #a8461a; }
 @media (max-width: 600px) { .card .syn { margin-top: 3px; padding-top: 0; } }
+
+.daily-row { margin-top: 10px; border: 3px dashed var(--gold); border-radius: 12px; padding: 8px 12px; background: rgba(230,179,74,0.12); font-size: 15px; }
+.daily-best { color: #a8461a; font-weight: 700; }
+.beast.unseen img { filter: brightness(0) opacity(0.55); }
+.beast.unseen { background: rgba(27,22,18,0.08); }
+.embers { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.embers span { position: absolute; bottom: -10px; border-radius: 50%; background: radial-gradient(circle, #fff3b0 0%, #ffb347 45%, rgba(232,105,44,0) 75%); animation: ember-rise linear infinite; opacity: 0; }
+@keyframes ember-rise {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: 0.9; }
+  50% { transform: translate(18px, -50vh); }
+  80% { opacity: 0.6; }
+  100% { transform: translate(-12px, -105vh); opacity: 0; }
+}

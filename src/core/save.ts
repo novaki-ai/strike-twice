@@ -17,6 +17,8 @@ export interface SaveData {
   unlocks: string[];
   startWeapon: string;
   seenIntro: boolean;
+  seen: string[];
+  daily: { date: string; bestTime: number; bestStage: number; won: boolean } | null;
   stats: {
     runs: number;
     wins: number;
@@ -42,6 +44,8 @@ export function defaultSave(): SaveData {
     unlocks: [],
     startWeapon: 'ember',
     seenIntro: false,
+    seen: [],
+    daily: null,
     stats: {
       runs: 0, wins: 0, deaths: 0, kills: 0, bestTime: 0, longestRun: 0,
       bestStage: 0, bestLevel: 0, totalCoins: 0, bosses: {},
@@ -73,6 +77,7 @@ export function loadSave(): SaveData {
       settings: { ...d.settings, ...(s.settings || {}) },
       shop: { ...(s.shop || {}) },
       unlocks: Array.isArray(s.unlocks) ? s.unlocks : [],
+      seen: Array.isArray(s.seen) ? s.seen : [],
     };
   } catch {
     return d;

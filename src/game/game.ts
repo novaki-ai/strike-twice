@@ -98,6 +98,8 @@ export class Game {
   metaBonus: Partial<Stats> = {};
   choiceCount = 3;
   inferno = false;
+  daily = false;
+  seenTypes = new Set<string>();
   relics = new Set<string>();
   wardT = 0;
   danceT = 0;
@@ -270,6 +272,8 @@ export class Game {
     this.banished.clear();
     this.choiceCount = meta.choices;
     this.inferno = !!meta.inferno;
+    this.daily = !!(meta as any).daily;
+    this.seenTypes.clear();
     this.relics.clear();
     this.wardT = 0;
     this.danceT = 0;
@@ -606,6 +610,7 @@ export class Game {
     const hpScale = opts.boss ? 1 : st.hpMul * (1 + this.stageTime / 360);
     e.id = this.nextEnemyId++;
     e.type = type;
+    if (!def.prop) this.seenTypes.add(type);
     e.def = def;
     e.x = e.px = x; e.y = e.py = y;
     e.vx = e.vy = 0; e.mx = 0; e.my = 0;

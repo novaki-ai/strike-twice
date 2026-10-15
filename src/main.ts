@@ -37,6 +37,16 @@ const STARTER_UNLOCKS: Record<string, { text: string; check: (s: SaveData) => bo
   spark: { text: 'Win a run', check: (s) => s.stats.wins > 0 },
 };
 
+const todayKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+const dailySeed = (key: string) => {
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i++) { h ^= key.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+};
+
 const fmtTime = (t: number) => {
   const m = Math.floor(t / 60), s = Math.floor(t % 60);
   return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
@@ -192,6 +202,7 @@ class App {
     t.append(
       el('div', { class: 'menu-bg', style: { backgroundImage: `url(${img('menu_bg')})` } }),
       el('div', { class: 'menu-shade' }),
+      this.embers(),
       el('img', { class: 'logo', src: img('logo'), alt: 'Strike Twice' }),
       el('div', { class: 'subtitle-novaki' }, 'A NOVAKI ROGUELITE'),
       el('div', { class: 'spacer' }),
@@ -203,6 +214,20 @@ class App {
     for (const ev of ['pointerdown', 'touchend', 'click', 'keydown']) window.addEventListener(ev, unlock, { capture: true, passive: true });
     // pause button (touch / mouse)
     this.input.pauseBtn.addEventListener('click', () => {});
+  }
+
+  embers(): HTMLElement {
+    const box = el('div', { class: 'embers passthrough' });
+    for (let i = 0; i < 18; i++) {
+      const s = el('span', {});
+      s.style.left = (Math.random() * 100).toFixed(1) + '%';
+      s.style.animationDuration = (6 + Math.random() * 7).toFixed(1) + 's';
+      s.style.animationDelay = (-Math.random() * 12).toFixed(1) + 's';
+      const sz = 3 + Math.random() * 5;
+      s.style.width = s.style.height = sz.toFixed(1) + 'px';
+      box.appendChild(s);
+    }
+    return box;
   }
 
   leaveTitle() {
@@ -276,6 +301,7 @@ class App {
     m.append(
       el('div', { class: 'menu-bg', style: { backgroundImage: `url(${img('menu_bg')})` } }),
       el('div', { class: 'menu-shade' }),
+      this.embers(),
       el('img', { class: 'logo', src: img('logo'), alt: 'Strike Twice' }),
       el('div', { class: 'subtitle-novaki' }, 'A NOVAKI ROGUELITE'),
       btns,
@@ -333,6 +359,12 @@ class App {
       writeSave(this.save);
       this.startRun({ weapon: sel, inferno: this.inferno && this.save.stats.wins > 0 });
     };
+    const dkey = todayKey();
+    const dbest = this.save.daily && this.save.daily.date === dkey ? this.save.daily : null;
+    const dailyRow = el('div', { class: 'row daily-row' },
+      el('span', {}, el('b', {}, 'Daily Strike'), ` - today's seeded run (${dkey}), the same for everyone. Starts with Ember Toss.`,
+        dbest ? el('span', { class: 'daily-best' }, ` Best today: ${dbest.won ? 'WON in ' + fmtTime(dbest.bestTime) : STAGES[Math.max(1, dbest.bestStage) - 1].name + ', ' + fmtTime(dbest.bestTime)}`) : null),
+      button('Play Daily', () => this.startRun({ seed: dailySeed(dkey), weapon: 'ember', daily: true }), 'small'));
     let infernoRow: HTMLElement | null = null;
     if (this.save.stats.wins > 0) {
       const tg = el('div', { class: 'toggle' + (this.inferno ? ' on' : ''), 'data-nav': '1', role: 'switch', 'aria-label': 'Inferno mode' });
@@ -342,7 +374,7 @@ class App {
     const panel = el('div', { class: 'panel paper' },
       el('h2', {}, 'Choose Your Spark'),
       el('div', { style: { textAlign: 'center', fontWeight: '600', marginBottom: '10px' } }, 'Pick the weapon Novaki starts with. Unlock more by playing.'),
-      el('div', { class: 'scroll' }, grid, infernoRow),
+      el('div', { class: 'scroll' }, grid, infernoRow, dailyRow),
       el('div', { class: 'footer' }, button('Back', () => this.show('menu')), button('Strike!', start, 'primary')),
     );
     s.appendChild(panel);
@@ -523,14 +555,16 @@ class App {
       body = el('div', { class: 'bestiary' });
       for (const st of STAGES) {
         const b = BOSSES[st.boss];
-        body.appendChild(el('div', { class: 'beast boss' }, el('img', { src: img(b.tex), alt: '' }), el('div', { class: 'nm' }, b.name), el('div', {}, `${b.title}. ${b.desc}`)));
+        const bseen = this.save.seen.includes(st.boss) || (this.save.stats.bosses[st.boss] || 0) > 0;
+        body.appendChild(el('div', { class: 'beast boss' + (bseen ? '' : ' unseen') }, el('img', { src: img(b.tex), alt: '' }), el('div', { class: 'nm' }, bseen ? b.name : '???'), el('div', {}, bseen ? `${b.title}. ${b.desc}` : 'A great foe awaits at the end of ' + st.name + '.')));
         const types = new Set<string>();
         for (const w of st.waves) for (const k of Object.keys(w.mix)) if (!['moth', 'raindrop'].includes(k) || st.id < 3) types.add(k);
         for (const k of types) {
           const e = ENEMIES[k];
           if (!e || (st.id === 3 && ['moth', 'raindrop'].includes(k))) continue;
           if (Array.from(STAGES.slice(0, st.id - 1)).some((o) => o.waves.some((w) => w.mix[k]))) continue;
-          body.appendChild(el('div', { class: 'beast' }, el('img', { src: img(e.tex), alt: '' }), el('div', { class: 'nm' }, e.name), el('div', {}, e.desc)));
+          const seen = this.save.seen.includes(k);
+          body.appendChild(el('div', { class: 'beast' + (seen ? '' : ' unseen') }, el('img', { src: img(e.tex), alt: '' }), el('div', { class: 'nm' }, seen ? e.name : '???'), el('div', {}, seen ? e.desc : 'Not encountered yet.')));
         }
       }
     }
@@ -697,7 +731,7 @@ class App {
 
   /* ================================================================ run lifecycle */
   inferno = false;
-  startRun(opts: { seed?: number; weapon?: string; skipIntroCard?: boolean; inferno?: boolean } = {}) {
+  startRun(opts: { seed?: number; weapon?: string; skipIntroCard?: boolean; inferno?: boolean; daily?: boolean } = {}) {
     const seed = opts.seed ?? this.seedNext ?? ((Math.random() * 0xffffffff) >>> 0);
     this.seedNext = null;
     const sh = this.save.shop;
@@ -706,7 +740,8 @@ class App {
       stats: metaStats(sh), weapons: unlockedWeapons, startWeapon: opts.weapon || this.save.startWeapon || 'ember',
       rerolls: sh.reroll || 0, banishes: sh.banish || 0, choices: (sh.choice || 0) > 0 ? 4 : 3,
       inferno: !!opts.inferno,
-    });
+      daily: !!opts.daily,
+    } as any);
     this.runActive = true;
     this.runId++;
     if (this.deathTimer) { clearTimeout(this.deathTimer); this.deathTimer = 0; }
@@ -767,6 +802,12 @@ class App {
         button('Resume', () => this.resume(), 'primary'),
         button('Settings', () => { this.settingsBack = 'paused'; this.show('settings'); }),
         button('How to Play', () => { this.howtoBack = 'paused'; this.show('howto'); }),
+        button('Restart', () => {
+          const w = g.player.weapons[0]?.id || this.save.startWeapon;
+          const daily = g.daily, inferno = g.inferno, seed = g.seed;
+          this.endRun(false, true);
+          this.startRun(daily ? { seed, weapon: 'ember', daily: true } : { weapon: w, inferno });
+        }),
         quit,
       ),
     ));
@@ -1066,6 +1107,13 @@ class App {
     st.bestLevel = Math.max(st.bestLevel, g.player.level);
     st.totalCoins += earned;
     for (const b of g.stats.bossesKilled) st.bosses[b] = (st.bosses[b] || 0) + 1;
+    for (const t of g.seenTypes) if (!this.save.seen.includes(t)) this.save.seen.push(t);
+    if (g.daily && !quit) {
+      const dk = todayKey();
+      const prev = this.save.daily && this.save.daily.date === dk ? this.save.daily : null;
+      const better = !prev || (win && (!prev.won || g.time < prev.bestTime)) || (!prev.won && !win && (g.stats.stageReached > prev.bestStage || (g.stats.stageReached === prev.bestStage && g.time > prev.bestTime)));
+      if (better) this.save.daily = { date: dk, bestTime: Math.floor(g.time), bestStage: g.stats.stageReached, won: win };
+    }
     for (const [id, u] of Object.entries(STARTER_UNLOCKS)) if (u && u.check(this.save) && !this.save.unlocks.includes('start_' + id)) this.save.unlocks.push('start_' + id);
     if (win && !this.save.unlocks.includes('victory')) this.save.unlocks.push('victory');
     if (win && g.inferno && !this.save.unlocks.includes('inferno_victory')) this.save.unlocks.push('inferno_victory');
@@ -1107,6 +1155,7 @@ class App {
       el('h2', { class: 'result-title' }, win ? 'Tinderbox Is Lit!' : 'Snuffed Out!'),
       g.stats.assisted ? el('div', { style: { textAlign: 'center', fontSize: '13px', opacity: '0.7' } }, '(QA-assisted run: stage skips used, best times not recorded)') : null,
       g.inferno ? el('div', { style: { textAlign: 'center', fontFamily: 'var(--font-h)', color: '#c8361d' } }, 'INFERNO MODE') : null,
+      g.daily ? el('div', { style: { textAlign: 'center', fontFamily: 'var(--font-h)', color: '#a8461a' } }, 'DAILY STRIKE ' + todayKey()) : null,
       el('div', { style: { textAlign: 'center', fontStyle: 'italic', fontWeight: '600', marginBottom: '6px' } }, win ? 'Novaki relit every flame in the land. Not bad for a spent match.' : GAMEOVER_LINE.text),
       el('div', { class: 'scroll' }, grid, wt,
         r.newUnlocks.length ? el('div', { class: 'unlock-note' }, 'Unlocked: ' + r.newUnlocks.join(', ') + '!') : null),
