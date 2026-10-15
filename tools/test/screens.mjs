@@ -57,7 +57,7 @@ if (MOBILE) await page.locator('.pause-btn').tap(); else await page.keyboard.pre
 await shot('pause');
 await clickText('Resume');
 // die
-await page.evaluate(() => { const g = window.__novaki.game; g.player.hp = 1; window.NOVAKI_QA.spawnEnemies(60); });
+await page.evaluate(() => { const g = window.__novaki.game; window.NOVAKI_QA.setInvincible(false); g.player.iframes = 0; g.player.revives = 0; g.hurtPlayer(9999, null); });
 await page.waitForFunction(() => window.NOVAKI_QA.state().screen === 'gameover', null, { timeout: 30000 });
 await shot('gameover');
 // victory flow

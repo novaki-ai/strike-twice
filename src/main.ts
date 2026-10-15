@@ -812,7 +812,8 @@ class App {
         el('div', { class: 'body' },
           el('div', { class: 'nm' }, c.name),
           el('div', { class: 'lvtag' + (c.isNew ? ' new' : c.kind === 'evo' ? ' evo' : '') }, tag),
-          el('div', { class: 'tx' }, c.text)),
+          el('div', { class: 'tx' }, c.text),
+          this.synergyHint(c) ? el('div', { class: 'syn' }, this.synergyHint(c)) : null),
       );
       card.addEventListener('click', () => this.pickChoice(i));
       cards.appendChild(card);
@@ -835,6 +836,21 @@ class App {
     s.append(el('h1', {}, this.banishMode ? 'Banish what?' : 'Level Up!'), cards, actions);
     this.nav.setRoot(s, null);
     this.navLockUntil = Math.max(this.navLockUntil, performance.now() + 300);
+  }
+
+  /** short hint about the evolution partner of a weapon / trinket */
+  synergyHint(c: Choice): string {
+    const p = this.game.player;
+    if (c.kind === 'weapon') {
+      const pas = PASSIVES[WEAPONS[c.id].evo.passive];
+      const owned = p.passives.some((q) => q.id === pas.id);
+      return `★ Evolves with ${pas.name}${owned ? ' (owned)' : ''}`;
+    }
+    if (c.kind === 'passive') {
+      const ws = p.weapons.filter((w) => WEAPONS[w.id].evo.passive === c.id && !w.evo).map((w) => WEAPONS[w.id].name);
+      if (ws.length) return `★ Evolves your ${ws.join(' & ')}`;
+    }
+    return '';
   }
 
   pickChoice(i: number): string | null {
@@ -1109,6 +1125,9 @@ class App {
       levelUp: () => this.openLevelUp(),
       bossSpawn: (id) => {
         const b = BOSSES[id];
+        const bar = this.hudEls.bossFill.parentElement!;
+        bar.querySelectorAll('.notch').forEach((n) => n.remove());
+        for (const ph of b.phases) bar.appendChild(el('div', { class: 'notch', style: { left: (ph * 100) + '%' } }));
         const card = el('div', { class: 'bosscard passthrough' }, el('img', { src: img(b.tex), alt: '' }), el('div', {}, el('div', { class: 'nm' }, b.name), el('div', { class: 'ttl' }, b.title.toUpperCase())));
         this.clearBanners();
         this.addBanner(card, 4300);

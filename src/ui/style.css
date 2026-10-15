@@ -175,7 +175,7 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
 .bossbar { position: absolute; top: calc(84px + var(--safe-t)); left: 50%; transform: translateX(-50%); width: min(560px, 80vw); display: none; text-align: center; }
 .bossbar.show { display: block; }
 .bossbar .name { font-family: var(--font-h); font-size: 20px; color: var(--ember2); text-shadow: 2px 2px 0 var(--ink), -1px -1px 0 var(--ink); }
-.bossbar .bar { height: 18px; border: 3px solid var(--ink); border-radius: 10px; background: rgba(27,22,18,0.8); overflow: hidden; box-shadow: 3px 3px 0 rgba(0,0,0,0.5); }
+.bossbar .bar { position: relative; height: 18px; border: 3px solid var(--ink); border-radius: 10px; background: rgba(27,22,18,0.8); overflow: hidden; box-shadow: 3px 3px 0 rgba(0,0,0,0.5); }
 .bossbar .fill { height: 100%; width: 100%; background: linear-gradient(180deg, #b48aff, #6a3fb0); transition: width 0.15s; }
 .dash-ind { position: absolute; left: calc(12px + var(--safe-l)); bottom: calc(12px + var(--safe-b)); font-family: var(--font-h); font-size: 14px; color: var(--paper); text-shadow: 2px 2px 0 var(--ink); display: flex; align-items: center; gap: 6px; opacity: 0.9; }
 .dash-ind .ring { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--ink); background: conic-gradient(var(--ember2) calc(var(--p, 1) * 360deg), rgba(27,22,18,0.6) 0); }
@@ -379,3 +379,8 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
   .relic .nm { margin-top: 0; font-size: 16px; }
   .reward-list.small { display: none; }
 }
+
+.bossbar .notch { position: absolute; top: -2px; bottom: -2px; width: 3px; background: #1b1612; transform: translateX(-50%); box-shadow: 0 0 0 1px rgba(255,240,200,0.6); }
+
+.card .syn { margin-top: auto; padding-top: 6px; font-size: 12px; font-weight: 700; color: #a8461a; }
+@media (max-width: 600px) { .card .syn { margin-top: 3px; padding-top: 0; } }

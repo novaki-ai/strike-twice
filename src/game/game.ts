@@ -1642,7 +1642,7 @@ export class Game {
       let bob = 0, sqx = 1, sqy = 1, rot = 0;
       const ph = t * (def.animSpeed ?? 8) + e.phase;
       switch (def.anim) {
-        case 'fly': bob = -10 - Math.sin(ph) * 6; rot = Math.sin(ph * 0.5) * 0.12; sqy = 1 + Math.sin(ph * 2) * 0.05; break;
+        case 'fly': bob = -10 - Math.sin(ph) * 6; rot = Math.sin(ph * 0.5) * 0.12; sqx = 0.82 + 0.18 * Math.abs(Math.sin(ph * 1.6)); sqy = 1 + Math.sin(ph * 2) * 0.04; break;
         case 'float': bob = -14 - Math.sin(ph * 0.5) * 6; rot = Math.sin(ph * 0.3) * 0.06; break;
         case 'hop': bob = -e.hop; sqy = 1 + Math.min(0.15, e.hop * 0.01) - (e.hop === 0 ? 0.06 : 0); sqx = 2 - sqy; break;
         case 'wobble': sqy = 1 + Math.sin(ph) * 0.07; sqx = 1 - Math.sin(ph) * 0.07; break;
