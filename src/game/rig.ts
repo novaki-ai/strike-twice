@@ -94,13 +94,14 @@ export class NovakiRig {
       if (dashing) { fx = (i === 0 ? -10 : 2); fy = -4 + i * 2; }
       // rubber hose leg: quadratic curve with knee pushed forward
       const kx = (hx + fx) / 2 + 3, ky = (hipY + fy) / 2;
-      L.moveTo(hx, hipY).quadraticCurveTo(kx, ky, fx, fy - 3).stroke({ width: 4.4, color: INK, cap: 'round' });
+      L.moveTo(hx, hipY).quadraticCurveTo(kx, ky, fx, fy - 3).stroke({ width: 4.8, color: INK, cap: 'round' });
       feet.push([fx, fy, fp]);
     }
     for (const [fx, fy] of feet) {
-      // shoe: chunky black oval pointing forward
-      L.ellipse(fx + 3, fy - 2.5, 7.5, 4.6).fill(INK);
-      L.ellipse(fx + 5, fy - 4.2, 2.6, 1.2).fill({ color: 0xffffff, alpha: 0.35 });
+      // shoe: big bulbous cartoon shoe pointing forward, with a shine and a pale sole line
+      L.ellipse(fx + 3.5, fy - 3.2, 9.5, 5.8).fill(INK);
+      L.ellipse(fx + 3.5, fy + 1.4, 8.4, 1.4).fill({ color: 0x8a7d6a, alpha: 0.9 });
+      L.ellipse(fx + 6.5, fy - 5.6, 3.2, 1.5).fill({ color: 0xffffff, alpha: 0.45 });
     }
 
     // arms (shoulders on the wood body, just under the face)
@@ -142,11 +143,13 @@ export class NovakiRig {
     gr.clear();
     if (dashing) { hx = sx - 16; hy = sy + 4; }
     const cx = (sx + hx) / 2 + (back ? -5 : 5), cy = (sy + hy) / 2 - 3;
-    gr.moveTo(sx, sy).quadraticCurveTo(cx, cy, hx, hy).stroke({ width: 3.6, color: INK, cap: 'round' });
-    // cartoon glove: white puff with cuff and finger lines
-    gr.circle(hx, hy + 1, 5.6).fill(0xffffff).stroke({ width: 1.6, color: INK });
-    gr.moveTo(hx - 2.2, hy - 0.5).lineTo(hx - 2.2, hy + 3).stroke({ width: 1, color: INK, alpha: 0.7 });
-    gr.moveTo(hx + 0.6, hy - 1).lineTo(hx + 0.6, hy + 3.4).stroke({ width: 1, color: INK, alpha: 0.7 });
-    gr.roundRect(hx - 4, hy - 6.5, 8, 3.6, 1.5).fill(0xffffff).stroke({ width: 1.4, color: INK });
+    gr.moveTo(sx, sy).quadraticCurveTo(cx, cy, hx, hy).stroke({ width: 4.2, color: INK, cap: 'round' });
+    // cartoon glove: puffy white mitt with a thumb bump, flared cuff and two finger creases
+    const gx = hx, gy = hy + 3;
+    gr.circle(gx + (back ? -3.2 : 3.2), gy - 1.5, 3.2).fill(0xfffaf0).stroke({ width: 1.5, color: INK });
+    gr.ellipse(gx, gy, 6.4, 5.8).fill(0xfffaf0).stroke({ width: 1.7, color: INK });
+    gr.moveTo(gx - 2.4, gy + 0.6).lineTo(gx - 2.1, gy + 4.2).stroke({ width: 1.1, color: INK, alpha: 0.75 });
+    gr.moveTo(gx + 0.6, gy + 0.9).lineTo(gx + 0.8, gy + 4.6).stroke({ width: 1.1, color: INK, alpha: 0.75 });
+    gr.ellipse(gx, gy - 5.2, 4.6, 1.9).fill(0xfffaf0).stroke({ width: 1.4, color: INK });
   }
 }

@@ -1,0 +1,22 @@
+import { chromium } from 'playwright';
+const URL = process.env.URL || 'http://localhost:4317/games/novaki/';
+const OUT = process.env.OUT;
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await page.goto(URL);
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+await page.evaluate(() => { window.NOVAKI_QA.start({ seed: 3 }); window.NOVAKI_QA.setInvincible(true); const g = window.__novaki.game; g.director.update = () => {}; });
+await page.waitForTimeout(4500);
+const clip = { x: 540, y: 250, width: 200, height: 200 };
+await page.screenshot({ path: OUT + '/n_idle.png', clip });
+await page.keyboard.down('KeyD');
+for (let i = 0; i < 4; i++) { await page.waitForTimeout(110); await page.screenshot({ path: OUT + `/n_run${i}.png`, clip }); }
+await page.keyboard.up('KeyD');
+await page.keyboard.down('KeyA');
+await page.waitForTimeout(300);
+await page.screenshot({ path: OUT + '/n_left.png', clip });
+await page.keyboard.press('Space');
+await page.waitForTimeout(60);
+await page.screenshot({ path: OUT + '/n_dash.png', clip });
+await page.keyboard.up('KeyA');
+await browser.close();

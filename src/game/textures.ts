@@ -223,6 +223,18 @@ export function makeFxTextures(): FxTex {
     c.fillStyle = '#fff';
     for (const [x, y, r] of blobs) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); }
   });
+  // cartoon explosion cloud: inked puffs with a yellow core
+  t.boom = canvasTex(128, 128, (c) => {
+    const blobs: [number, number, number][] = [[64, 64, 34], [38, 52, 22], [90, 50, 24], [50, 88, 22], [84, 88, 24], [64, 32, 20], [28, 76, 16], [100, 72, 17]];
+    c.fillStyle = '#1b1612';
+    for (const [x, y, r] of blobs) { c.beginPath(); c.arc(x, y, r + 4, 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = '#e8501c';
+    for (const [x, y, r] of blobs) { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = '#ffa53a';
+    for (const [x, y, r] of blobs) { c.beginPath(); c.arc(x - r * 0.15, y - r * 0.15, r * 0.72, 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = '#fff1a8';
+    c.beginPath(); c.arc(60, 60, 20, 0, Math.PI * 2); c.fill();
+  });
   t.ring = canvasTex(128, 128, (c) => {
     c.strokeStyle = '#fff'; c.lineWidth = 10;
     c.beginPath(); c.arc(64, 64, 56, 0, Math.PI * 2); c.stroke();

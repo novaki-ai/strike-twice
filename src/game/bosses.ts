@@ -28,19 +28,19 @@ export interface BossDef {
 
 export const BOSSES: Record<string, BossDef> = {
   duchess: {
-    name: 'Duchess Dustwing', title: 'Matriarch of the Mothwood', tex: 'b_duchess', hp: 3200, size: 175, r: 52, speed: 70, dmg: 14, xp: 0,
+    name: 'Duchess Dustwing', title: 'Matriarch of the Mothwood', tex: 'b_duchess', hp: 3200, size: 175, r: 52, speed: 70, dmg: 10, xp: 0,
     anim: 'fly', animSpeed: 5, noFlip: true, light: 0xe8c8ff, shadowW: 160, anchorY: 0.85,
     attacks: [['spiral', 'swoop', 'gust', 'brood'], ['spiral', 'swoop', 'gust', 'brood', 'swoop']],
     phases: [0.5], desc: 'A vain moth duchess who hoards every light she can find.',
   },
   baron: {
-    name: 'Baron von Drizzle', title: 'Lord of the Endless Rain', tex: 'b_baron', hp: 8000, size: 180, r: 58, speed: 60, dmg: 18, xp: 0,
+    name: 'Baron von Drizzle', title: 'Lord of the Endless Rain', tex: 'b_baron', hp: 8000, size: 180, r: 58, speed: 60, dmg: 14, xp: 0,
     anim: 'float', noFlip: true, light: 0xbfe0ff, shadowW: 170, anchorY: 0.8,
     attacks: [['downpour', 'lightning', 'umbrella', 'summon'], ['downpour', 'lightning', 'umbrella', 'rain', 'summon', 'lightning']],
     phases: [0.5], desc: 'A pompous storm cloud who rains on every parade.',
   },
   snuffer: {
-    name: 'The Snuffer', title: 'Extinguisher of All Flames', tex: 'b_snuffer', hp: 16000, size: 215, r: 50, speed: 55, dmg: 22, xp: 0,
+    name: 'The Snuffer', title: 'Extinguisher of All Flames', tex: 'b_snuffer', hp: 16000, size: 215, r: 50, speed: 55, dmg: 18, xp: 0,
     anim: 'float', noFlip: true, light: 0xd0d8ff, shadowW: 150, anchorY: 0.9,
     attacks: [['slam', 'spokes', 'sweep', 'snuffers'], ['slam', 'spokes', 'lightsout', 'sweep', 'slam'], ['slam', 'spokes', 'sweep', 'lightsout', 'slam', 'spokes']],
     phases: [0.6, 0.25], desc: 'The cold hand that put out every light in Tinderbox.',

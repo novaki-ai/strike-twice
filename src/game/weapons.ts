@@ -267,10 +267,10 @@ export const WEAPONS: Record<string, WeaponDef> = {
       const p = g.player;
       const cd = w.evo ? 0.3 : L(w, [0.95, 0.95, 0.9, 0.9, 0.85, 0.85, 0.8, 0.72]);
       cooldown(g, w, dt, cd, () => {
-        const n = (w.evo ? 3 : L(w, [2, 2, 3, 3, 4, 4, 5, 5])) + p.stats.amount;
+        const n = (w.evo ? 4 : L(w, [2, 2, 3, 3, 4, 4, 5, 5])) + p.stats.amount;
         const base = Math.atan2(p.moving ? p.dirY : 0, p.moving ? p.dirX : p.face);
         const spd = 580 * p.stats.projSpeed;
-        const dmg = L(w, [8, 8, 8, 10, 10, 12, 12, 14]) * (w.evo ? 1.3 : 1);
+        const dmg = L(w, [9, 9, 9, 11, 11, 13, 13, 16]) * (w.evo ? 1.3 : 1);
         const pierce = L(w, [2, 3, 3, 3, 4, 4, 5, 5]) + p.stats.pierce + (w.evo ? 3 : 0);
         for (let i = 0; i < n; i++) {
           const a = base + (i - (n - 1) / 2) * 0.11 + vrange(-0.03, 0.03);
@@ -351,7 +351,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
     evo: { passive: 'shoes', name: 'Wildfire', desc: 'Huge fires; burning enemies burst into new flames.' },
     update(g, w, dt) {
       const p = g.player;
-      const lx = w.data.lx ?? p.x, ly = w.data.ly ?? p.y;
+      if (w.data.lx === undefined) { w.data.lx = p.x; w.data.ly = p.y; }
+      const lx = w.data.lx, ly = w.data.ly;
       const moved = Math.hypot(p.x - lx, p.y - ly);
       const spacing = w.evo ? 30 : 34;
       if (moved > spacing || (!p.moving && (w.t += dt) > 0.8)) {
@@ -496,9 +497,12 @@ export const WEAPONS: Record<string, WeaponDef> = {
       if (w.active > 0) {
         w.active -= dt;
         w.data.tick -= dt;
-        const base = w.data.base + Math.sin((1 - w.active / w.data.dur) * Math.PI * 2) * 0.6;
-        drawBeam(g, w, base, w.data.len, w.data.width, w.data.tick <= 0 ? w.data.dmg * 0.35 : 0);
+        const base = w.data.base + Math.sin((1 - w.active / w.data.dur) * Math.PI * 2) * 0.9;
+        const hit = w.data.tick <= 0 ? w.data.dmg * 0.5 : 0;
+        drawBeam(g, w, base, w.data.len, w.data.width, hit);
+        drawBeam(g, w, base + Math.PI, w.data.len * 0.8, w.data.width, hit);
         if (w.data.tick <= 0) w.data.tick = 0.12;
+        w.cd -= dt;
         return;
       }
       cooldown(g, w, dt, L(w, [2.8, 2.8, 2.7, 2.7, 2.6, 2.6, 2.5, 2.2]), () => {
@@ -689,7 +693,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
       for (let i = 0; i < shots; i++) {
         const aa = a + (i - (shots - 1) / 2) * 0.2;
         g.spawnProj({
-          tex: 'ember', w, x: z.x, y: z.y - 44, vx: Math.cos(aa) * 420, vy: Math.sin(aa) * 420, r: 7, dmg: L(w, [9, 11, 11, 11, 11, 13, 13, 16]),
+          tex: 'ember', w, x: z.x, y: z.y - 44, vx: Math.cos(aa) * 420, vy: Math.sin(aa) * 420, r: 7, dmg: L(w, [10, 12, 12, 12, 12, 15, 15, 18]),
           pierce: 1, life: 1.2, scale: 0.26, light: 24, kind: 3,
         });
       }

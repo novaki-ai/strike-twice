@@ -39,10 +39,16 @@ export class FocusNav {
   current: HTMLElement | null = null;
   onBack: (() => void) | null = null;
   enabled = true;
+  private mouseMoved = false;
+
+  constructor() {
+    window.addEventListener('mousemove', () => { this.mouseMoved = true; }, { passive: true });
+  }
 
   setRoot(root: HTMLElement | null, onBack: (() => void) | null = null, autoFocus = true) {
     this.root = root;
     this.onBack = onBack;
+    this.mouseMoved = false;
     this.setCurrent(null);
     if (root && autoFocus) {
       const first = this.items()[0];
@@ -52,7 +58,7 @@ export class FocusNav {
       root.querySelectorAll<HTMLElement>('[data-nav]').forEach((n) => {
         if ((n as any)._navHover) return;
         (n as any)._navHover = true;
-        n.addEventListener('mouseenter', () => { if (this.root?.contains(n)) this.setCurrent(n); });
+        n.addEventListener('mouseenter', () => { if (this.mouseMoved && this.root?.contains(n)) this.setCurrent(n); });
       });
     }
   }
@@ -62,7 +68,7 @@ export class FocusNav {
     this.root.querySelectorAll<HTMLElement>('[data-nav]').forEach((n) => {
       if ((n as any)._navHover) return;
       (n as any)._navHover = true;
-      n.addEventListener('mouseenter', () => { if (this.root?.contains(n)) this.setCurrent(n); });
+      n.addEventListener('mouseenter', () => { if (this.mouseMoved && this.root?.contains(n)) this.setCurrent(n); });
     });
     if (this.current && !this.root.contains(this.current)) this.setCurrent(this.items()[0] || null, false);
   }

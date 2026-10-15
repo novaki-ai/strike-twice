@@ -108,6 +108,11 @@ class App {
     this.applySettings();
     this.buildUI();
     this.input.onNav = (d) => this.onNav(d);
+    // swallow "ghost" clicks that land on a freshly shown screen (touch taps, double clicks)
+    this.ui.addEventListener('click', (e) => {
+      if (performance.now() < this.navLockUntil) { e.stopPropagation(); e.preventDefault(); }
+    }, true);
+    this.input.onDigit = (n) => { if (this.screen === 'levelup' && performance.now() >= this.navLockUntil) this.pickChoice(n - 1); };
     this.input.onAnyInput = () => { if (this.screen === 'title') this.leaveTitle(); };
     app.ticker.add((t) => this.tick(t.deltaMS / 1000));
     this.installQA();
@@ -199,6 +204,7 @@ class App {
     const id = map[s] || s;
     for (const [k, e] of Object.entries(this.screens)) e.classList.toggle('show', k === id);
     const inRun = ['playing', 'paused', 'levelup', 'chest', 'stageclear'].includes(s);
+    document.body.classList.toggle('overlay-open', ['paused', 'levelup', 'chest', 'stageclear', 'gameover', 'victory'].includes(s));
     this.hud.classList.toggle('show', inRun);
     this.input.setTouchActive(s === 'playing');
     if (this.app) this.app.stage.visible = inRun || (s === 'gameover' && this.runActive) || s === 'victory' && false;
@@ -530,6 +536,8 @@ class App {
     const s = this.screens.cutscene;
     s.innerHTML = '';
     const frame = el('div', { class: 'frame' });
+    const backdrop = el('div', { class: 'backdrop' });
+    frame.appendChild(backdrop);
     const imgs = panels.map((p) => el('img', { src: img(p.img), alt: '' }));
     imgs.forEach((i) => frame.appendChild(i));
     const skip = button('Skip >>', () => this.skipCutscene(), 'small skip');
@@ -542,6 +550,7 @@ class App {
         if (token !== this.cutsceneToken) return;
         const im = imgs[i];
         imgs.forEach((x, j) => x.classList.toggle('show', j === i));
+        backdrop.style.backgroundImage = `url(${img(panels[i].img)})`;
         const total = panels[i].lines.length * 9;
         im.style.transition = 'opacity 1s, transform ' + total + 's linear';
         im.style.transform = 'scale(1.0)';
@@ -715,6 +724,7 @@ class App {
     this.choices = rollChoices(this.game, this.game.choiceCount);
     this.banishMode = false;
     this.show('levelup');
+    this.navLockUntil = performance.now() + 380;
     audio.sfx('levelup', 0.7);
     this.game.player.ignite = Math.max(this.game.player.ignite, 1.2);
     this.renderLevelUp();
@@ -731,9 +741,10 @@ class App {
         el('div', { class: 'kind' }, c.kind === 'passive' ? 'TRINKET' : c.kind === 'evo' ? 'EVOLVE' : c.kind === 'weapon' ? 'WEAPON' : ''),
         el('div', { class: 'key' }, el('span', { class: 'keycap' }, String(i + 1))),
         el('img', { src: icon(c.icon), alt: '' }),
-        el('div', { class: 'nm' }, c.name),
-        el('div', { class: 'lvtag' + (c.isNew ? ' new' : c.kind === 'evo' ? ' evo' : '') }, tag),
-        el('div', { class: 'tx' }, c.text),
+        el('div', { class: 'body' },
+          el('div', { class: 'nm' }, c.name),
+          el('div', { class: 'lvtag' + (c.isNew ? ' new' : c.kind === 'evo' ? ' evo' : '') }, tag),
+          el('div', { class: 'tx' }, c.text)),
       );
       card.addEventListener('click', () => this.pickChoice(i));
       cards.appendChild(card);
@@ -889,9 +900,10 @@ class App {
     const before = new Set(this.save.unlocks);
     this.save.coins += earned;
     st.runs++;
-    if (win) { st.wins++; if (!st.bestTime || g.time < st.bestTime) st.bestTime = Math.floor(g.time); } else if (!quit) st.deaths++;
+    const fair = !g.stats.assisted;
+    if (win) { st.wins++; if (fair && (!st.bestTime || g.time < st.bestTime)) st.bestTime = Math.floor(g.time); } else if (!quit) st.deaths++;
     st.kills += g.stats.kills;
-    st.longestRun = Math.max(st.longestRun, Math.floor(g.time));
+    if (fair) st.longestRun = Math.max(st.longestRun, Math.floor(g.time));
     st.bestStage = Math.max(st.bestStage, g.stats.stageReached);
     st.bestLevel = Math.max(st.bestLevel, g.player.level);
     st.totalCoins += earned;
@@ -933,6 +945,7 @@ class App {
     s.appendChild(el('div', { class: 'panel paper', style: { width: 'min(720px, 94vw)', marginTop: '50px' } },
       el('img', { class: 'result-art', src: img(win ? 'novaki_cheer' : 'novaki_ko'), alt: '' }),
       el('h2', { class: 'result-title' }, win ? 'Tinderbox Is Lit!' : 'Snuffed Out!'),
+      g.stats.assisted ? el('div', { style: { textAlign: 'center', fontSize: '13px', opacity: '0.7' } }, '(QA-assisted run: stage skips used, best times not recorded)') : null,
       el('div', { style: { textAlign: 'center', fontStyle: 'italic', fontWeight: '600', marginBottom: '6px' } }, win ? 'Novaki relit every flame in the land. Not bad for a spent match.' : GAMEOVER_LINE.text),
       el('div', { class: 'scroll' }, grid, wt,
         r.newUnlocks.length ? el('div', { class: 'unlock-note' }, 'New starting spark unlocked: ' + r.newUnlocks.join(', ') + '!') : null),
@@ -1174,6 +1187,7 @@ class App {
         g.over = false;
         self.interruptBarks();
         self.clearBanners();
+        g.stats.assisted = true;
         g.startStage(stage, point === 'boss');
         if (point === 'boss') {
           audio.playMusic('stage' + stage, STAGES[stage - 1].music, 0.5);

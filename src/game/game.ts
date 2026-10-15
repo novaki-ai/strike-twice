@@ -37,6 +37,8 @@ export interface RunStats {
   heals: number;
   stageReached: number;
   evolutions: number;
+  dmgBy: Record<string, number>;
+  assisted: boolean;
 }
 
 export class Game {
@@ -251,7 +253,7 @@ export class Game {
     this.banishes = meta.banishes;
     this.banished.clear();
     this.choiceCount = meta.choices;
-    this.stats = { kills: 0, dmgTaken: 0, coins: 0, maxLevel: 1, bossesKilled: [], chests: 0, heals: 0, stageReached: 1, evolutions: 0 };
+    this.stats = { kills: 0, dmgTaken: 0, coins: 0, maxLevel: 1, bossesKilled: [], chests: 0, heals: 0, stageReached: 1, evolutions: 0, dmgBy: {}, assisted: false };
     const base: Stats = {
       maxHp: 100, regen: 0, armor: 0, speed: 150, might: 1, area: 1, cooldown: 1, amount: 0, projSpeed: 1,
       duration: 1, magnet: 88, luck: 1, growth: 1, greed: 1, crit: 0.05, critMult: 1.75, burn: 1, ignite: 0,
@@ -499,13 +501,15 @@ export class Game {
     }
   }
 
-  hurtPlayer(dmg: number, src: Enemy | null, opts: { pierceArmor?: boolean } = {}) {
+  hurtPlayer(dmg: number, src: Enemy | null, opts: { pierceArmor?: boolean; by?: string } = {}) {
     const p = this.player;
     if (p.iframes > 0 || p.invincible || p.goldT > 0 || this.over) return;
     const armor = opts.pierceArmor ? 0 : p.stats.armor;
     const d = Math.max(1, dmg - armor);
     p.hp -= d;
-    p.iframes = 0.45;
+    const by = opts.by || (src ? src.type : 'bullet');
+    this.stats.dmgBy[by] = (this.stats.dmgBy[by] || 0) + d;
+    p.iframes = 0.65;
     p.hurtT = 0.3;
     this.stats.dmgTaken += d;
     audio.sfx('hurt', 0.8);
@@ -566,7 +570,7 @@ export class Game {
       this.shadowLayer.addChild(e.sh);
     }
     const st = this.stageDef || STAGES[0];
-    const hpScale = opts.boss ? 1 : st.hpMul * (1 + this.stageTime / 240) ;
+    const hpScale = opts.boss ? 1 : st.hpMul * (1 + this.stageTime / 360);
     e.id = this.nextEnemyId++;
     e.type = type;
     e.def = def;
@@ -577,7 +581,7 @@ export class Game {
     e.prop = !!def.prop;
     const sizeMul = (e.elite ? 1.55 : 1) * (e.small ? 0.6 : 1);
     e.scale = sizeMul;
-    e.maxHp = e.hp = Math.max(1, def.hp * hpScale * (e.elite ? 12 : 1) * (e.small ? 0.35 : 1) * (opts.hpMul || 1));
+    e.maxHp = e.hp = Math.max(1, def.hp * hpScale * (e.elite ? 10 : 1) * (e.small ? 0.35 : 1) * (opts.hpMul || 1));
     e.r = def.r * sizeMul;
     e.speed = def.speed * (1 + (this.stage - 1) * 0.06) * (e.elite ? 0.85 : 1);
     e.dmg = def.dmg * st.dmgMul * (e.elite ? 1.5 : 1);
@@ -782,7 +786,7 @@ export class Game {
     }
     if (e.boss && e.boss.invuln) { dmg = 0; blocked = true; }
     e.hp -= dmg;
-    if (!o.burnTick) e.flash = 0.07;
+    if (!o.burnTick && !o.small) e.flash = 0.07;
     if (w) w.dmg += dmg;
     // knockback
     if (!o.noKnock && !e.boss) {
@@ -1292,9 +1296,11 @@ export class Game {
   }
 
   explosionFx(x: number, y: number, r: number, color = 0xffa53a, big = false) {
-    const g = this.particle(x, y, this.fx.glow, { add: true, life: 0.35, s0: (r / 64) * 1.2, s1: (r / 64) * 2.2, a0: 0.9, tint: color });
-    if (g) g.sp.alpha = 0.9;
-    this.particle(x, y, this.fx.softring, { add: true, life: 0.3, s0: (r / 128) * 0.3, s1: (r / 128) * 1.1, a0: 0.8, tint: 0xfff1c4 });
+    this.particle(x, y, this.fx.glow, { add: true, life: 0.3, s0: (r / 64) * 1.0, s1: (r / 64) * 1.8, a0: 0.45, tint: color });
+    // inked cartoon "boom" cloud
+    const b = this.particle(x, y, this.fx.boom, { life: 0.28, s0: (r / 64) * 0.45, s1: (r / 64) * 1.05, a0: 1, vrot: 1.5, layer: 2 });
+    if (b) { b.rot = Math.random() * 6.28; if (color !== 0xffa53a && color !== 0xff7a2a && color !== 0xffb040) b.sp.tint = color; }
+    this.particle(x, y, this.fx.smokering, { life: 0.3, s0: (r / 128) * 0.5, s1: (r / 128) * 1.25, a0: 0.55, layer: 0 });
     const n = big ? 14 : 7;
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2;
@@ -1523,7 +1529,7 @@ export class Game {
       sp.rotation = rot + (e.boss?.rot || 0);
       sp.alpha = e.alpha;
       if (e.boss) sp.tint = e.flash > 0 ? 0xff8f7a : 0xffffff;
-      else if (!e.elite) sp.tint = e.burnT > 0 ? 0xffb38a : e.freezeT > 0 || this.freezeT > 0 ? 0x9fd8ff : e.slowT > 0 ? 0xc8d8ff : 0xffffff;
+      else if (!e.elite) sp.tint = e.burnT > 0 ? 0xffb38a : e.freezeT > 0 || this.freezeT > 0 ? 0x9fd8ff : e.slowT > 0 ? 0xdfe6f6 : 0xffffff;
       sp.zIndex = ey;
       e.sh.x = ex;
       e.sh.y = ey;
@@ -1647,6 +1653,16 @@ export class Game {
         g.circle(t.x, t.y, t.r).fill({ color: t.color, alpha: 0.12 + 0.08 * pulse });
         g.circle(t.x, t.y, t.r * f).fill({ color: t.color, alpha: 0.28 });
         g.circle(t.x, t.y, t.r).stroke({ width: 3, color: t.color, alpha: 0.8 });
+      } else if (t.kind === 'line' && t.subtle) {
+        // thin dashed arrow for regular enemies
+        const cx = Math.cos(t.ang), cy = Math.sin(t.ang);
+        const a = 0.35 + 0.45 * f;
+        for (let d = 0; d < t.len - 14; d += 18) {
+          g.moveTo(t.x + cx * d, t.y + cy * d).lineTo(t.x + cx * Math.min(t.len - 14, d + 10), t.y + cy * Math.min(t.len - 14, d + 10));
+        }
+        g.stroke({ width: 3, color: t.color, alpha: a, cap: 'round' });
+        const ex = t.x + cx * t.len, ey = t.y + cy * t.len;
+        g.poly([ex, ey, ex - cx * 16 - cy * 9, ey - cy * 16 + cx * 9, ex - cx * 16 + cy * 9, ey - cy * 16 - cx * 9]).fill({ color: t.color, alpha: a });
       } else if (t.kind === 'line') {
         const cx = Math.cos(t.ang), cy = Math.sin(t.ang);
         const nx = -cy * t.w / 2, ny = cx * t.w / 2;

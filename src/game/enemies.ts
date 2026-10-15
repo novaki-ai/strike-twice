@@ -30,8 +30,8 @@ export interface EnemyDef {
 
 export const ENEMIES: Record<string, EnemyDef> = {
   // ---- Stage 1: The Mothwood
-  moth: { name: 'Mothling', tex: 'e_moth', hp: 6, speed: 92, dmg: 5, r: 13, size: 36, xp: 1, ai: 'weave', anim: 'fly', animSpeed: 14, noFlip: true, desc: 'Flutters toward any light in a wobbly zig-zag.' },
-  mold: { name: 'Mold Blob', tex: 'e_mold', hp: 9, speed: 58, dmg: 6, r: 14, size: 38, xp: 1, ai: 'chase', anim: 'wobble', animSpeed: 6, desc: 'Damp, slow and relentless.' },
+  moth: { name: 'Mothling', tex: 'e_moth', hp: 6, speed: 84, dmg: 3, r: 13, size: 36, xp: 1, ai: 'weave', anim: 'fly', animSpeed: 14, noFlip: true, desc: 'Flutters toward any light in a wobbly zig-zag.' },
+  mold: { name: 'Mold Blob', tex: 'e_mold', hp: 9, speed: 56, dmg: 5, r: 14, size: 38, xp: 1, ai: 'chase', anim: 'wobble', animSpeed: 6, desc: 'Damp, slow and relentless.' },
   toadstool: { name: 'Toadstool', tex: 'e_toadstool', hp: 24, speed: 44, dmg: 7, r: 16, size: 50, xp: 2, ai: 'spore', anim: 'walk', desc: 'Stops to puff rings of soggy spores.' },
   beetle: { name: 'Stag Beetle', tex: 'e_beetle', hp: 34, speed: 52, dmg: 10, r: 17, size: 40, xp: 3, ai: 'charge', anim: 'walk', animSpeed: 12, faceRight: true, desc: 'Lowers its horns, then charges in a straight line.' },
   stump: { name: 'Soggy Stump', tex: 'e_stump', hp: 110, speed: 34, dmg: 12, r: 24, size: 72, xp: 6, ai: 'chase', anim: 'stomp', animSpeed: 5, kbRes: 0.25, desc: 'A waterlogged brute. Barely flinches.' },
@@ -86,6 +86,14 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
     e.y = e.py = sp.y;
     return;
   }
+  if (e.state === 7) {
+    // migrating swarm: fly straight across, then leave without rewards
+    e.x += (e.tx + e.vx) * dt;
+    e.y += (e.ty + e.vy) * dt;
+    if (Math.abs(e.tx) > 2) e.face = e.tx > 0 ? 1 : -1;
+    if (e.t > 9 || (e.t > 2 && distP > Math.max(g.viewW, g.viewH) * 0.9)) g.despawn(e, false);
+    return;
+  }
   switch (e.def.ai) {
     case 'chase':
       moveToward(g, e, p.x, p.y, e.speed, dt);
@@ -120,9 +128,12 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
     case 'charge': {
       if (e.state === 0) {
         moveToward(g, e, p.x, p.y, e.speed, dt);
-        if (e.t > 2 && distP < 300) { e.state = 9; e.t = 0; e.tx = dxp / distP; e.ty = dyp / distP; e.face = e.tx > 0 ? 1 : -1; }
+        if (e.t > 2 && distP < 300) {
+          e.state = 9; e.t = 0; e.tx = dxp / distP; e.ty = dyp / distP; e.face = e.tx > 0 ? 1 : -1;
+          g.tele({ kind: 'line', subtle: true, x: e.x, y: e.y - 6, ang: Math.atan2(e.ty, e.tx), len: 430 * 0.55 + 30, w: e.r * 2, dur: 0.8, color: 0xe8501c });
+        }
       } else if (e.state === 9) { // windup
-        if (e.t > 0.65) { e.state = 2; e.t = 0; audio.sfx('dash', 0.3, 1.4); }
+        if (e.t > 0.8) { e.state = 2; e.t = 0; audio.sfx('dash', 0.3, 1.4); }
       } else if (e.state === 2) {
         const sl = e.slowT > 0 ? e.slowF : 1;
         e.x += (e.tx * 430 * sl + e.vx) * dt;
@@ -184,7 +195,11 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
     case 'kamikaze': {
       if (e.state === 0) {
         moveToward(g, e, p.x, p.y, e.speed, dt);
-        if (distP < 58) { e.state = 9; e.t = 0; audio.sfx('buzz', 0.3, 1.6); }
+        if (distP < 58) {
+          e.state = 9; e.t = 0; audio.sfx('buzz', 0.3, 1.6);
+          const tl = g.tele({ kind: 'circle', x: e.x, y: e.y, r: 78, dur: 0.6, color: 0x7fb6e6 });
+          e.ang = g.teles.indexOf(tl);
+        }
       } else if (e.state === 9) {
         e.scale = (e.elite ? 1.55 : 1) * (1 + e.t * 0.5);
         moveToward(g, e, p.x, p.y, e.speed * 0.25, dt);
@@ -256,9 +271,12 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
         const ang = Math.atan2(e.y - p.y, e.x - p.x) + (e.id % 2 ? 1 : -1) * 0.9 * dt * 2;
         const tx = p.x + Math.cos(ang) * R, ty = p.y + Math.sin(ang) * R;
         moveToward(g, e, tx, ty, e.speed, dt);
-        if (e.t > 2.4 + (e.id % 4) * 0.5 && distP < 260) { e.state = 9; e.t = 0; }
+        if (e.t > 2.4 + (e.id % 4) * 0.5 && distP < 260) {
+          e.state = 9; e.t = 0; e.tx = dxp / (distP || 1); e.ty = dyp / (distP || 1);
+          g.tele({ kind: 'line', subtle: true, x: e.x, y: e.y - 6, ang: Math.atan2(e.ty, e.tx), len: 330 * 0.75, w: 26, dur: 0.55, color: 0xb48aff });
+        }
       } else if (e.state === 9) {
-        if (e.t > 0.4) { e.state = 2; e.t = 0; e.tx = dxp / (distP || 1); e.ty = dyp / (distP || 1); }
+        if (e.t > 0.55) { e.state = 2; e.t = 0; }
       } else if (e.state === 2) {
         e.x += (e.tx * 330 + e.vx) * dt;
         e.y += (e.ty * 330 + e.vy) * dt;
@@ -353,6 +371,6 @@ export function onEnemyDeath(g: Game, e: Enemy, w: WeaponInst | null) {
   const luck = p.stats.luck;
   const r = g.rng.next();
   if (r < 0.022 * luck) g.dropPickup('coin', e.x + 8, e.y, 1);
-  else if (r < 0.022 * luck + 0.0025 * luck) g.dropPickup('heal', e.x, e.y);
+  else if (r < 0.022 * luck + 0.004 * luck) g.dropPickup('heal', e.x, e.y);
   void w;
 }

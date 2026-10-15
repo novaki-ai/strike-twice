@@ -31,33 +31,50 @@ for (let iter = 0; iter < 3000; iter++) {
       if (A.screen === 'stageclear') { A.nextStage(); out.events.push('next stage @' + g.time.toFixed(0)); continue; }
       if (A.screen !== 'playing') break;
       const p = g.player;
-      let fx = 0, fy = 0, danger = 0;
-      for (const e of g.enemies) {
-        if (!e.alive || e.prop) continue;
-        const dx = p.x - e.x, dy = p.y - e.y; const d2 = dx * dx + dy * dy;
-        if (d2 < 200 * 200) { const d = Math.sqrt(d2) || 1; const w = (e.boss ? 3 : 1) * 1 / (d * d) * 4000; fx += dx / d * w; fy += dy / d * w; if (d < 60) danger++; }
+      // sample 16 directions, score danger 0.35s ahead
+      let bestDir = -1, bestScore = 1e9, danger = 0;
+      const look = 0.35, spd = p.stats.speed;
+      for (let k = -1; k < 16; k++) {
+        const ax = k < 0 ? 0 : Math.cos(k / 16 * Math.PI * 2), ay = k < 0 ? 0 : Math.sin(k / 16 * Math.PI * 2);
+        const fx = p.x + ax * spd * look, fy = p.y + ay * spd * look;
+        let s = 0;
+        for (const e of g.enemies) {
+          if (!e.alive || e.prop || e.intangible) continue;
+          const dx = e.x - p.x, dy = e.y - p.y; const d0 = Math.hypot(dx, dy) || 1;
+          if (d0 > 220) continue;
+          const ex = e.x - dx / d0 * Math.min(d0, e.speed * look), ey = e.y - dy / d0 * Math.min(d0, e.speed * look);
+          const d = Math.hypot(ex - fx, ey - fy);
+          const rr = e.r + 16;
+          s += (e.boss ? 4 : e.elite ? 2 : 1) * (d < rr ? 50 : 1) * 2000 / (d * d + 100);
+        }
+        for (const bl of g.bullets) {
+          if (!bl.alive) continue;
+          const bx = bl.x + bl.vx * look, by = bl.y + bl.vy * look;
+          const d = Math.hypot(bx - fx, by - (fy - 26));
+          if (d > 200) continue;
+          s += (d < bl.r + 14 ? 60 : 1) * 1800 / (d * d + 60);
+        }
+        for (const t of g.teles) {
+          if (!t.alive) continue;
+          if (t.kind === 'circle') { const d = Math.hypot(t.x - fx, t.y - fy); if (d < t.r + 18) s += 80; }
+          else if (t.kind === 'line') {
+            const cx = Math.cos(t.ang), cy = Math.sin(t.ang); const rx = fx - t.x, ry = fy - t.y;
+            const al = rx * cx + ry * cy, pe = Math.abs(-rx * cy + ry * cx);
+            if (al > 0 && al < t.len && pe < t.w / 2 + 16) s += 80;
+          }
+        }
+        if (g.arena) { const d = Math.hypot(fx - g.arena.x, fy - g.arena.y); if (d > g.arena.r * 0.75) s += (d - g.arena.r * 0.75) * 0.5; }
+        // pickups pull
+        for (const q of g.pickups) { if (!q.alive) continue; const d = Math.hypot(q.x - fx, q.y - fy); if (d < 320) s -= (q.kind === 'heal' && p.hp < p.stats.maxHp * 0.6 ? 6 : q.kind === 'chest' ? 5 : 1.2) * 30 / (d + 30); }
+        // prefer continuing direction a bit (smooth kiting)
+        if (k >= 0) s -= 0.15 * (ax * (g.__botX || 0) + ay * (g.__botY || 0));
+        if (s < bestScore) { bestScore = s; bestDir = k; }
+        if (k < 0) danger = s;
       }
-      for (const b of g.bullets) {
-        if (!b.alive) continue;
-        const dx = p.x - b.x, dy = p.y - 26 - b.y; const d2 = dx * dx + dy * dy;
-        if (d2 < 140 * 140) { const d = Math.sqrt(d2) || 1; const w = 1 / (d * d) * 6000; fx += dx / d * w; fy += dy / d * w; if (d < 40) danger++; }
-      }
-      for (const t of g.teles) {
-        if (!t.alive || t.kind !== 'circle') continue;
-        const dx = p.x - t.x, dy = p.y - t.y; const d = Math.hypot(dx, dy) || 1;
-        if (d < t.r + 30) { fx += dx / d * 3; fy += dy / d * 3; }
-      }
-      // gentle attraction to xp
-      let best = null, bd = 1e9;
-      for (const q of g.pickups) { if (!q.alive) continue; const d = (q.x - p.x) ** 2 + (q.y - p.y) ** 2; if (d < bd) { bd = d; best = q; } }
-      if (best && bd < 400 * 400) { const d = Math.sqrt(bd) || 1; fx += (best.x - p.x) / d * 0.6; fy += (best.y - p.y) / d * 0.6; }
-      // drift in a big circle so the bot keeps moving
-      const a = g.time * 0.15;
-      fx += Math.cos(a) * 0.35; fy += Math.sin(a) * 0.35;
-      if (g.arena) { const dx = g.arena.x - p.x, dy = g.arena.y - p.y; const d = Math.hypot(dx, dy); if (d > g.arena.r * 0.6) { fx += dx / d * 1.5; fy += dy / d * 1.5; } }
-      const m = Math.hypot(fx, fy) || 1;
-      g.input.x = fx / m; g.input.y = fy / m;
-      if (danger >= 2) g.input.dash = true;
+      const ax = bestDir < 0 ? 0 : Math.cos(bestDir / 16 * Math.PI * 2), ay = bestDir < 0 ? 0 : Math.sin(bestDir / 16 * Math.PI * 2);
+      g.__botX = ax; g.__botY = ay;
+      g.input.x = ax; g.input.y = ay;
+      if (bestScore > 40) g.input.dash = true;
       g.update(1 / 60);
       if (g.slowmoT > 0) g.slowmoT -= 1 / 60;
       if (g.director && g.director.bossStarted && !g.bossActive) { out.bossDone = true; break; }
@@ -66,15 +83,15 @@ for (let iter = 0; iter < 3000; iter++) {
     out.state = window.NOVAKI_QA.state();
     out.boss = g.boss && g.boss.alive ? { hp: Math.round(g.boss.hp), max: g.boss.maxHp } : null;
     out.dmg = g.player.weapons.map((w) => w.id + (w.evo ? '*' : '') + ':' + w.level + '=' + Math.round(w.dmg)).join(' ');
-    out.hp = Math.round(g.player.hp); out.taken = Math.round(g.stats.dmgTaken);
+    out.hp = Math.round(g.player.hp); out.taken = Math.round(g.stats.dmgTaken); out.by = JSON.stringify(Object.fromEntries(Object.entries(g.stats.dmgBy).map(([k, v]) => [k, Math.round(v)])));
     return out;
   }, 900);
   for (const e of r.events) if (!e.startsWith('pick')) console.log(e);
   const s = r.state;
   const line = `taken=${r.taken} t=${s.time.toFixed(0)} st=${s.stage} scr=${s.screen} lv=${s.player.level} hp=${r.hp}/${s.player.maxHp} foes=${s.enemies} kills=${s.kills} boss=${r.boss ? r.boss.hp + '/' + r.boss.max : '-'}`;
   if (iter % 4 === 0) console.log(line);
-  if (r.bossDone) { console.log('BOSS DOWN at', s.time.toFixed(0), ' weapons:', r.dmg); await page.waitForTimeout(4700); }
-  if (s.screen === 'gameover' || s.screen === 'victory' || s.screen === 'menu') { console.log('END', s.screen, line, '\n', r.dmg); break; }
+  if (r.bossDone) { console.log('BOSS DOWN at', s.time.toFixed(0), ' weapons:', r.dmg, ' dmgBy:', r.by); await page.waitForTimeout(4700); }
+  if (s.screen === 'gameover' || s.screen === 'victory' || s.screen === 'menu') { console.log('END', s.screen, line, '\n', r.dmg, '\n dmgBy', r.by); break; }
   if (['gameover', 'victory'].includes(s.screen)) break;
   await page.waitForTimeout(5);
   if (!r.state || s.screen === 'loadout') break;

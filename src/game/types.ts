@@ -150,6 +150,7 @@ export interface Tele {
   x: number; y: number; r: number; ang: number; len: number; w: number;
   t: number; dur: number; color: number;
   follow: boolean;
+  subtle?: boolean;
   onDone: (() => void) | null;
 }
 

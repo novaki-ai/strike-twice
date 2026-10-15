@@ -11,6 +11,7 @@ export class Input {
   private pauseQueued = false;
   onNav: ((d: NavDir) => void) | null = null;
   onAnyInput: (() => void) | null = null;
+  onDigit: ((n: number) => void) | null = null;
 
   // gamepad
   private padPrev: boolean[] = [];
@@ -41,6 +42,7 @@ export class Input {
     window.addEventListener('gamepaddisconnected', () => { this.padConnected = this.anyPad() != null; });
 
     this.touchEnabled = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    try { if (window.matchMedia('(pointer: coarse)').matches) this.device = 'touch'; } catch { /* old browsers */ }
     this.buildTouch();
   }
 
@@ -63,7 +65,8 @@ export class Input {
       Escape: 'back', Backspace: 'back',
     };
     const d = map[c];
-    if (d && this.onNav) this.onNav(d);
+    if (d && this.onNav && !(e.repeat && (d === 'confirm' || d === 'back'))) this.onNav(d);
+    if (!e.repeat && this.onDigit && /^(Digit|Numpad)[1-4]$/.test(c)) this.onDigit(Number(c.slice(-1)));
   }
 
   consumeDash(): boolean {
