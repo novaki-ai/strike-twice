@@ -245,6 +245,11 @@ export class Game {
     (this.spritePools[name] ||= []).push(s);
   }
 
+  /** seeded random in [a, b) for anything that affects gameplay (positions, aims, drops) */
+  rr(a: number, b: number): number {
+    return this.rng.range(a, b);
+  }
+
   /* ------------------------------------------------------------------ run lifecycle */
 
   newRun(seed: number, meta: { stats: Partial<Stats>; weapons: string[]; startWeapon: string; rerolls: number; banishes: number; choices: number; inferno?: boolean }) {
@@ -294,9 +299,14 @@ export class Game {
     this.running = true;
   }
 
-  clearAll() {
-    for (const e of this.enemies) this.releaseEnemy(e);
+  /** retire every enemy object (each is in the live list exactly once) */
+  private retireAllEnemies() {
+    for (const e of this.enemies) { this.releaseEnemy(e); this.enemyPool.push(e); }
     this.enemies.length = 0;
+  }
+
+  clearAll() {
+    this.retireAllEnemies();
     for (const p of this.projs) if (p.alive) this.killProj(p);
     this.projs.length = 0;
     for (const z of this.zones) if (z.alive) this.killZone(z);
@@ -323,8 +333,7 @@ export class Game {
 
   startStage(n: number, quiet = false) {
     // clear field but keep player build
-    for (const e of this.enemies) this.releaseEnemy(e);
-    this.enemies.length = 0;
+    this.retireAllEnemies();
     for (const b of this.bullets) if (b.alive) this.killBullet(b);
     this.bullets.length = 0;
     this.teles.length = 0;
@@ -443,8 +452,8 @@ export class Game {
     this.aliveCount = alive;
     // separation
     this.separate();
-    // compact enemy list occasionally
-    if (this.frameCount % 30 === 0) this.enemies = this.enemies.filter((e) => e.alive);
+    // compact enemy list occasionally (dead objects return to the pool here, never earlier)
+    if (this.frameCount % 30 === 0) this.compactEnemies();
 
     this.updateProjs(dt);
     this.updateZones(dt);
@@ -638,11 +647,22 @@ export class Game {
     return e;
   }
 
+  /** mark dead + hide; the object goes back to the pool when compacted out of the live list */
   releaseEnemy(e: Enemy) {
     e.alive = false;
     e.sp.visible = false;
     e.sh.visible = false;
-    this.enemyPool.push(e);
+  }
+
+  private compactEnemies() {
+    let j = 0;
+    const arr = this.enemies;
+    for (let i = 0; i < arr.length; i++) {
+      const e = arr[i];
+      if (e.alive) arr[j++] = e;
+      else this.enemyPool.push(e);
+    }
+    arr.length = j;
   }
 
   enemyCount(): number {
@@ -651,8 +671,8 @@ export class Game {
     return n;
   }
 
-  canSpawn(): boolean {
-    return this.enemies.length < MAX_ENEMIES;
+  canSpawn(extra = 0): boolean {
+    return this.enemyCount() + extra < MAX_ENEMIES * 4;
   }
 
   /** Spawn position on a ring just outside the view. */
@@ -867,17 +887,13 @@ export class Game {
       }
     }
     onEnemyDeath(this, e, w);
-    this.enemyPool.push(e);
   }
 
   /** Remove enemy without rewards (despawn) */
   despawn(e: Enemy, poof = true) {
     if (!e.alive) return;
     if (poof) this.puff(e.x, e.y - 20, 0xcfc6b6, 0.8, 1);
-    e.alive = false;
-    e.sp.visible = false;
-    e.sh.visible = false;
-    this.enemyPool.push(e);
+    this.releaseEnemy(e);
   }
 
   /** AoE damage helper (player sourced) */
@@ -1160,7 +1176,7 @@ export class Game {
       const size = kind === 'chest' ? 54 : kind === 'coin' ? 20 : 32;
       pk.sp.scale.set(size / Math.max(tex.width, tex.height));
     }
-    if (kind !== 'xp' && kind !== 'coin') { pk.vx = vrange(-60, 60); pk.vy = vrange(-60, 60); }
+    if (kind !== 'xp' && kind !== 'coin') { pk.vx = this.rr(-60, 60); pk.vy = this.rr(-60, 60); }
     return pk;
   }
 

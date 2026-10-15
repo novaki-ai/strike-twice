@@ -80,7 +80,7 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
   const distP = Math.hypot(dxp, dyp);
   // relocate stragglers far behind (keeps pressure on a moving player)
   if (!e.prop && !g.arena && distP > Math.max(g.viewW, g.viewH) * 0.95 + 200 && e.state !== 9) {
-    const ang = Math.atan2(p.dirY, p.dirX) + vrange(-1, 1);
+    const ang = Math.atan2(p.dirY, p.dirX) + g.rr(-1, 1);
     const sp = g.spawnPoint(p.moving ? ang : undefined);
     e.x = e.px = sp.x;
     e.y = e.py = sp.y;
@@ -149,8 +149,8 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
         if (e.t > 0.75 + (e.id % 4) * 0.1) {
           e.state = 2; e.t = 0;
           const lead = Math.min(1, distP / 260);
-          e.tx = (dxp / (distP || 1)) * 290 * lead + vrange(-30, 30);
-          e.ty = (dyp / (distP || 1)) * 290 * lead + vrange(-30, 30);
+          e.tx = (dxp / (distP || 1)) * 290 * lead + g.rr(-30, 30);
+          e.ty = (dyp / (distP || 1)) * 290 * lead + g.rr(-30, 30);
           e.face = e.tx > 0 ? 1 : -1;
         }
       } else {
@@ -184,7 +184,7 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
           onDone: () => {
             const ddx = g.player.x - tx, ddy = g.player.y - ty;
             if (ddx * ddx + ddy * ddy < 46 * 46) g.hurtPlayer(dmg, null, { by: 'lightning' });
-            g.bolt([tx + vrange(-20, 20), ty - 420, tx + vrange(-30, 30), ty - 260, tx + vrange(-20, 20), ty - 120, tx, ty], 0xfff3a0, 3);
+            g.bolt([tx + vrange(-20, 20), ty - 420, tx + vrange(-30, 30), ty - 260, tx + vrange(-20, 20), ty - 120, tx, ty], 0xfff3a0, 3); // visual only
             g.explosionFx(tx, ty, 34, 0xfff3a0);
             audio.sfx('zap', 0.5, 0.7);
           },
@@ -246,7 +246,7 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
         e.intangible = e.t > 0.15;
         if (e.t > 0.3) {
           const a = g.rng.angle();
-          const r = vrange(95, 130);
+          const r = g.rr(95, 130);
           e.x = e.px = p.x + Math.cos(a) * r;
           e.y = e.py = p.y + Math.sin(a) * r;
           if (g.arena) g.clampToArena(e, 30);
@@ -348,7 +348,7 @@ export function onEnemyDeath(g: Game, e: Enemy, w: WeaponInst | null) {
   // split
   if (def.ai === 'chase' && e.type === 'slime' && !e.small) {
     for (let i = 0; i < 2; i++) {
-      const s = g.spawnEnemy('slime', e.x + (i ? 14 : -14), e.y + vrange(-6, 6), { small: true });
+      const s = g.spawnEnemy('slime', e.x + (i ? 14 : -14), e.y + g.rr(-6, 6), { small: true });
       if (s) { s.vx = (i ? 1 : -1) * 160; s.spawnT = 0; }
     }
     splashFx(g, e.x, e.y, 40);
@@ -365,9 +365,9 @@ export function onEnemyDeath(g: Game, e: Enemy, w: WeaponInst | null) {
   }
   if (e.elite) {
     g.dropPickup('chest', e.x, e.y);
-    for (let i = 0; i < 6; i++) g.dropPickup('coin', e.x + vrange(-30, 30), e.y + vrange(-30, 30), 2);
+    for (let i = 0; i < 6; i++) g.dropPickup('coin', e.x + g.rr(-30, 30), e.y + g.rr(-30, 30), 2);
   }
-  if (!e.noXp && e.xp > 0) g.dropPickup('xp', e.x + vrange(-4, 4), e.y + vrange(-4, 4), e.xp);
+  if (!e.noXp && e.xp > 0) g.dropPickup('xp', e.x + g.rr(-4, 4), e.y + g.rr(-4, 4), e.xp);
   const luck = p.stats.luck;
   const r = g.rng.next();
   if (r < 0.022 * luck) g.dropPickup('coin', e.x + 8, e.y, 1);

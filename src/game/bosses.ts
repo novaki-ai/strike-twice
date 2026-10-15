@@ -104,6 +104,14 @@ export function updateBoss(g: Game, e: Enemy, dt: number) {
     B.phase++;
     B.cdT = 1.4;
     B.attack = null;
+    B.data = {};
+    B.invuln = false;
+    B.rot = 0;
+    e.intangible = false;
+    e.alpha = 1;
+    e.hop = 0;
+    g.extraDark = 0;
+    g.teles.length = 0;
     g.hooks.bossPhase(B.id, B.phase);
     audio.sfx('roar', 0.9, 1.1);
     g.shake(10, 0.5);
@@ -492,8 +500,8 @@ function bossDeath(g: Game, e: Enemy, dt: number) {
     g.shake(18, 0.6);
     if (g.settings.flashes) { g.flashT = 0.35; g.flashColor = 0xfff8e0; }
     audio.sfx('explode', 1, 0.7);
-    for (let i = 0; i < 20; i++) g.dropPickup('coin', e.x + vrange(-90, 90), e.y + vrange(-60, 60), 3);
-    for (let i = 0; i < 12; i++) g.dropPickup('xp', e.x + vrange(-90, 90), e.y + vrange(-60, 60), 20);
+    for (let i = 0; i < 20; i++) g.dropPickup('coin', e.x + g.rr(-90, 90), e.y + g.rr(-60, 60), 3);
+    for (let i = 0; i < 12; i++) g.dropPickup('xp', e.x + g.rr(-90, 90), e.y + g.rr(-60, 60), 20);
     g.dropPickup('heal', e.x, e.y + 30);
     g.magnetAll();
     g.releaseEnemy(e);

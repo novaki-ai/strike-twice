@@ -211,7 +211,7 @@ export class StageDirector {
         const sp = g.spawnPoint();
         // small clusters for swarmers
         const cluster = type === 'moth' || type === 'raindrop' || type === 'snufflet' ? 2 : 1;
-        for (let i = 0; i < cluster; i++) g.spawnEnemy(type, sp.x + vrange(-20, 20), sp.y + vrange(-20, 20));
+        for (let i = 0; i < cluster; i++) g.spawnEnemy(type, sp.x + g.rr(-20, 20), sp.y + g.rr(-20, 20));
       }
     }
     // destructible props
@@ -241,8 +241,8 @@ export class StageDirector {
         const startR = Math.max(g.viewW, g.viewH) * 0.6;
         for (let i = 0; i < n; i++) {
           const off = (i - n / 2) * 26;
-          const x = p.x - dx * startR - dy * off + vrange(-15, 15);
-          const y = p.y - dy * startR + dx * off + vrange(-15, 15);
+          const x = p.x - dx * startR - dy * off + g.rr(-15, 15);
+          const y = p.y - dy * startR + dx * off + g.rr(-15, 15);
           const e = g.spawnEnemy(ev.type!, x, y);
           if (e) { e.state = 7; e.tx = dx * 165; e.ty = dy * 165; e.kbRes = 0.3; }
         }

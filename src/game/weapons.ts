@@ -88,7 +88,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
           let a: number;
           if (targets.length) {
             const t = targets[i % targets.length];
-            a = Math.atan2(t.y - t.def.size * t.scale * 0.35 - (p.y - 30), t.x - p.x) + (i >= targets.length ? vrange(-0.2, 0.2) : 0);
+            a = Math.atan2(t.y - t.def.size * t.scale * 0.35 - (p.y - 30), t.x - p.x) + (i >= targets.length ? g.rr(-0.2, 0.2) : 0);
           } else a = Math.atan2(p.moving ? p.dirY : 0, p.moving ? p.dirX : p.face) + (i - (n - 1) / 2) * 0.18;
           g.spawnProj({
             tex: 'ember', w, x: p.x + p.face * 6, y: p.y - 30, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, r: 8 * p.stats.area,
@@ -273,7 +273,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
         const dmg = L(w, [9, 9, 9, 11, 11, 13, 13, 16]) * (w.evo ? 1.3 : 1);
         const pierce = L(w, [2, 3, 3, 3, 4, 4, 5, 5]) + p.stats.pierce + (w.evo ? 3 : 0);
         for (let i = 0; i < n; i++) {
-          const a = base + (i - (n - 1) / 2) * 0.11 + vrange(-0.03, 0.03);
+          const a = base + (i - (n - 1) / 2) * 0.11 + g.rr(-0.03, 0.03);
           g.spawnProj({
             tex: 'match', w, x: p.x + Math.cos(a) * 10, y: p.y - 28 + Math.sin(a) * 10, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd,
             r: 7 * p.stats.area, dmg, pierce, life: 1.1 * p.stats.duration, scale: 0.5 * p.stats.area, rot: a, light: w.evo ? 20 : 0,
@@ -302,7 +302,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
         for (let i = 0; i < n; i++) {
           const t = g.randomOnScreenEnemy();
           let tx: number, ty: number;
-          if (t) { tx = t.x + vrange(-20, 20); ty = t.y + vrange(-20, 20); }
+          if (t) { tx = t.x + g.rr(-20, 20); ty = t.y + g.rr(-20, 20); }
           else { const a = g.rng.angle(); const r = g.rng.range(80, 240); tx = p.x + Math.cos(a) * r; ty = p.y + Math.sin(a) * r; }
           const T = 0.6;
           g.spawnProj({
@@ -332,8 +332,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
       if (p.w?.evo) {
         const cols = [0xff5a8a, 0x7ad0ff, 0xffe066, 0x9cff7a, 0xd28aff];
         for (let i = 0; i < 5; i++) {
-          const a = (i / 5) * Math.PI * 2 + vrange(-0.3, 0.3);
-          const r = vrange(60, 100);
+          const a = (i / 5) * Math.PI * 2 + g.rr(-0.3, 0.3);
+          const r = g.rr(60, 100);
           const T = 0.35;
           g.spawnProj({
             tex: 'spark', w: p.w, x: p.x, y: p.y, vx: 0, vy: 0, r: 1, dmg: 0, life: T, scale: 0.8, tint: cols[i], spin: 12, light: 20,
@@ -361,7 +361,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
         const r = L(w, [22, 25, 25, 25, 25, 28, 28, 31]) * p.stats.area * (w.evo ? 1.45 : 1);
         const life = L(w, [1.6, 1.6, 1.6, 2.0, 2.0, 2.0, 2.4, 2.6]) * p.stats.duration * (w.evo ? 1.3 : 1);
         const dmg = L(w, [6, 6, 8, 8, 10, 10, 12, 15]) * (w.evo ? 1.4 : 1);
-        fireZone(g, w, p.x + vrange(-4, 4), p.y + vrange(-3, 3), r, dmg, life, w.evo ? 6 : 2);
+        fireZone(g, w, p.x + g.rr(-4, 4), p.y + g.rr(-3, 3), r, dmg, life, w.evo ? 6 : 2);
       }
     },
     zoneRender(g, z) { renderFireZone(g, z); },
@@ -738,7 +738,7 @@ function lash(g: Game, w: WeaponInst, side: number) {
   g.particle(x0 + (side * len) / 2, y0, g.fx.glow, { add: true, life: 0.2, s0: len / 100, s1: len / 90, a0: 0.5, tint: 0xff8a2a });
   for (let i = 0; i < 6; i++) g.spark(x0 + side * len * vrange(0.2, 1), y0 + vrange(-h / 3, h / 3), 0xffb040, 1, 80);
   if (w.evo) {
-    for (let i = 1; i <= 4; i++) fireZone(g, w, x0 + side * len * (i / 4.5), p.y + vrange(-6, 6), 22, dmg * 0.18, 1.6, 6);
+    for (let i = 1; i <= 4; i++) fireZone(g, w, x0 + side * len * (i / 4.5), p.y + g.rr(-6, 6), 22, dmg * 0.18, 1.6, 6);
   }
   audio.sfx('whip', 0.4);
 }

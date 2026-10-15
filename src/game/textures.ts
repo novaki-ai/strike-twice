@@ -2,7 +2,7 @@
 import { CanvasSource, Rectangle, Texture } from 'pixi.js';
 
 export const SPRITES = [
-  'novaki_torso',
+  'novaki_torso', 'novaki_torso_angry', 'novaki_torso_ouch',
   'e_moth', 'e_mold', 'e_toadstool', 'e_beetle', 'e_stump', 'e_raindrop', 'e_slime', 'e_frog',
   'e_cloud', 'e_balloon', 'e_wateringcan', 'e_waxghost', 'e_snufflet', 'e_wisp', 'e_knight', 'e_wraith',
   'p1_tree', 'p1_shrooms', 'p1_boulder', 'p1_log', 'p1_fern', 'p1_lantern',

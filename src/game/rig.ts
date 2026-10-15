@@ -99,11 +99,17 @@ export class NovakiRig {
     const hipY = -16 + bob;
     const s = TORSO_H / this.torsoTex.height;
     const breathe = moving ? 1 : 1 + Math.sin(t * 2.2) * 0.015;
-    this.torso.texture = p.hurtT > 0.15 && Math.floor(t * 30) % 2 === 0 ? (g.T.flash.novaki_torso || this.torsoTex) : this.torsoTex;
+    // expression: ouch when hit, determined scowl in boss fights / ablaze, deadpan otherwise
+    let expr = this.torsoTex;
+    if (p.hurtT > 0 && g.T.tex.novaki_torso_ouch) expr = g.T.tex.novaki_torso_ouch;
+    else if ((g.bossActive || p.goldT > 0 || p.ignite > 0.3) && g.T.tex.novaki_torso_angry) expr = g.T.tex.novaki_torso_angry;
+    this.torso.texture = p.hurtT > 0.15 && Math.floor(t * 30) % 2 === 0 ? (g.T.flash.novaki_torso || this.torsoTex) : expr;
     this.torso.x = hurtJit;
     this.torso.y = hipY + 2;
     this.torso.rotation = lean;
-    this.torso.scale.set(s * (dashing ? 1.08 : 1) / breathe, s * (dashing ? 0.92 : 1) * breathe);
+    const sf = TORSO_H / this.torso.texture.height;
+    this.torso.scale.set(sf * (dashing ? 1.08 : 1) / breathe, sf * (dashing ? 0.92 : 1) * breathe);
+    void s;
     // invulnerability blink
     this.root.alpha = p.iframes > 0 && p.hurtT <= 0 && p.dashT <= 0 && !p.invincible ? (Math.floor(t * 20) % 2 ? 0.55 : 1) : 1;
 

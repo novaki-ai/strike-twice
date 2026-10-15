@@ -4,6 +4,7 @@ import '@fontsource/fredoka/600.css';
 import './ui/style.css';
 import { Application } from 'pixi.js';
 import { audio } from './core/audio';
+import { RNG } from './core/rng';
 import { Input } from './core/input';
 import { loadSave, writeSave, wipeSave, SaveData } from './core/save';
 import { Game, STEP, Hooks, xpFor } from './game/game';
@@ -18,7 +19,7 @@ import { el, button, icon, img, FocusNav, ASSET } from './ui/dom';
 import { INTRO, ENDING, CHAPTER_LINES, BOSS_LINES, GAMEOVER_LINE, DEATH_LINE, CLEAR_LINE, Line, Panel } from './ui/story';
 
 type Screen = 'loading' | 'title' | 'menu' | 'loadout' | 'shop' | 'settings' | 'howto' | 'records' | 'intro' | 'playing' | 'paused'
-  | 'levelup' | 'chest' | 'stageclear' | 'gameover' | 'victory' | 'ending';
+  | 'levelup' | 'chest' | 'stageclear' | 'transition' | 'gameover' | 'victory' | 'ending';
 
 const MUSIC: Record<string, string[]> = {
   menu: ['menu_a', 'menu_b'], intro: ['intro'], shop: ['shop'], gameover: ['gameover'], victory: ['victory'], ending: ['ending'],
@@ -76,7 +77,11 @@ class App {
   settingsBack: Screen = 'menu';
   howtoBack: Screen = 'menu';
   qaChoicesLog: string[] = [];
+  qaRng: RNG | null = null;
   runResult: any = null;
+  runId = 0;
+  deathTimer = 0;
+  qaInvincible = false;
   perfUpdate = 0;
   perfRender = 0;
 
@@ -216,7 +221,7 @@ class App {
     const map: Record<string, string> = { paused: 'pause', intro: 'cutscene', ending: 'cutscene' };
     const id = map[s] || s;
     for (const [k, e] of Object.entries(this.screens)) e.classList.toggle('show', k === id);
-    const inRun = ['playing', 'paused', 'levelup', 'chest', 'stageclear'].includes(s);
+    const inRun = ['playing', 'paused', 'levelup', 'chest', 'stageclear', 'transition'].includes(s);
     document.body.classList.toggle('overlay-open', ['paused', 'levelup', 'chest', 'stageclear', 'gameover', 'victory'].includes(s));
     this.hud.classList.toggle('show', inRun);
     this.input.setTouchActive(s === 'playing');
@@ -580,7 +585,7 @@ class App {
     imgs.forEach((i) => frame.appendChild(i));
     const skip = button('Skip >>', () => this.skipCutscene(), 'small skip');
     s.append(frame, el('div', { class: 'bars' }), el('div', { class: 'grain' }), el('div', { class: 'vig' }), skip);
-    s.addEventListener('pointerdown', (e) => { if (e.target === skip) return; this.nextLine(); });
+    s.onpointerdown = (e) => { if (e.target === skip) return; this.nextLine(); };
     this.nav.setRoot(s, () => this.skipCutscene(), false);
     audio.preloadVoice(panels.flatMap((p) => p.lines.map((l) => l.voice)));
     const run = async () => {
@@ -703,9 +708,12 @@ class App {
       inferno: !!opts.inferno,
     });
     this.runActive = true;
+    this.runId++;
+    if (this.deathTimer) { clearTimeout(this.deathTimer); this.deathTimer = 0; }
     this.runResult = null;
     this.pendingVictory = false;
     this.pendingClear = null;
+    this.relicChoices = [];
     this.interruptBarks();
     this.clearBanners();
     this.hintsShown = 0;
@@ -715,6 +723,7 @@ class App {
     this.show('playing');
     audio.sfx('strike', 0.9);
     this.game.player.ignite = 1.5;
+    if (this.qaInvincible) this.game.player.invincible = true;
   }
 
   pause() {
@@ -825,6 +834,7 @@ class App {
     }, 'small'));
     s.append(el('h1', {}, this.banishMode ? 'Banish what?' : 'Level Up!'), cards, actions);
     this.nav.setRoot(s, null);
+    this.navLockUntil = Math.max(this.navLockUntil, performance.now() + 300);
   }
 
   pickChoice(i: number): string | null {
@@ -832,6 +842,10 @@ class App {
     const c = this.choices[i];
     if (!c) return null;
     const g = this.game;
+    if (this.banishMode && !((c.kind === 'weapon' || c.kind === 'passive') && c.isNew)) {
+      this.toast('Only brand-new options can be banished', 'warn');
+      return null;
+    }
     if (this.banishMode && (c.kind === 'weapon' || c.kind === 'passive') && c.isNew) {
       g.banishes--;
       g.banished.add(c.id);
@@ -861,7 +875,7 @@ class App {
   }
 
   evoBanner(c: Choice) {
-    const b = el('div', { class: 'banner anim evo-banner', style: { '--hold': '2.2s' } as any },
+    const b = el('div', { class: 'banner anim evo-banner passthrough', style: { '--hold': '2.2s' } as any },
       el('img', { src: icon(c.icon), alt: '' }),
       el('div', { class: 'small' }, 'EVOLUTION!'),
       el('div', { class: 'big' }, c.name),
@@ -891,12 +905,14 @@ class App {
     for (const [k, e] of Object.entries(this.screens)) e.classList.toggle('show', k === 'chest');
     this.input.setTouchActive(false);
     this.nav.setRoot(s, () => this.closeChest());
+    this.navLockUntil = performance.now() + 450;
+    this.input.clearQueued();
     this.chestT = 2.8;
     audio.sfx('chest', 0.9);
   }
 
   closeChest() {
-    if (this.screen !== 'chest') return;
+    if (this.screen !== 'chest' || performance.now() < this.navLockUntil) return;
     this.show('playing');
   }
 
@@ -909,16 +925,15 @@ class App {
     const g = this.game;
     const rewards = rollChest(g, 3);
     this.bark([lines.defeat]);
-    this.pendingClear = { id, rewards, stage: g.stage, t: 4.2 };
+    this.pendingClear = { id, rewards, stage: g.stage, at: g.time + 4.2 };
   }
 
-  pendingClear: { id: string; rewards: Choice[]; stage: number; t: number } | null = null;
-  /** stage clear waits for the defeat line and any level-up choices to finish */
-  updatePendingClear(dt: number) {
+  pendingClear: { id: string; rewards: Choice[]; stage: number; at: number } | null = null;
+  /** stage clear waits (in simulation time) for the defeat line and any level-up choices */
+  updatePendingClear() {
     const pc = this.pendingClear;
     if (!pc || !this.runActive) return;
-    pc.t -= dt;
-    if (pc.t > 0 || this.screen !== 'playing' || this.game.pendingLevels > 0) return;
+    if (this.game.time < pc.at || this.screen !== 'playing' || this.game.pendingLevels > 0) return;
     this.pendingClear = null;
     if (this.game.stage !== pc.stage) return;
     if (pc.stage >= 3) this.victory();
@@ -985,8 +1000,10 @@ class App {
   nextStage() {
     if (this.screen !== 'stageclear') return;
     const g = this.game;
-    this.screen = 'playing'; // block double triggers while fading
+    this.screen = 'transition'; // simulation holds while the screen fades
+    const rid = this.runId;
     this.fade(() => {
+      if (this.runId !== rid || !this.runActive) return;
       g.heal(g.player.stats.maxHp * 0.35);
       g.startStage(g.stage + 1);
       this.acc = 0;
@@ -1091,7 +1108,7 @@ class App {
       levelUp: () => this.openLevelUp(),
       bossSpawn: (id) => {
         const b = BOSSES[id];
-        const card = el('div', { class: 'bosscard' }, el('img', { src: img(b.tex), alt: '' }), el('div', {}, el('div', { class: 'nm' }, b.name), el('div', { class: 'ttl' }, b.title.toUpperCase())));
+        const card = el('div', { class: 'bosscard passthrough' }, el('img', { src: img(b.tex), alt: '' }), el('div', {}, el('div', { class: 'nm' }, b.name), el('div', { class: 'ttl' }, b.title.toUpperCase())));
         this.clearBanners();
         this.addBanner(card, 4300);
         const st = STAGES[this.game.stage - 1];
@@ -1114,7 +1131,8 @@ class App {
         audio.sfx('bossdie', 0.7, 1.4);
         this.interruptBarks();
         this.bark([DEATH_LINE]);
-        this.runActive && setTimeout(() => this.endRun(false), 2200);
+        const rid = this.runId;
+        if (this.runActive) this.deathTimer = window.setTimeout(() => { this.deathTimer = 0; if (this.runId === rid) this.endRun(false); }, 2200);
       },
       chest: (contents) => {
         if (contents.length && contents[0].id === 'boss') return;
@@ -1126,7 +1144,7 @@ class App {
       toast: (t, k) => this.toast(t, k),
       stageIntro: (n) => {
         const st = STAGES[n - 1];
-        const b = el('div', { class: 'banner anim', style: { '--hold': '3.6s' } as any }, el('div', { class: 'small' }, st.chapter.toUpperCase()), el('div', { class: 'big' }, st.name), el('div', { class: 'tiny' }, st.subtitle));
+        const b = el('div', { class: 'banner anim passthrough', style: { '--hold': '3.6s' } as any }, el('div', { class: 'small' }, st.chapter.toUpperCase()), el('div', { class: 'big' }, st.name), el('div', { class: 'tiny' }, st.subtitle));
         this.clearBanners();
         this.addBanner(b, 4400);
         audio.playMusic('stage' + n, st.music, 1.2);
@@ -1135,7 +1153,7 @@ class App {
         audio.preloadMusic(st.bossMusic);
       },
       warning: (text) => {
-        const b = el('div', { class: 'banner anim warning-banner', style: { '--hold': '2.6s' } as any }, el('div', { class: 'big' }, 'WARNING'), el('div', { class: 'small' }, text));
+        const b = el('div', { class: 'banner anim warning-banner passthrough', style: { '--hold': '2.6s' } as any }, el('div', { class: 'big' }, 'WARNING'), el('div', { class: 'small' }, text));
         this.addBanner(b, 3400);
       },
     };
@@ -1198,7 +1216,7 @@ class App {
     } else {
       g.render(1, 0);
     }
-    this.updatePendingClear(dt);
+    this.updatePendingClear();
     // dash readiness for touch button
     const p = g.player;
     this.input.dashReady = p ? 1 - Math.max(0, p.dashCd) / p.stats.dashCd : 1;
@@ -1279,14 +1297,15 @@ class App {
         const g = self.game;
         const p = g.player;
         const inRun = self.runActive || self.screen === 'gameover' || self.screen === 'victory' || self.screen === 'ending';
+        const live = self.runActive && !!p;
         return {
           screen: self.screen === 'ending' ? 'victory' : self.screen,
           stage: inRun && p ? g.stage : 1,
           time: inRun && p ? Math.round(g.time * 100) / 100 : 0,
-          player: p ? { x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10, hp: Math.round(p.hp * 10) / 10, maxHp: Math.round(p.stats.maxHp), level: p.level, xp: Math.round(p.xp * 10) / 10, xpNext: p.xpNext } : null,
-          enemies: p && inRun ? g.enemyCount() : 0,
-          bossActive: !!(g.bossActive && g.boss && g.boss.alive),
-          boss: g.boss && g.boss.alive ? { id: g.boss.boss.id, hp: Math.round(g.boss.hp), maxHp: g.boss.maxHp, phase: g.boss.boss.phase } : null,
+          player: p && inRun ? { x: Math.round(p.x * 10) / 10, y: Math.round(p.y * 10) / 10, hp: Math.round(p.hp * 10) / 10, maxHp: Math.round(p.stats.maxHp), level: p.level, xp: Math.round(p.xp * 10) / 10, xpNext: p.xpNext } : { x: 0, y: 0, hp: 0, maxHp: 0, level: 0, xp: 0, xpNext: 0 },
+          enemies: live ? g.enemyCount() : 0,
+          bossActive: !!(live && g.bossActive && g.boss && g.boss.alive),
+          boss: live && g.boss && g.boss.alive && g.boss.boss ? { id: g.boss.boss.id, hp: Math.round(g.boss.hp), maxHp: g.boss.maxHp, phase: g.boss.boss.phase } : null,
           upgrades: p ? [...p.weapons.map((w) => w.id), ...p.passives.map((q) => q.id), ...p.weapons.filter((w) => w.evo).map((w) => 'evo_' + w.id), ...[...g.relics].map((r) => 'relic_' + r)] : [],
           relics: [...g.relics],
           relicChoices: self.screen === 'stageclear' ? self.relicChoices.map((r) => r.id) : [],
@@ -1307,10 +1326,15 @@ class App {
         audio.stopVoice();
         self.hideSubtitle();
         if (self.runActive) { self.runActive = false; self.game.running = false; }
+        self.qaRng = null;
         self.startRun({ seed: typeof options.seed === 'number' ? options.seed : undefined, weapon: options.weapon && WEAPONS[options.weapon] ? options.weapon : undefined, inferno: !!options.inferno });
         return true;
       },
-      setInvincible(on: boolean) { if (self.game.player) self.game.player.invincible = !!on; return !!on; },
+      setInvincible(on: boolean) {
+        self.qaInvincible = !!on;
+        if (self.game.player) self.game.player.invincible = !!on;
+        return !!on;
+      },
       addXp(amount: number) {
         const g = self.game;
         if (!g.player || !self.runActive) return false;
@@ -1326,8 +1350,12 @@ class App {
       },
       skipTo(stage: number, point: 'start' | 'boss' = 'start') {
         stage = Math.max(1, Math.min(3, Math.floor(stage) || 1));
-        if (!self.runActive) qa.start({});
+        if (!self.runActive) qa.start({ seed: self.game.seed || undefined });
         const g = self.game;
+        self.pendingClear = null;
+        self.relicChoices = [];
+        if (self.deathTimer) { clearTimeout(self.deathTimer); self.deathTimer = 0; }
+        g.rig.reset();
         self.cutsceneToken++;
         self.lineQueue.length = 0;
         // catch-up build so later stages are fair when jumping ahead
@@ -1371,10 +1399,14 @@ class App {
         if (!self.runActive || !g.player) return 0;
         const w = g.director.currentWave();
         const types = Object.keys(w.mix);
+        // separate seeded stream so QA spawns are reproducible without touching the gameplay RNG
+        self.qaRng = self.qaRng || new RNG((g.seed ^ 0x5bd1e995) >>> 0);
         let n = 0;
+        count = Math.max(0, Math.min(2000, Math.floor(Number(count) || 0)));
         for (let i = 0; i < count; i++) {
-          const a = Math.random() * Math.PI * 2;
-          const r = 160 + Math.random() * 420;
+          if (!g.canSpawn()) break;
+          const a = self.qaRng.angle();
+          const r = 160 + self.qaRng.next() * 420;
           const e = g.spawnEnemy(types[i % types.length], g.player.x + Math.cos(a) * r, g.player.y + Math.sin(a) * r);
           if (e) n++;
         }
