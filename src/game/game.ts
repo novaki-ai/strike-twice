@@ -10,6 +10,7 @@ import { PASSIVES, applyPassives } from './upgrades';
 import { STAGES, StageDirector } from './stages';
 import { updateBoss, BOSSES } from './bosses';
 import { NovakiRig } from './rig';
+import { FRAME_B } from './frames';
 import { applyRelics, relicDamageMul, relicOnCrit, relicOnKill, relicOnHurt, relicUpdate } from './relics';
 
 export const STEP = 1 / 60;
@@ -1649,9 +1650,26 @@ export class Game {
         if (B.dying && def.koTex && this.T.tex[def.koTex]) texName = def.koTex;
         else if (B.attack && def.posed && def.posed.includes(B.attack) && def.atkTex && this.T.tex[def.atkTex]) texName = def.atkTex;
       }
+      // two-frame animation for enemies that have a second generated frame
+      let frameK = 1;
+      const kB = FRAME_B[texName];
+      if (kB && !e.boss) {
+        const ph0 = t * (def.animSpeed ?? 8) + e.phase;
+        let useB: boolean;
+        if (def.ai === 'hop') useB = e.hop > 6;
+        else if (def.anim === 'fly') useB = Math.floor(ph0 * 1.6 / Math.PI) % 2 === 1;
+        else if (def.anim === 'stomp') useB = Math.floor(ph0 * 0.5 / Math.PI) % 2 === 1;
+        else useB = Math.floor(ph0 / Math.PI) % 2 === 1;
+        if (useB && this.T.tex[texName + '_b']) {
+          // keep B at A's world-units-per-pixel, corrected so both frames have the same visual mass
+          const baseH = this.T.tex[texName].height;
+          texName = texName + '_b';
+          frameK = kB * (this.T.tex[texName].height / baseH);
+        }
+      }
       const tex = e.flash > 0 && !e.boss ? this.T.flash[texName] : this.T.tex[texName];
       if (tex && sp.texture !== tex) sp.texture = tex;
-      const base = (def.size * e.scale) / (this.T.tex[texName]?.height || 100);
+      const base = ((def.size * e.scale) / (this.T.tex[texName]?.height || 100)) * frameK;
       let bob = 0, sqx = 1, sqy = 1, rot = 0;
       const ph = t * (def.animSpeed ?? 8) + e.phase;
       switch (def.anim) {

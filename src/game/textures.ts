@@ -1,5 +1,6 @@
 /** Texture management: runtime atlas of generated sprites (+ white flash variants) and procedural FX textures. */
 import { CanvasSource, Rectangle, Texture } from 'pixi.js';
+import { FRAME_B } from './frames';
 
 export const SPRITES = [
   'novaki_torso', 'novaki_torso_angry', 'novaki_torso_ouch',
@@ -9,6 +10,7 @@ export const SPRITES = [
   'p2_lamp', 'p2_barrel', 'p2_crates', 'p2_anchor', 'p2_hydrant', 'p2_bollard',
   'p3_candelabra', 'p3_pillar', 'p3_candles', 'p3_gargoyle', 'p3_brazier', 'p3_books',
   'd1_moss', 'd1_leaves', 'd1_ring', 'd2_puddle', 'd2_manhole', 'd2_net', 'd3_wax', 'd3_rug', 'd3_bones',
+  ...Object.keys(FRAME_B).map((n) => n + '_b'),
 ];
 export const BIG_SPRITES = ['b_duchess', 'b_baron', 'b_snuffer', 'novaki_ko', 'b_duchess_atk', 'b_duchess_ko', 'b_baron_atk', 'b_baron_ko', 'b_snuffer_atk', 'b_snuffer_ko'];
 export const ICONS = [
