@@ -86,6 +86,7 @@ export class Game {
   darkness = 0.2;
   darkTarget = 0.2;
   extraDark = 0;
+  blackout = 0;
   flashT = 0;
   flashColor = 0xffffff;
   coinsRun = 0;
@@ -882,6 +883,13 @@ export class Game {
       this.stats.kills++;
       if (w) w.kills++;
       if (this.relics.size) relicOnKill(this);
+      if (e.elite) {
+        // a beat of impact for big kills
+        this.hitstop = 0.07;
+        this.shake(9, 0.3);
+        this.explosionFx(e.x, e.y - 30, 70, 0xffd23a, true);
+        audio.sfx('explode', 0.6, 0.9);
+      }
     }
     if (!e.prop && this.particles.length < 1200) {
       const tex = this.T.flash[e.def.tex];
@@ -1926,7 +1934,7 @@ export class Game {
     this.lightSprite.visible = true;
     const p = this.player;
     // player light
-    const pr = 230 * (this.player.goldT > 0 || this.player.ignite > 0 ? 1.5 : 1) * (1 - this.extraDark * 0.35);
+    const pr = 230 * (this.player.goldT > 0 || this.player.ignite > 0 ? 1.5 : 1) * (1 - this.blackout * 0.3);
     this.pushLight(this.rig.x, this.rig.y - 40, pr * 2.3, 0xfff0d8, 1);
     this.pushLight(this.rig.x, this.rig.y - 40, pr * 1.1, 0xffffff, 0.5);
     if (this.boss && this.boss.alive) this.pushLight(this.boss.x, this.boss.y - 60, 300, this.boss.def.light ?? 0xb0c0ff, 0.6);
@@ -1934,7 +1942,10 @@ export class Game {
     amb.width = this.screenW / 4 + 4;
     amb.height = this.screenH / 4 + 4;
     const c = this.stageDef?.ambient ?? [0.3, 0.3, 0.5];
-    const ch = (k: number) => Math.max(0, Math.min(255, Math.round(255 * (1 - d + d * c[k]))));
+    // "lights out" (extra darkness) pushes the ambient towards black on top of the stage darkness
+    this.blackout += ((this.extraDark > 0 ? 1 : 0) - this.blackout) * Math.min(1, frameDt * 2.5);
+    const bo = 1 - 0.78 * this.blackout;
+    const ch = (k: number) => Math.max(0, Math.min(255, Math.round(255 * (1 - d + d * c[k]) * bo)));
     const r = ch(0), gg = ch(1), b = ch(2);
     amb.tint = (r << 16) | (gg << 8) | b;
     for (let i = this.lightUsed; i < this.lightPool.length; i++) this.lightPool[i].visible = false;

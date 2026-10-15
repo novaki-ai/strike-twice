@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+const OUT = process.env.OUT;
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+await page.evaluate(() => { window.NOVAKI_QA.skipTo(3, 'boss'); window.NOVAKI_QA.setInvincible(true); window.__novaki.clearBanners(); });
+await page.waitForTimeout(3000);
+await page.evaluate(() => { const g = window.__novaki.game; const B = g.boss.boss; B.attack = 'lightsout'; B.at = 0; B.count = 0; B.data = {}; });
+await page.waitForTimeout(2500);
+await page.screenshot({ path: OUT + '/lightsout.png' });
+await browser.close();
