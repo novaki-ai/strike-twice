@@ -1,0 +1,24 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
+page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+const hp = async (inferno) => page.evaluate((inf) => {
+  window.NOVAKI_QA.start({ seed: 1, inferno: inf });
+  const g = window.__novaki.game;
+  const e = g.spawnEnemy('mold', 300, 0);
+  const r = { inferno: g.inferno, moldHp: Math.round(e.maxHp), moldDmg: +e.dmg.toFixed(2) };
+  window.NOVAKI_QA.skipTo(1, 'boss');
+  r.bossHp = Math.round(g.boss.maxHp);
+  return r;
+}, inferno);
+console.log('normal ', JSON.stringify(await hp(false)));
+console.log('inferno', JSON.stringify(await hp(true)));
+await page.evaluate(() => { const g = window.__novaki.game; g.player.iframes = 0; g.player.revives = 0; g.player.invincible = false; g.hurtPlayer(99999, null); });
+await page.waitForFunction(() => window.NOVAKI_QA.state().screen === 'gameover', null, { timeout: 10000 });
+console.log('results show INFERNO label:', await page.evaluate(() => document.querySelector('#gameover').textContent.includes('INFERNO MODE')));
+console.log('ERRORS', errors.join('\n'));
+await browser.close();
