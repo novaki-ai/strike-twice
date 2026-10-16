@@ -423,3 +423,8 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
 @media (max-width: 600px) { .arsenal { grid-template-columns: 1fr; } }
 
 .btn .badge { position: absolute; right: -10px; top: -10px; width: 26px; height: 26px; border-radius: 50%; background: var(--red); color: var(--paper); border: 3px solid var(--ink); font-size: 16px; line-height: 21px; text-align: center; animation: pop 0.4s cubic-bezier(.2,1.6,.4,1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-bg, .logo, .press, .embers span, #danger, #cutscene .grain { animation: none !important; }
+  .embers { display: none; }
+}
