@@ -32,8 +32,8 @@ await ff(170, [['ember', 8, true], ['whip', 6, false], ['spark', 6, false], ['bo
 await quiet(); await page.evaluate(() => { window.__novaki.game.pickups.forEach((p) => { if (p.alive && p.kind === 'chest') window.__novaki.game.killPickup(p); }); }); await page.keyboard.down('KeyA'); await page.waitForTimeout(1200); await page.keyboard.up('KeyA'); await quiet();
 await shot('03_drizzleport');
 await page.evaluate(() => window.NOVAKI_QA.skipTo(3, 'boss'));
-await page.evaluate(() => { const g = window.__novaki.game; g.player.weapons.length = 0; for (const [id, lv, evo] of [['ember', 8, true], ['ring', 8, true], ['cracker', 7, false], ['glare', 6, false]]) { const w = g.addWeapon(id); w.level = lv; w.evo = evo; } });
-await page.waitForTimeout(9000); await page.keyboard.down('KeyW'); await page.waitForTimeout(900); await page.keyboard.up('KeyW');
+await page.evaluate(() => { const g = window.__novaki.game; g.player.weapons.length = 0; for (const [id, lv, evo] of [['ember', 8, false], ['spark', 7, false], ['halo', 6, false]]) { const w = g.addWeapon(id); w.level = lv; w.evo = evo; } });
+await page.waitForTimeout(4500); await page.evaluate(() => { const g = window.__novaki.game; const b = g.boss; if (b) { g.player.x = g.player.px = b.x + 250; g.player.y = g.player.py = b.y + 30; } }); await page.waitForTimeout(900);
 await shot('04_snuffer');
 await page.evaluate(() => window.NOVAKI_QA.addXp(600)); await page.waitForTimeout(900);
 await shot('05_levelup');
