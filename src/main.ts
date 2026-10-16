@@ -527,7 +527,8 @@ class App {
         <p>Novaki fights on his own: weapons fire <b>automatically</b>. Your job is to <b>move</b>, dodge, and collect the glowing <b>embers</b> enemies drop.</p>
         <p>Fill the ember bar to <b>level up</b> and pick an upgrade: new weapons, weapon levels, or passive trinkets.</p>
         <p>Each stage ends with a <b>boss</b>. Beat all three to relight Tinderbox. A full run takes about 20 minutes.</p>
-        <p><b>Evolutions:</b> get a weapon to level 8 while owning its partner trinket, and it can evolve into something much stronger.</p>
+        <p><b>Dash</b> to slip through danger: you can't be hurt for a moment while dashing. Glowing outlines and arrows on the ground warn you where an attack will land.</p>
+        <p><b>Evolutions:</b> get a weapon to level 8 while owning its partner trinket, and it can evolve into something much stronger. After each boss you also pick a <b>relic</b>.</p>
         <p>Coins you collect stay with you: spend them in the <b>Workshop</b> for permanent upgrades.</p></div>
         <div><h3>Controls</h3>
         <p><b>Keyboard:</b> move with <span class="keycap">W</span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span> or arrow keys. Dash with <span class="keycap">Space</span> or <span class="keycap">Shift</span>. Pause with <span class="keycap">Esc</span> or <span class="keycap">P</span>. Pick upgrades with <span class="keycap">1</span>-<span class="keycap">4</span>.</p>
