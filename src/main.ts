@@ -928,6 +928,11 @@ class App {
       this.renderLevelUp();
     } else {
       this.show('playing');
+      // a little burst of heat as Novaki powers up
+      const p = g.player;
+      g.particle(p.x, p.y - 30, g.fx.softring, { add: true, life: 0.45, s0: 0.15, s1: 1.1, a0: 0.9, tint: 0xffc070 });
+      g.sparkleAt(p.x, p.y - 30, 0xffd23a);
+      g.addLight(p.x, p.y - 30, 260, 0.4, 0xffc070);
     }
   }
 

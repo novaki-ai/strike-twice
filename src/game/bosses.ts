@@ -380,7 +380,7 @@ const ATTACKS: Record<string, AttackFn> = {
       B.invuln = false;
       const dx = p.x - e.x, dy = p.y - e.y;
       if (dx * dx + dy * dy < 130 * 130) g.hurtPlayer(26, null, { by: 'snuffer:slam' });
-      audio.sfx('slam', 1);
+      audio.sfx('slam', 0.75);
       g.shake(16, 0.5);
       g.explosionFx(e.x, e.y, 110, 0xb48aff, true);
       const n = B.phase >= 3 ? 30 : 22;
