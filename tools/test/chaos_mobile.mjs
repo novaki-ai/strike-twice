@@ -9,7 +9,7 @@ page.on('pageerror', (e) => errors.push('pageerror: ' + e.message + '\n' + (e.st
 page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
 await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
 await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
-const keys = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'Space', 'Enter', 'Escape', 'Digit1', 'Digit2', 'Digit3', 'KeyP', 'ShiftLeft', 'Backspace'];
+const keys = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'Space', 'Enter', 'Escape', 'Digit1', 'Digit2', 'Digit3', 'KeyP', 'ShiftLeft', 'Backspace', 'KeyE', 'KeyQ', 'Tab'];
 const qa = [
   'start({seed: Math.floor(Math.random()*1e6)})', 'setInvincible(true)', 'setInvincible(false)', 'addXp(Math.random()*80)', 'chooseUpgrade(Math.floor(Math.random()*4))',
   "skipTo(1+Math.floor(Math.random()*3), Math.random()<0.5?'start':'boss')", 'killBoss()', 'spawnEnemies(Math.floor(Math.random()*120))', 'state()',

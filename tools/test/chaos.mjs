@@ -8,10 +8,10 @@ page.on('pageerror', (e) => errors.push('pageerror: ' + e.message + '\n' + (e.st
 page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
 await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
 await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
-const keys = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'Space', 'Enter', 'Escape', 'Digit1', 'Digit2', 'Digit3', 'KeyP', 'ShiftLeft', 'Backspace'];
+const keys = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'Space', 'Enter', 'Escape', 'Digit1', 'Digit2', 'Digit3', 'KeyP', 'ShiftLeft', 'Backspace', 'KeyE', 'KeyQ', 'Tab'];
 const qa = [
   'start({seed: Math.floor(Math.random()*1e6)})', 'setInvincible(true)', 'setInvincible(false)', 'addXp(Math.random()*80)', 'chooseUpgrade(Math.floor(Math.random()*4))',
-  "skipTo(1+Math.floor(Math.random()*3), Math.random()<0.5?'start':'boss')", 'killBoss()', 'spawnEnemies(Math.floor(Math.random()*120))', 'state()',
+  "skipTo(1+Math.floor(Math.random()*3), Math.random()<0.5?'start':'boss')", 'killBoss()', '__chargeFlare', 'spawnEnemies(Math.floor(Math.random()*120))', 'state()',
 ];
 const t0 = Date.now();
 let n = 0;
@@ -23,7 +23,7 @@ while (Date.now() - t0 < SECS * 1000) {
     if (Math.random() < 0.5) await page.keyboard.press(k); else { await page.keyboard.down(k); await page.waitForTimeout(100 + Math.random() * 600); await page.keyboard.up(k); }
   } else if (r < 0.8) {
     const c = qa[Math.floor(Math.random() * qa.length)];
-    await page.evaluate((c) => { try { eval('window.NOVAKI_QA.' + c); } catch (e) { console.error('QA threw: ' + c + ' ' + e.message); } }, c);
+    await page.evaluate((c) => { try { if (c === '__chargeFlare') window.__novaki.game.chargeFlare(1); else eval('window.NOVAKI_QA.' + c); } catch (e) { console.error('QA threw: ' + c + ' ' + e.message); } }, c);
   } else if (r < 0.9) {
     // click a random visible button
     const btns = await page.locator('.screen.show button:visible, .screen.show [data-nav]:visible').all();

@@ -67,6 +67,7 @@ class App {
   fadeEl!: HTMLElement;
   dangerEl!: HTMLElement;
   hintsShown = 0;
+  flareHints = 0;
   hudEls: Record<string, HTMLElement> = {};
   toasts!: HTMLElement;
   subtitle!: HTMLElement;
@@ -180,6 +181,7 @@ class App {
     this.hud.innerHTML = `
       <div class="xpbar"><div class="fill"></div></div><div class="lvl">LV 1</div>
       <div class="hud-left"><div class="hpbar"><div class="fill"></div><div class="txt">100 / 100</div></div>
+        <div class="flarebar"><div class="fill"></div><div class="txt">FLARE</div></div>
         <div class="slots weapons"></div><div class="slots passives"></div></div>
       <div class="hud-center"><div class="timer">00:00</div><div class="stagename"></div><div class="bossin"><div class="bossin-fill"></div><span></span></div></div>
       <div class="hud-right"><div class="stat"><img src="${icon('skull')}" alt=""><span class="kills">0</span></div>
@@ -191,6 +193,7 @@ class App {
     const q = (s: string) => this.hud.querySelector(s) as HTMLElement;
     this.hudEls = {
       xp: q('.xpbar .fill'), lvl: q('.lvl'), hp: q('.hpbar .fill'), hpt: q('.hpbar .txt'), weapons: q('.weapons'), passives: q('.passives'),
+      flare: q('.flarebar'), flareFill: q('.flarebar .fill'), flareTxt: q('.flarebar .txt'),
       timer: q('.timer'), stage: q('.stagename'), kills: q('.kills'), coins: q('.coins'), boss: q('.bossbar'), bossName: q('.bossbar .name'),
       bossFill: q('.bossbar .fill'), bossIn: q('.bossin'), bossInFill: q('.bossin-fill'), bossInTxt: q('.bossin span'), dash: q('.dash-ind .ring'), dashLabel: q('.dash-label'), fps: q('.fps'), dashInd: q('.dash-ind'),
     };
@@ -548,12 +551,13 @@ class App {
         <p>Fill the ember bar to <b>level up</b> and pick an upgrade: new weapons, weapon levels, or passive trinkets.</p>
         <p>Each stage ends with a <b>boss</b>. Beat all three to relight Tinderbox. A full run takes about 20 minutes.</p>
         <p><b>Dash</b> to slip through danger: you can't be hurt for a moment while dashing. Glowing outlines and arrows on the ground warn you where an attack will land.</p>
+        <p><b>Flare-Up:</b> kills and boss hits charge your flare meter. When it's full, strike twice: Novaki blazes up, scorching everything on screen and snuffing out enemy shots.</p>
         <p><b>Evolutions:</b> get a weapon to level 8 while owning its partner trinket, and it can evolve into something much stronger. After each boss you also pick a <b>relic</b>.</p>
         <p>Coins you collect stay with you: spend them in the <b>Workshop</b> for permanent upgrades.</p></div>
         <div><h3>Controls</h3>
-        <p><b>Keyboard:</b> move with <span class="keycap">W</span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span> or arrow keys. Dash with <span class="keycap">Space</span> or <span class="keycap">Shift</span>. Pause with <span class="keycap">Esc</span> or <span class="keycap">P</span>. Pick upgrades with <span class="keycap">1</span>-<span class="keycap">4</span>.</p>
-        <p><b>Gamepad:</b> left stick or d-pad to move, <span class="keycap">A</span> / <span class="keycap">RB</span> to dash, <span class="keycap">Start</span> to pause. Menus: stick + <span class="keycap">A</span>, <span class="keycap">B</span> to go back.</p>
-        <p><b>Touch:</b> drag anywhere to move with the floating joystick. Tap <b>DASH</b> to dodge, <b>II</b> to pause.</p>
+        <p><b>Keyboard:</b> move with <span class="keycap">W</span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span> or arrow keys. Dash with <span class="keycap">Space</span> or <span class="keycap">Shift</span>. Flare-Up with <span class="keycap">E</span> or <span class="keycap">Q</span>. Pause with <span class="keycap">Esc</span> or <span class="keycap">P</span>. Pick upgrades with <span class="keycap">1</span>-<span class="keycap">4</span>.</p>
+        <p><b>Gamepad:</b> left stick or d-pad to move, <span class="keycap">A</span> / <span class="keycap">RB</span> to dash, <span class="keycap">Y</span> / <span class="keycap">LB</span> to flare up, <span class="keycap">Start</span> to pause. Menus: stick + <span class="keycap">A</span>, <span class="keycap">B</span> to go back.</p>
+        <p><b>Touch:</b> drag anywhere to move with the floating joystick. Tap <b>DASH</b> to dodge, <b>FLARE</b> to flare up, <b>II</b> to pause.</p>
         <h3>Pickups</h3>
         <p><img src="${icon('marshmallow')}" style="height:22px;vertical-align:middle"> heals &nbsp; <img src="${icon('magnet')}" style="height:22px;vertical-align:middle"> pulls all embers &nbsp; <img src="${icon('firecracker')}" style="height:22px;vertical-align:middle"> clears the screen &nbsp; <img src="${icon('watch')}" style="height:22px;vertical-align:middle"> freezes time &nbsp; <img src="${icon('goldmatch')}" style="height:22px;vertical-align:middle"> golden match: invincible and ablaze &nbsp; <img src="${icon('chest')}" style="height:22px;vertical-align:middle"> treasure. Smash lanterns, barrels and candles to find them.</p></div>` });
     } else if (tab === 'evos') {
@@ -785,6 +789,7 @@ class App {
     this.interruptBarks();
     this.clearBanners();
     this.hintsShown = 0;
+    this.flareHints = 0;
     this.bubble.reset();
     this.acc = 0;
     this.game.startStage(1);
@@ -1217,6 +1222,13 @@ class App {
       levelUp: () => this.openLevelUp(),
       rumble: (s, ms) => this.input.rumble(s, ms),
       say: (kind) => this.bubble.say(this.game, kind),
+      flareReady: () => {
+        if (this.flareHints < 2 && this.save.stats.runs < 4) {
+          this.flareHints++;
+          const how = this.input.device === 'gamepad' ? 'Y' : this.input.device === 'touch' ? 'FLARE' : 'E';
+          this.toast(`Flare-Up ready! Press ${how} to blast everything on screen`, 'gold');
+        }
+      },
       bossSpawn: (id) => {
         const b = BOSSES[id];
         const bar = this.hudEls.bossFill.parentElement!;
@@ -1333,6 +1345,7 @@ class App {
         g.input.x = this.input.moveX;
         g.input.y = this.input.moveY;
         if (this.input.consumeDash()) g.input.dash = true;
+        if (this.input.consumeFlare()) g.input.flare = true;
         let scale = 1;
         if (g.slowmoT > 0) { g.slowmoT -= dt; scale = 0.35; }
         this.acc += dt * scale;
@@ -1369,6 +1382,7 @@ class App {
     // dash readiness for touch button
     const p = g.player;
     this.input.dashReady = p ? 1 - Math.max(0, p.dashCd) / p.stats.dashCd : 1;
+    this.input.flareReady = g.flare;
     this.hudT -= dt;
     if (this.hudT <= 0) { this.hudT = 0.08; this.updateHud(); }
   }
@@ -1417,6 +1431,9 @@ class App {
       this.setHud('bossName', b!.def.name, (v) => { H.bossName.textContent = v; });
       this.setHud('bossHp', (Math.max(0, b!.hp) / b!.maxHp * 100).toFixed(1), (v) => { H.bossFill.style.width = v + '%'; });
     }
+    this.setHud('flare', g.flare.toFixed(2), (v) => { H.flareFill.style.width = (Number(v) * 100).toFixed(0) + '%'; H.flare.classList.toggle('full', Number(v) >= 1); });
+    const flareKey = this.input.device === 'gamepad' ? 'Y' : this.input.device === 'touch' ? 'TAP FLARE' : 'E';
+    this.setHud('flareTxt', g.flare >= 1 ? 'FLARE READY - ' + flareKey : 'FLARE', (v) => { H.flareTxt.textContent = v; });
     const hpF = p.hp / p.stats.maxHp;
     const danger = this.screen === 'playing' && hpF < 0.35 ? (0.35 - hpF) / 0.35 : 0;
     this.setHud('danger', danger.toFixed(2), (v) => { this.dangerEl.style.opacity = String(Math.min(0.85, Number(v) * 1.2)); });
@@ -1470,6 +1487,7 @@ class App {
           passives: p ? p.passives.map((q) => ({ id: q.id, level: q.level })) : [],
           levelUpChoices: self.screen === 'levelup' ? self.choices.map((c) => ({ id: c.id, kind: c.kind, level: c.level, name: c.name })) : [],
           kills: g.stats?.kills ?? 0,
+          flare: Math.round((g.flare || 0) * 100) / 100,
           seed: g.seed,
           fps: Math.round(self.fps),
           perf: { updateMs: Math.round(self.perfUpdate * 100) / 100, renderMs: Math.round(self.perfRender * 100) / 100, bullets: g.bullets?.filter((b) => b.alive).length ?? 0, projectiles: g.projs?.filter((p) => p.alive).length ?? 0, particles: g.particles?.filter((p) => p.alive).length ?? 0 },

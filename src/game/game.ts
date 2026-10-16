@@ -21,6 +21,7 @@ export interface Hooks {
   levelUp(): void;
   rumble(strength: number, ms: number): void;
   say(kind: string): void;
+  flareReady(): void;
   bossSpawn(bossId: string): void;
   bossPhase(bossId: string, phase: number): void;
   bossDefeated(bossId: string): void;
@@ -311,6 +312,7 @@ export class Game {
     };
     this.addWeapon(meta.startWeapon || 'ember');
     this.rig.reset();
+    this.flare = 0;
     this.running = true;
   }
 
@@ -485,7 +487,9 @@ export class Game {
 
   /* ------------------------------------------------------------------ player */
 
-  input = { x: 0, y: 0, dash: false };
+  input = { x: 0, y: 0, dash: false, flare: false };
+  /** Flare-Up meter, 0..1: kills and boss damage charge it */
+  flare = 0;
 
   private updatePlayer(dt: number) {
     const p = this.player;
@@ -515,6 +519,8 @@ export class Game {
       this.director?.onDash?.();
     }
     this.input.dash = false;
+    if (this.input.flare && this.flare >= 1 && !this.over) this.flareUp();
+    this.input.flare = false;
     let speed = s.speed * (p.goldT > 0 ? 1.25 : 1);
     if (p.dashT > 0) {
       p.dashT -= dt;
@@ -589,6 +595,49 @@ export class Game {
       for (let i = 0; i < 8; i++) this.puff(p.x + vrange(-20, 20), p.y - vrange(10, 50), 0xbfb6a6, 0.8, 1.2);
       this.hooks.playerDied();
     }
+  }
+
+  private flaring = false;
+  chargeFlare(v: number) {
+    if (this.flare >= 1 || this.flaring) return; // the flare's own kills don't refill it
+    this.flare = Math.min(1, this.flare + v);
+    if (this.flare >= 1) {
+      audio.sfx('levelup', 0.35, 1.6);
+      this.hooks.flareReady();
+    }
+  }
+
+  /** Strike twice: Novaki flares up, scorching everything on screen and snuffing enemy shots */
+  flareUp() {
+    const p = this.player;
+    this.flare = 0;
+    p.iframes = Math.max(p.iframes, 1.2);
+    p.ignite = Math.max(p.ignite, 4);
+    const hw = this.viewW * 0.6, hh = this.viewH * 0.6;
+    const dmg = 120 + 12 * p.level;
+    this.flaring = true;
+    for (const e of this.enemies) {
+      if (!e.alive || e.prop || e.intangible) continue;
+      if (Math.abs(e.x - p.x) > hw || Math.abs(e.y - p.y) > hh) continue;
+      if (e.boss) this.damageEnemy(e, (e.maxHp * 0.05) / Math.max(0.1, p.stats.might), null, { noCrit: true, noKnock: true });
+      else this.damageEnemy(e, dmg, null, { noCrit: true, knock: 3, burn: 12, fromX: p.x, fromY: p.y });
+    }
+    this.flaring = false;
+    this.clearBullets(true);
+    this.teles = this.teles.filter((t) => t.alive && !t.subtle);
+    this.explosionFx(p.x, p.y - 30, 240, 0xffb040, true);
+    this.particle(p.x, p.y - 30, this.fx.softring, { add: true, life: 0.6, s0: 0.3, s1: 4.5, a0: 1, tint: 0xffd27a });
+    this.particle(p.x, p.y - 30, this.fx.smokering, { life: 0.7, s0: 0.4, s1: 3.2, a0: 0.8, layer: 2 });
+    for (let i = 0; i < 18; i++) {
+      const a = (i / 18) * Math.PI * 2;
+      this.particle(p.x, p.y - 30, this.fx.flame, { vx: Math.cos(a) * 520, vy: Math.sin(a) * 420, life: 0.55, s0: 0.5, s1: 0.1, drag: 2.5, rot: a + Math.PI / 2 });
+    }
+    this.addLight(p.x, p.y - 30, 900, 0.8, 0xffc070);
+    if (this.settings.flashes) { this.flashT = 0.3; this.flashColor = 0xffd27a; }
+    this.shake(16, 0.5);
+    audio.sfx('strike', 1);
+    audio.sfx('explode', 0.8, 0.8);
+    this.hooks.say('flare');
   }
 
   heal(amount: number) {
@@ -849,6 +898,7 @@ export class Game {
       if ((hx * tx + hy * ty) / (hd * td) > 0.35) { dmg *= 0.45; blocked = true; }
     }
     if (e.boss && e.boss.invuln) { dmg = 0; blocked = true; }
+    if (e.boss && dmg > 0) this.chargeFlare((dmg / e.maxHp) * 2.2);
     e.hp -= dmg;
     if (!o.burnTick && !o.small) e.flash = 0.07;
     if (w) w.dmg += dmg;
@@ -896,6 +946,7 @@ export class Game {
     if (!e.prop) {
       this.stats.kills++;
       if (w) w.kills++;
+      this.chargeFlare(e.elite ? 0.1 : 1 / 220);
       if (this.relics.size) relicOnKill(this);
       if (e.elite) {
         // a beat of impact for big kills

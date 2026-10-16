@@ -9,6 +9,7 @@ const LINES: Record<string, string[]> = {
   lamp: ['There. Better.', 'You\'re welcome, lamp.', 'One more lit.'],
   elite: ['Next.', 'Big one. Whatever.'],
   chest: ['Ooh, a box.', 'Free stuff. Finally.'],
+  flare: ['Strike two.', 'FWOOSH.', 'Feeling warm yet?', 'Told you. Stubborn.'],
   idle: ['Still smoking.', 'Is it over yet?', 'Why is it always bugs.', 'Should\'ve stayed in bed.', 'My glasses are crooked again.', 'One match. Against all this.', 'Hmph.'],
 };
 
@@ -37,7 +38,7 @@ export class Bubble {
 
   /** say a line from a category; important moments ignore the chatter cooldown */
   say(g: Game, kind: string, force = false) {
-    if (kind === 'gold' || kind === 'revive' || kind === 'evolve') force = true;
+    if (kind === 'gold' || kind === 'revive' || kind === 'evolve' || kind === 'flare') force = true;
     if (!force && this.cooldown > 0) return;
     const list = LINES[kind];
     if (!list) return;

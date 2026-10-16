@@ -8,6 +8,7 @@ export class Input {
   /** last input device used, for UI hints */
   device: 'keyboard' | 'gamepad' | 'touch' = 'keyboard';
   private dashQueued = false;
+  private flareQueued = false;
   private pauseQueued = false;
   onNav: ((d: NavDir) => void) | null = null;
   onAnyInput: (() => void) | null = null;
@@ -29,6 +30,8 @@ export class Input {
   private joyEl: HTMLDivElement;
   private touchLayer: HTMLDivElement;
   dashBtn: HTMLDivElement;
+  flareBtn: HTMLDivElement;
+  flareReady = 0; // 0..1 meter for the touch button
   pauseBtn: HTMLDivElement;
   touchActive = false; // whether touch controls should show (in gameplay)
   dashReady = 1; // 0..1 for button ring
@@ -54,6 +57,7 @@ export class Input {
     this.onAnyInput?.();
     if (!e.repeat) {
       if (c === 'Space' || c === 'ShiftLeft' || c === 'ShiftRight' || c === 'KeyK') this.dashQueued = true;
+      if (c === 'KeyE' || c === 'KeyQ' || c === 'KeyL') this.flareQueued = true;
       if (c === 'Escape' || c === 'KeyP') this.pauseQueued = true;
     }
     this.keys.add(c);
@@ -73,6 +77,11 @@ export class Input {
     this.dashQueued = false;
     return d;
   }
+  consumeFlare(): boolean {
+    const f = this.flareQueued;
+    this.flareQueued = false;
+    return f;
+  }
   consumePause(): boolean {
     const p = this.pauseQueued;
     this.pauseQueued = false;
@@ -80,6 +89,7 @@ export class Input {
   }
   clearQueued() {
     this.dashQueued = false;
+    this.flareQueued = false;
     this.pauseQueued = false;
   }
 
@@ -128,11 +138,12 @@ export class Input {
       if (btn(13)) ay = 1;
       if (ax !== 0 || ay !== 0) { x = ax; y = ay; this.device = 'gamepad'; }
       const pressed = (i: number) => btn(i) && !this.padPrev[i];
-      if (pressed(0) || pressed(1) || pressed(2) || pressed(3) || pressed(9) || pressed(5) || pressed(7)) {
+      if (pressed(0) || pressed(1) || pressed(2) || pressed(3) || pressed(4) || pressed(9) || pressed(5) || pressed(7)) {
         this.device = 'gamepad';
         this.onAnyInput?.();
       }
       if (pressed(0) || pressed(5) || pressed(7) || pressed(2)) this.dashQueued = true;
+      if (pressed(3) || pressed(4) || pressed(6)) this.flareQueued = true;
       if (pressed(9) || pressed(8)) this.pauseQueued = true;
       // nav events
       if (this.onNav) {
@@ -174,6 +185,10 @@ export class Input {
     this.moveY = y;
     // dash button cooldown ring
     if (this.dashBtn) this.dashBtn.style.setProperty('--ready', String(this.dashReady));
+    if (this.flareBtn) {
+      this.flareBtn.style.setProperty('--ready', String(this.flareReady));
+      this.flareBtn.classList.toggle('full', this.flareReady >= 1);
+    }
   }
 
   private buildTouch() {
@@ -192,12 +207,17 @@ export class Input {
     dash.className = 'touch-btn dash-btn';
     dash.innerHTML = '<span>DASH</span>';
     this.dashBtn = dash;
+    const flare = document.createElement('div');
+    flare.className = 'touch-btn flare-btn';
+    flare.innerHTML = '<span>FLARE</span>';
+    this.flareBtn = flare;
     const pause = document.createElement('div');
     pause.className = 'touch-btn pause-btn';
     pause.innerHTML = '<span>II</span>';
     this.pauseBtn = pause;
     document.body.appendChild(layer);
     document.body.appendChild(dash);
+    document.body.appendChild(flare);
     document.body.appendChild(pause);
 
     const onDown = (e: PointerEvent) => {
@@ -249,6 +269,7 @@ export class Input {
     layer.addEventListener('pointercancel', onUp);
     dash.addEventListener('pointerdown', (e) => { this.dashQueued = true; this.device = 'touch'; e.preventDefault(); e.stopPropagation(); });
     pause.addEventListener('pointerdown', (e) => { this.pauseQueued = true; e.preventDefault(); e.stopPropagation(); });
+    flare.addEventListener('pointerdown', (e) => { this.flareQueued = true; this.device = 'touch'; e.preventDefault(); e.stopPropagation(); });
   }
 
   setTouchActive(on: boolean) {
@@ -256,6 +277,7 @@ export class Input {
     const show = on && this.touchEnabled;
     this.touchLayer.style.display = on ? 'block' : 'none';
     this.dashBtn.style.display = show ? 'flex' : 'none';
+    this.flareBtn.style.display = show ? 'flex' : 'none';
     this.pauseBtn.style.display = on ? 'flex' : 'none';
     if (!on) {
       this.joyId = null;

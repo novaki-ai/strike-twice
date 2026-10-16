@@ -23,11 +23,14 @@ other hosts). Desktop and mobile browsers are supported (WebGL via PixiJS 8).
 |---|---|---|---|
 | Move | WASD / arrow keys | Left stick / d-pad | Drag anywhere (floating joystick) |
 | Dash (short invulnerable burst) | Space / Shift | A / RB | DASH button |
+| Flare-Up (when the meter is full) | E / Q | Y / LB | FLARE button |
 | Pause | Esc / P | Start | II button |
 | Menus | Arrows + Enter, Esc to go back | Stick + A, B to go back | Tap |
 | Level-up cards | 1-4, or arrows + Enter | Stick + A | Tap |
 
-Weapons fire automatically: you move, dodge, collect embers (XP) and choose upgrades.
+Weapons fire automatically: you move, dodge, collect embers (XP) and choose upgrades. Kills and boss hits charge
+the **Flare-Up** meter; when it's full Novaki can "strike twice": a screen-wide blast that scorches every enemy in view
+(bosses lose 5% of their health), snuffs out enemy shots and gives a moment of invulnerability.
 
 ## What I built
 

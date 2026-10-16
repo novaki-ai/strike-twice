@@ -1,0 +1,26 @@
+import { chromium } from 'playwright';
+const OUT = process.env.OUT;
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
+page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+await page.evaluate(() => { window.NOVAKI_QA.start({ seed: 21 }); window.NOVAKI_QA.setInvincible(true); window.__novaki.clearBanners(); window.__novaki.game.player.xpNext = 1e12; });
+// charge by killing: spawn lots of weak enemies
+await page.evaluate(() => window.NOVAKI_QA.spawnEnemies(60));
+await page.keyboard.down('KeyD'); await page.waitForTimeout(3000); await page.keyboard.up('KeyD');
+console.log('meter after kills:', await page.evaluate(() => window.NOVAKI_QA.state().flare));
+await page.evaluate(() => { window.__novaki.game.chargeFlare(1); window.NOVAKI_QA.spawnEnemies(150); });
+await page.waitForTimeout(600);
+await page.screenshot({ path: OUT + '/flare_ready.png' });
+const before = await page.evaluate(() => window.NOVAKI_QA.state().enemies);
+await page.keyboard.press('KeyE');
+await page.waitForTimeout(150);
+await page.screenshot({ path: OUT + '/flare_boom.png' });
+await page.waitForTimeout(400);
+const after = await page.evaluate(() => ({ enemies: window.NOVAKI_QA.state().enemies, flare: window.NOVAKI_QA.state().flare }));
+console.log('enemies before', before, 'after', JSON.stringify(after));
+console.log('ERRORS', errors.join('\n'));
+await browser.close();

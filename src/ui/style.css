@@ -428,3 +428,13 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
   .menu-bg, .logo, .press, .embers span, #danger, #cutscene .grain { animation: none !important; }
   .embers { display: none; }
 }
+
+.flarebar { width: min(240px, 40vw); height: 14px; border: 3px solid var(--ink); border-radius: 9px; background: rgba(27,22,18,0.7); overflow: hidden; position: relative; box-shadow: 2px 2px 0 rgba(0,0,0,0.5); }
+.flarebar .fill { height: 100%; width: 0%; background: linear-gradient(90deg, #c8361d, #ff9a2e, #ffe08a); transition: width 0.15s; }
+.flarebar .txt { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-h); font-size: 10px; letter-spacing: 1px; color: var(--paper); text-shadow: 1px 1px 0 var(--ink), -1px -1px 0 var(--ink); padding-top: 1px; }
+.flarebar.full { animation: flare-pulse 0.7s ease-in-out infinite alternate; }
+@keyframes flare-pulse { from { box-shadow: 0 0 4px #ffb347, 2px 2px 0 rgba(0,0,0,0.5); } to { box-shadow: 0 0 16px #ff7d3a, 2px 2px 0 rgba(0,0,0,0.5); } }
+.flare-btn { right: calc(120px + var(--safe-r)); bottom: calc(30px + var(--safe-b)); width: 70px; height: 70px; font-size: 14px;
+  background: conic-gradient(#ff9a2e calc(var(--ready, 0) * 360deg), rgba(243,230,196,0.35) 0); box-shadow: 3px 3px 0 var(--ink); opacity: 0.75; }
+.flare-btn.full { opacity: 1; animation: flare-pulse 0.7s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .flarebar.full, .flare-btn.full { animation: none; } }
