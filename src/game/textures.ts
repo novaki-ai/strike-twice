@@ -43,6 +43,17 @@ class Atlas {
     this.canvas = mkCanvas(size, size);
     this.ctx = this.canvas.getContext('2d')!;
   }
+  /** shrink the canvas to the used height (power of two, so mipmaps work everywhere) */
+  finalize() {
+    const used = this.y + this.rowH + 8;
+    let h = 256;
+    while (h < used) h *= 2;
+    if (h >= this.size) return;
+    const c = mkCanvas(this.size, h);
+    c.getContext('2d')!.drawImage(this.canvas, 0, 0);
+    this.canvas = c;
+    this.ctx = c.getContext('2d')!;
+  }
   add(name: string, img: CanvasImageSource, w: number, h: number): boolean {
     const pad = 6;
     if (this.x + w + pad > this.size) { this.x = 2; this.y += this.rowH + pad; this.rowH = 0; }
@@ -80,14 +91,17 @@ export async function loadSpriteAtlas(base: string, onProgress: (p: number) => v
   let cur = new Atlas(2048);
   atlases.push(cur);
   // big ones first in their own atlas
+  const bigAtlases = new Set<Atlas>();
   let big = new Atlas(2048);
   atlases.push(big);
+  bigAtlases.add(big);
   for (const n of BIG_SPRITES) {
     const im = imgs[n];
     if (!im) continue;
     if (!big.add(n, im, im.width, im.height)) {
       big = new Atlas(2048);
       atlases.push(big);
+      bigAtlases.add(big);
       big.add(n, im, im.width, im.height);
     }
   }
@@ -102,18 +116,22 @@ export async function loadSpriteAtlas(base: string, onProgress: (p: number) => v
   }
   for (const a of atlases) {
     if (Object.keys(a.frames).length === 0) continue;
+    a.finalize();
     const src = sourceFrom(a.canvas);
-    // flash: white silhouette copy
-    const fc = mkCanvas(a.size, a.size);
-    const fx = fc.getContext('2d')!;
-    fx.drawImage(a.canvas, 0, 0);
-    fx.globalCompositeOperation = 'source-in';
-    fx.fillStyle = '#fff';
-    fx.fillRect(0, 0, a.size, a.size);
-    const fsrc = sourceFrom(fc);
+    // flash: white silhouette copy (bosses flash by tint, so their atlases skip it)
+    let fsrc: CanvasSource | null = null;
+    if (!bigAtlases.has(a)) {
+      const fc = mkCanvas(a.canvas.width, a.canvas.height);
+      const fx = fc.getContext('2d')!;
+      fx.drawImage(a.canvas, 0, 0);
+      fx.globalCompositeOperation = 'source-in';
+      fx.fillStyle = '#fff';
+      fx.fillRect(0, 0, fc.width, fc.height);
+      fsrc = sourceFrom(fc);
+    }
     for (const [n, fr] of Object.entries(a.frames)) {
       out.tex[n] = new Texture({ source: src, frame: fr });
-      out.flash[n] = new Texture({ source: fsrc, frame: fr });
+      out.flash[n] = fsrc ? new Texture({ source: fsrc, frame: fr }) : out.tex[n];
     }
   }
   return out;
@@ -142,6 +160,7 @@ export async function loadIcons(base: string, names: string[]): Promise<Record<s
     const im = imgs[i];
     if (im) a.add(n, im, im.width, im.height);
   });
+  a.finalize();
   const src = sourceFrom(a.canvas);
   for (const [n, fr] of Object.entries(a.frames)) out[n] = new Texture({ source: src, frame: fr });
   return out;
