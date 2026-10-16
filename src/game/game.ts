@@ -102,6 +102,7 @@ export class Game {
   inferno = false;
   daily = false;
   runWon = false;
+  lightningReadyAt = 0;
   seenTypes = new Set<string>();
   relics = new Set<string>();
   wardT = 0;
@@ -277,6 +278,7 @@ export class Game {
     this.inferno = !!meta.inferno;
     this.daily = !!(meta as any).daily;
     this.runWon = false;
+    this.lightningReadyAt = 0;
     this.seenTypes.clear();
     this.relics.clear();
     this.wardT = 0;
@@ -626,7 +628,7 @@ export class Game {
     e.maxHp = e.hp = Math.max(1, def.hp * hpScale * (e.elite ? 10 : 1) * (e.small ? 0.35 : 1) * (opts.hpMul || 1) * (this.inferno && !opts.boss ? 1.6 : 1));
     e.r = def.r * sizeMul;
     e.speed = def.speed * (1 + (this.stage - 1) * 0.06) * (e.elite ? 0.85 : 1);
-    e.dmg = def.dmg * st.dmgMul * (e.elite ? 1.5 : 1) * (this.inferno ? 1.4 : 1);
+    e.dmg = def.dmg * st.dmgMul * (e.elite ? 1.5 : 1) * (e.small ? 0.6 : 1) * (this.inferno ? 1.4 : 1);
     e.xp = def.xp * (e.elite ? 20 : 1) * (e.small ? 0.5 : 1) * (1 + (this.stage - 1) * 0.5);
     e.state = 0; e.t = 0; e.t2 = 0; e.ang = this.rng.angle(); e.tx = 0; e.ty = 0;
     e.flash = 0; e.burnT = 0; e.burnDps = 0; e.burnTick = 0; e.slowT = 0; e.slowF = 1; e.freezeT = 0;

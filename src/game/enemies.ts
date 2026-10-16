@@ -175,10 +175,11 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
       e.x += ((nx * dir + -ny * strafe * 0.5) * e.speed * sl + e.vx) * dt;
       e.y += ((ny * dir + nx * strafe * 0.5) * e.speed * sl + e.vy) * dt;
       e.face = nx > 0 ? 1 : -1;
-      if (e.t > 3.6 && d < 480) {
+      if (e.t > 3.6 && d < 480 && g.time >= g.lightningReadyAt) {
         e.t = 0;
+        g.lightningReadyAt = g.time + 1.1; // clouds share one strike budget so a crowd can't chain-stun you
         const tx = p.x + p.vx * 0.35, ty = p.y + p.vy * 0.35;
-        const dmg = 11 * g.stageDef.dmgMul;
+        const dmg = 9 * g.stageDef.dmgMul;
         g.tele({
           kind: 'circle', x: tx, y: ty, r: 42, dur: 1.05, color: 0xffd23a,
           onDone: () => {

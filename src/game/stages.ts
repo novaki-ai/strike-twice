@@ -208,7 +208,14 @@ export class StageDirector {
       if (alive < w.max * 0.25) this.acc += rate * dt;
       while (this.acc >= 1) {
         this.acc -= 1;
-        const type = g.rng.weighted(Object.keys(w.mix), (k) => w.mix[k]);
+        let type = g.rng.weighted(Object.keys(w.mix), (k) => w.mix[k]);
+        // support/ranged types are capped so they can't pile up
+        const cap: Record<string, number> = { cloud: 5, wateringcan: 4, wisp: 7 };
+        if (cap[type] !== undefined) {
+          let n = 0;
+          for (const o of g.enemies) if (o.alive && o.type === type) n++;
+          if (n >= cap[type]) type = Object.keys(w.mix)[0];
+        }
         const sp = g.spawnPoint();
         // small clusters for swarmers
         const cluster = type === 'moth' || type === 'raindrop' || type === 'snufflet' ? 2 : 1;
