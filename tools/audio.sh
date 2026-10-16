@@ -12,3 +12,7 @@ done
 du -sh public/assets/voice public/assets/music
 # boss1_b fades out over its last ~9 s; keep only the full-energy part (the engine crossfades loops)
 ffmpeg -y -v error -i assets-raw/music/boss1_b.mp3 -t 20.5 -af "loudnorm=I=-16:TP=-1.5:LRA=11" -ar 44100 -ac 2 -b:a 128k public/assets/music/boss1_b.mp3
+# trim tails that fade out, so loop crossfades stay at full energy
+ffmpeg -y -v error -i assets-raw/music/stage1_a.mp3 -t 28.8 -af "loudnorm=I=-16:TP=-1.5:LRA=11" -ar 44100 -ac 2 -b:a 128k public/assets/music/stage1_a.mp3
+ffmpeg -y -v error -i assets-raw/music/menu_b.mp3 -t 29.9 -af "loudnorm=I=-16:TP=-1.5:LRA=11" -ar 44100 -ac 2 -b:a 128k public/assets/music/menu_b.mp3
+ffmpeg -y -v error -i assets-raw/music/gameover.mp3 -t 27.6 -af "loudnorm=I=-16:TP=-1.5:LRA=11" -ar 44100 -ac 2 -b:a 128k public/assets/music/gameover.mp3
