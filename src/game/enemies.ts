@@ -43,11 +43,11 @@ export const ENEMIES: Record<string, EnemyDef> = {
   balloon: { name: 'Water Balloon', tex: 'e_balloon', hp: 14, speed: 100, dmg: 0, r: 15, size: 44, xp: 2, ai: 'kamikaze', anim: 'wobble', animSpeed: 9, desc: 'Rushes in and bursts with a big splash.' },
   wateringcan: { name: 'Watering Can', tex: 'e_wateringcan', hp: 46, speed: 46, dmg: 6, r: 18, size: 46, xp: 4, ai: 'healer', anim: 'walk', faceRight: true, desc: 'Sprinkles its friends back to health.' },
   // ---- Stage 3: The Snuffer's Spire
-  waxghost: { name: 'Wax Ghost', tex: 'e_waxghost', hp: 34, speed: 66, dmg: 10, r: 15, size: 56, xp: 3, ai: 'blink', anim: 'float', noFlip: true, desc: 'Vanishes, then reappears right beside you.' },
+  waxghost: { name: 'Wax Ghost', tex: 'e_waxghost', hp: 34, speed: 66, dmg: 8, r: 15, size: 56, xp: 3, ai: 'blink', anim: 'float', noFlip: true, desc: 'Vanishes, then reappears right beside you.' },
   snufflet: { name: 'Snufflet', tex: 'e_snufflet', hp: 26, speed: 120, dmg: 9, r: 12, size: 54, xp: 2, ai: 'orbit', anim: 'walk', animSpeed: 14, noFlip: true, desc: 'Circles its prey, then dives in to snuff it.' },
   wisp: { name: 'Frost Wisp', tex: 'e_wisp', hp: 30, speed: 62, dmg: 0, r: 14, size: 50, xp: 3, ai: 'shooter', anim: 'float', noFlip: true, light: 0x9fd8ff, desc: 'Hangs back and fires bursts of frost.' },
   knight: { name: 'Wax Knight', tex: 'e_knight', hp: 190, speed: 33, dmg: 16, r: 22, size: 74, xp: 10, ai: 'chase', anim: 'stomp', animSpeed: 4, kbRes: 0.15, shield: true, noFlip: true, desc: 'Its shield blocks hits from the front. Flank it!' },
-  wraith: { name: 'Smoke Wraith', tex: 'e_wraith', hp: 44, speed: 86, dmg: 12, r: 16, size: 60, xp: 4, ai: 'phase', anim: 'float', noFlip: true, desc: 'Turns to smoke and drifts through attacks.' },
+  wraith: { name: 'Smoke Wraith', tex: 'e_wraith', hp: 44, speed: 80, dmg: 10, r: 16, size: 60, xp: 4, ai: 'phase', anim: 'float', noFlip: true, desc: 'Turns to smoke and drifts through attacks.' },
   // ---- destructible props (drop goodies)
   lanternprop: { name: 'Lantern Stump', tex: 'p1_lantern', hp: 18, speed: 0, dmg: 0, r: 22, size: 70, xp: 0, ai: 'prop', prop: true, desc: '' },
   barrelprop: { name: 'Barrel', tex: 'p2_barrel', hp: 22, speed: 0, dmg: 0, r: 20, size: 58, xp: 0, ai: 'prop', prop: true, desc: '' },
@@ -246,7 +246,7 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
         e.intangible = e.t > 0.15;
         if (e.t > 0.3) {
           const a = g.rng.angle();
-          const r = g.rr(95, 130);
+          const r = g.rr(125, 165);
           e.x = e.px = p.x + Math.cos(a) * r;
           e.y = e.py = p.y + Math.sin(a) * r;
           if (g.arena) g.clampToArena(e, 30);
@@ -254,13 +254,14 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
           g.puff(e.x, e.y - 30, 0xf3ead8, 0.6, 0.6);
         }
       } else if (e.state === 2) { // fade in (telegraph), then lunge
-        e.alpha = Math.min(1, e.t / 0.45);
-        e.intangible = e.t < 0.2;
-        if (e.t > 0.5) { e.state = 3; e.t = 0; e.tx = (p.x - e.x); e.ty = (p.y - e.y); const d = Math.hypot(e.tx, e.ty) || 1; e.tx /= d; e.ty /= d; }
+        e.alpha = Math.min(1, e.t / 0.5);
+        e.intangible = e.t < 0.25;
+        if (e.t > 0.65) { e.state = 3; e.t = 0; e.tx = (p.x - e.x); e.ty = (p.y - e.y); const d = Math.hypot(e.tx, e.ty) || 1; e.tx /= d; e.ty /= d; }
+        else if (e.t > 0.3 && !e.t2) { e.t2 = 1; const a = Math.atan2(p.y - e.y, p.x - e.x); g.tele({ kind: 'line', subtle: true, x: e.x, y: e.y - 6, ang: a, len: 100, w: 24, dur: 0.35, color: 0xf3ead8 }); }
       } else {
         e.x += (e.tx * 250 + e.vx) * dt;
         e.y += (e.ty * 250 + e.vy) * dt;
-        if (e.t > 0.4) { e.state = 0; e.t = 0; }
+        if (e.t > 0.4) { e.state = 0; e.t = 0; e.t2 = 0; }
       }
       break;
     }
