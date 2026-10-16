@@ -187,7 +187,9 @@ and a fast-forward bot (`bot.mjs`) that plays complete runs to tune pacing and d
 menus, a 250-enemy run, stage/boss skips and the full victory flow in **Firefox** and **WebKit** as well (zero console
 errors in both; WebKit also passed the full touch screen flow with iPhone emulation). Headless Firefox on this machine
 has no WebGL, so it exercised PixiJS's Canvas2D fallback, which the game now supports cleanly (it skips the GPU light
-map there). Firefox and WebKit were installed into a gitignored folder inside the project for these tests. An independent code review pass found 15 issues
+map there). Firefox and WebKit were installed into a gitignored folder inside the project for these tests. (During development,
+throwaway screenshots and logs went to my session's scratch directory as my environment instructs; the test scripts
+now write to the gitignored `test-results/` folder inside the project. Nothing else outside the folder was touched.) An independent code review pass found 15 issues
 (an enemy-pool double-listing bug, determinism leaks, timers outliving a run, and more), all fixed. A second review of
 the later features found 7 more (for example a QA `skipTo` during the stage-fade could start a non-existent stage 4,
 and a dying boss could still hurt you), all fixed and re-verified with its reproduction scripts. A third review of the newest features found 4 more (an
