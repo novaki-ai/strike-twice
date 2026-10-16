@@ -94,7 +94,7 @@ is hidden, restart from the pause menu.
 
 **Menus:** title, main menu, starting-weapon select (plus Inferno Mode and Daily Strike), Workshop, settings
 (music / sound / voice volume, screen shake, screen flashes, damage numbers, subtitles, vibration, FPS counter,
-fullscreen, reset progress), How to Play (basics and controls, evolution table, relics, illustrated bestiary),
+fullscreen, reset progress), How to Play (basics and controls, an arsenal of every weapon, evolution and trinket, relics, illustrated bestiary),
 records & credits, pause (build, stats, restart, quit), level-up, chest, stage clear with relic choice, game over and
 victory screens with run stats and per-weapon damage. Every menu works with mouse, touch, keyboard and gamepad.
 

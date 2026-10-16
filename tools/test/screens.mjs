@@ -28,7 +28,7 @@ await page.locator('.shop-item').first().click(); await page.locator('.shop-item
 await clickText('Back');
 await clickText('Settings'); await shot('settings'); await clickText('Back');
 await clickText('How to Play'); await shot('howto');
-await clickText('Evolutions'); await shot('howto_evo');
+await clickText('Arsenal'); await shot('howto_evo');
 await clickText('Bestiary'); await shot('howto_best');
 await clickText('Back');
 await clickText('Records'); await shot('records'); await clickText('Back');

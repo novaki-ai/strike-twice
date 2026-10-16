@@ -519,7 +519,7 @@ class App {
       const b = button(label, () => this.renderHowto(id), 'small' + (tab === id ? ' active' : ''));
       tabs.appendChild(b);
     };
-    mk('basics', 'Basics'); mk('evos', 'Evolutions'); mk('relics', 'Relics'); mk('bestiary', 'Bestiary');
+    mk('basics', 'Basics'); mk('evos', 'Arsenal'); mk('relics', 'Relics'); mk('bestiary', 'Bestiary');
     let body: HTMLElement;
     if (tab === 'basics') {
       body = el('div', { class: 'howto-cols', html: `
@@ -537,14 +537,24 @@ class App {
         <h3>Pickups</h3>
         <p><img src="${icon('marshmallow')}" style="height:22px;vertical-align:middle"> heals &nbsp; <img src="${icon('magnet')}" style="height:22px;vertical-align:middle"> pulls all embers &nbsp; <img src="${icon('firecracker')}" style="height:22px;vertical-align:middle"> clears the screen &nbsp; <img src="${icon('watch')}" style="height:22px;vertical-align:middle"> freezes time &nbsp; <img src="${icon('goldmatch')}" style="height:22px;vertical-align:middle"> golden match: invincible and ablaze &nbsp; <img src="${icon('chest')}" style="height:22px;vertical-align:middle"> treasure. Smash lanterns, barrels and candles to find them.</p></div>` });
     } else if (tab === 'evos') {
-      body = el('div', { class: 'evo-table' });
+      body = el('div', {});
+      const wl = el('div', { class: 'arsenal' });
       for (const w of Object.values(WEAPONS)) {
         const pas = PASSIVES[w.evo.passive];
-        body.appendChild(el('div', { class: 'evo-row' },
-          el('img', { src: icon(w.icon), alt: '' }), el('span', { class: 'plus' }, '+'), el('img', { src: icon(pas.icon), alt: '' }),
-          el('div', {}, el('div', { style: { fontFamily: 'var(--font-h)', fontSize: '15px' } }, w.evo.name), el('div', {}, `${w.name} (Lv 8) + ${pas.name}`)),
-        ));
+        const locked = w.locked && !(this.save.shop['bp_' + w.id] > 0);
+        wl.appendChild(el('div', { class: 'ars-row' },
+          el('img', { src: icon(w.icon), alt: '' }),
+          el('div', { class: 'ars-body' },
+            el('div', { class: 'ars-nm' }, w.name, locked ? el('span', { class: 'ars-lock' }, ' (blueprint in the Workshop)') : null),
+            el('div', {}, w.desc),
+            el('div', { class: 'ars-evo' }, el('img', { src: icon(pas.icon), alt: '' }), `Lv 8 + ${pas.name} = `, el('b', {}, w.evo.name), ': ' + w.evo.desc))));
       }
+      const pl = el('div', { class: 'evo-table' });
+      for (const p of Object.values(PASSIVES)) {
+        pl.appendChild(el('div', { class: 'evo-row' }, el('img', { src: icon(p.icon), alt: '' }),
+          el('div', {}, el('div', { style: { fontFamily: 'var(--font-h)', fontSize: '15px' } }, p.name), el('div', {}, `${p.desc} per level (max ${p.max})`))));
+      }
+      body.append(el('h3', { class: 'ars-h' }, 'Weapons & evolutions'), wl, el('h3', { class: 'ars-h' }, 'Trinkets'), pl);
     } else if (tab === 'relics') {
       body = el('div', {});
       body.appendChild(el('p', { style: { fontWeight: '600', textAlign: 'center', marginTop: '0' } }, 'After each boss you choose one of three relics. Each can only be found once per run.'));
