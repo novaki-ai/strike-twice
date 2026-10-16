@@ -270,8 +270,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
         const n = (w.evo ? 4 : L(w, [2, 2, 3, 3, 4, 4, 5, 5])) + p.stats.amount;
         const base = Math.atan2(p.moving ? p.dirY : 0, p.moving ? p.dirX : p.face);
         const spd = 580 * p.stats.projSpeed;
-        const dmg = L(w, [9, 9, 9, 11, 11, 13, 13, 16]) * (w.evo ? 1.3 : 1);
-        const pierce = L(w, [2, 3, 3, 3, 4, 4, 5, 5]) + p.stats.pierce + (w.evo ? 3 : 0);
+        const dmg = L(w, [12, 12, 12, 15, 15, 18, 18, 22]) * (w.evo ? 1.3 : 1);
+        const pierce = L(w, [3, 4, 4, 4, 5, 5, 6, 6]) + p.stats.pierce + (w.evo ? 3 : 0);
         for (let i = 0; i < n; i++) {
           const a = base + (i - (n - 1) / 2) * 0.11 + g.rr(-0.03, 0.03);
           g.spawnProj({
@@ -384,7 +384,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
       }
       const z = w.data.zone as Zone;
       z.r = L(w, [62, 68, 68, 75, 75, 75, 83, 83]) * p.stats.area * (w.evo ? 1.55 : 1);
-      z.dmg = L(w, [5, 5, 7, 7, 9, 9, 9, 12]) * (w.evo ? 1.7 : 1);
+      z.dmg = L(w, [7, 7, 9, 9, 11, 11, 11, 15]) * (w.evo ? 1.7 : 1);
       z.tick = (w.level >= 6 ? 0.4 : 0.5) * Math.max(0.6, p.stats.cooldown);
       z.slow = w.evo ? 0.35 : 0;
       z.knock = 0.35;
@@ -429,8 +429,8 @@ export const WEAPONS: Record<string, WeaponDef> = {
     update(g, w, dt) {
       const p = g.player;
       cooldown(g, w, dt, L(w, [1.6, 1.6, 1.5, 1.5, 1.45, 1.45, 1.4, 1.25]), () => {
-        const chains = L(w, [3, 4, 4, 5, 5, 6, 6, 8]) + p.stats.amount;
-        const dmg = L(w, [13, 13, 16, 16, 19, 19, 22, 22]) * (w.evo ? 1.25 : 1);
+        const chains = L(w, [4, 5, 5, 6, 6, 7, 7, 9]) + p.stats.amount;
+        const dmg = L(w, [16, 16, 20, 20, 24, 24, 28, 28]) * (w.evo ? 1.25 : 1);
         const hit = new Set<number>();
         let cx = p.x, cy = p.y - 34;
         let first = g.nearestEnemy(p.x, p.y, 320);
@@ -574,7 +574,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
         const ev = w.evo ? 1 : 0;
         const range = L(w, [110, 110, 125, 125, 125, 140, 140, 150]) * p.stats.area * (ev ? 1.5 : 1);
         const cone = L(w, [0.45, 0.45, 0.45, 0.55, 0.55, 0.55, 0.55, 0.65]) * (ev ? 1.3 : 1);
-        const dmg = L(w, [6, 8, 8, 8, 10, 10, 10, 13]) * (ev ? 1.3 : 1);
+        const dmg = L(w, [8, 10, 10, 10, 12, 12, 12, 16]) * (ev ? 1.3 : 1);
         const aim = aimAt(g, range + 80);
         const a = Math.atan2(aim.y, aim.x);
         w.data.a = w.data.a === undefined ? a : w.data.a + Math.atan2(Math.sin(a - w.data.a), Math.cos(a - w.data.a)) * Math.min(1, dt * 8);
@@ -685,7 +685,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
       const w = z.w!;
       z.data.fireT -= dt;
       if (z.data.fireT > 0) return;
-      z.data.fireT = L(w, [0.5, 0.5, 0.42, 0.42, 0.42, 0.36, 0.36, 0.32]) * g.player.stats.cooldown;
+      z.data.fireT = L(w, [0.45, 0.45, 0.38, 0.38, 0.38, 0.32, 0.32, 0.28]) * g.player.stats.cooldown;
       const t = g.nearestEnemy(z.x, z.y, 300);
       if (!t) return;
       const a = Math.atan2(t.y - 20 - (z.y - 44), t.x - z.x);
@@ -693,7 +693,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
       for (let i = 0; i < shots; i++) {
         const aa = a + (i - (shots - 1) / 2) * 0.2;
         g.spawnProj({
-          tex: 'ember', w, x: z.x, y: z.y - 44, vx: Math.cos(aa) * 420, vy: Math.sin(aa) * 420, r: 7, dmg: L(w, [10, 12, 12, 12, 12, 15, 15, 18]),
+          tex: 'ember', w, x: z.x, y: z.y - 44, vx: Math.cos(aa) * 420, vy: Math.sin(aa) * 420, r: 7, dmg: L(w, [13, 16, 16, 16, 16, 20, 20, 24]),
           pierce: 1, life: 1.2, scale: 0.26, light: 24, kind: 3,
         });
       }
