@@ -37,13 +37,13 @@ export const BOSSES: Record<string, BossDef> = {
     phases: [0.5], desc: 'A vain moth duchess who hoards every light she can find.',
   },
   baron: {
-    name: 'Baron von Drizzle', title: 'Lord of the Endless Rain', tex: 'b_baron', atkTex: 'b_baron_atk', koTex: 'b_baron_ko', posed: ['lightning', 'umbrella', 'downpour', 'rain', 'splash'], hp: 7200, size: 180, r: 58, speed: 60, dmg: 14, xp: 0,
+    name: 'Baron von Drizzle', title: 'Lord of the Endless Rain', tex: 'b_baron', atkTex: 'b_baron_atk', koTex: 'b_baron_ko', posed: ['lightning', 'umbrella', 'downpour', 'rain', 'splash'], hp: 7800, size: 180, r: 58, speed: 60, dmg: 14, xp: 0,
     anim: 'float', noFlip: true, light: 0xbfe0ff, shadowW: 170, anchorY: 0.8,
     attacks: [['downpour', 'lightning', 'umbrella', 'summon'], ['downpour', 'lightning', 'umbrella', 'rain', 'splash', 'summon', 'splash']],
     phases: [0.5], desc: 'A pompous storm cloud who rains on every parade.',
   },
   snuffer: {
-    name: 'The Snuffer', title: 'Extinguisher of All Flames', tex: 'b_snuffer', atkTex: 'b_snuffer_atk', koTex: 'b_snuffer_ko', posed: ['slam', 'spokes', 'sweep', 'lightsout', 'collapse'], hp: 15000, size: 215, r: 50, speed: 55, dmg: 18, xp: 0,
+    name: 'The Snuffer', title: 'Extinguisher of All Flames', tex: 'b_snuffer', atkTex: 'b_snuffer_atk', koTex: 'b_snuffer_ko', posed: ['slam', 'spokes', 'sweep', 'lightsout', 'collapse'], hp: 16500, size: 215, r: 50, speed: 55, dmg: 18, xp: 0,
     anim: 'float', noFlip: true, light: 0xd0d8ff, shadowW: 150, anchorY: 0.9,
     attacks: [['slam', 'spokes', 'sweep', 'snuffers'], ['slam', 'spokes', 'lightsout', 'sweep', 'slam'], ['slam', 'spokes', 'collapse', 'sweep', 'lightsout', 'slam', 'collapse']],
     phases: [0.6, 0.25], desc: 'The cold hand that put out every light in Tinderbox.',
@@ -56,7 +56,7 @@ export function startBossFight(g: Game, id: string) {
   g.arena = { x: p.x, y: p.y - 60, r: 580 };
   const bx = g.arena.x, by = g.arena.y - 240;
   const e = g.spawnEnemy(id, bx, by - 500, {
-    boss: { id, phase: 1, attack: null, at: 0, cdT: 2.6, invuln: true, dying: false, deathT: 0, rot: 0, entry: 0, data: {}, last: '', tx: bx, ty: by, count: 0 },
+    boss: { id, phase: 1, attack: null, at: 0, cdT: 2.6, invuln: true, dying: false, deathT: 0, rot: 0, entry: 0, phaseT: 0, data: {}, last: '', tx: bx, ty: by, count: 0 },
   });
   if (!e) return;
   e.maxHp = e.hp = def.hp * (g.inferno ? 1.7 : 1);
@@ -102,10 +102,12 @@ export function updateBoss(g: Game, e: Enemy, dt: number) {
   const nextTh = def.phases[B.phase - 1];
   if (nextTh !== undefined && frac <= nextTh) {
     B.phase++;
-    B.cdT = 1.4;
+    B.cdT = 2.0;
     B.attack = null;
     B.data = {};
-    B.invuln = false;
+    // phase change: a short invulnerable transformation so every phase gets its moment
+    B.invuln = true;
+    B.phaseT = 1.6;
     B.rot = 0;
     e.intangible = false;
     e.alpha = 1;
@@ -117,6 +119,17 @@ export function updateBoss(g: Game, e: Enemy, dt: number) {
     g.shake(10, 0.5);
     g.clearBullets(true);
     if (B.id === 'baron' && B.phase === 2) g.darkTarget += 0.15;
+  }
+  if (B.phaseT > 0) {
+    B.phaseT -= dt;
+    e.flash = 0;
+    if (g.frameCount % 8 === 0) {
+      g.particle(e.x, e.y - def.size * 0.45, g.fx.softring, { add: true, life: 0.5, s0: 0.4, s1: 1.6, a0: 0.8, tint: def.light ?? 0xffe0a0 });
+      g.spark(e.x + vrange(-50, 50), e.y - vrange(30, 160), def.light ?? 0xffe0a0, 2, 120);
+    }
+    e.boss.rot = Math.sin(B.phaseT * 30) * 0.05;
+    if (B.phaseT <= 0) { B.invuln = false; e.boss.rot = 0; }
+    return;
   }
   // movement
   if (!B.attack || !B.data.lockMove) {

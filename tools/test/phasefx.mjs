@@ -1,0 +1,18 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+await page.evaluate(() => { window.NOVAKI_QA.skipTo(2, 'boss'); window.NOVAKI_QA.setInvincible(true); window.__novaki.clearBanners(); });
+await page.waitForTimeout(3000);
+await page.evaluate(() => { const g = window.__novaki.game; const b = g.boss; g.player.x = g.player.px = b.x + 220; g.player.y = g.player.py = b.y + 40; b.hp = b.maxHp * 0.49; });
+await page.waitForTimeout(500);
+const st = await page.evaluate(() => { const B = window.__novaki.game.boss.boss; return { phase: B.phase, invuln: B.invuln, phaseT: B.phaseT.toFixed(2) }; });
+console.log(JSON.stringify(st));
+await page.screenshot({ path: process.env.OUT + '/phasefx.png' });
+await page.waitForTimeout(1800);
+console.log(JSON.stringify(await page.evaluate(() => { const B = window.__novaki.game.boss.boss; return { phase: B.phase, invuln: B.invuln, attack: B.attack }; })));
+console.log('ERRORS', errors.join('\n'));
+await browser.close();

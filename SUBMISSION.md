@@ -52,6 +52,9 @@ Your build carries over between stages. Beating the third boss plays the ending 
 | 2. Drizzleport | rainy harbor at night, noir big band | Raindrop, Puddle Slime, Bullfrog, Storm Cloud, Water Balloon, Watering Can | **Baron von Drizzle** (downpour circles, lightning lines, umbrella bullet rings, summons; storm phase adds slanted rain, curving rings and staggered puddle bursts) |
 | 3. The Snuffer's Spire | dark candle castle, danse-macabre swing | Wax Ghost, Snufflet, Frost Wisp, Wax Knight, Smoke Wraith (+ returning foes) | **The Snuffer** (shadow-tracking slam with shockwave, rotating spokes, sweeping walls with gaps, "lights out" darkness + homing smoke, summons, and in the final phase a ring of dark closing in with one gap; 3 phases with voiced phase line and music change) |
 
+Each boss phase change is a short invulnerable transformation (the screen's bullets are cleared, an aura pulses)
+before the new attack set begins.
+
 **Enemies (16 types, all with distinct behaviour, each with a two-frame walk / flap / leap animation):** chaser, sine-weaving flier, spore-ring shooter, telegraphed
 charger, knockback-resistant tank, fast chaser, splitter (splits in two), hopper, artillery cloud (telegraphed
 lightning), kamikaze (telegraphed burst), healer (heals allies), blinker (vanishes and reappears beside you),
