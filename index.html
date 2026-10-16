@@ -9,8 +9,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>Novaki: Strike Twice</title>
   <script>
-    // assets use relative URLs: if the folder was opened without its trailing slash, add it
-    if (!/\/$|\.[a-z0-9]+$/i.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);
+    // assets use relative URLs: if the game folder was opened without its trailing slash, add it (once per tab,
+    // so a host that strips slashes can't cause a reload loop)
+    (function () {
+      try {
+        if (/\/$|\.html?$/i.test(location.pathname)) { sessionStorage.removeItem('novaki-slash'); return; }
+        if (sessionStorage.getItem('novaki-slash')) return;
+        sessionStorage.setItem('novaki-slash', '1');
+        var u = new URL(location.href);
+        u.pathname += '/';
+        location.replace(u.href);
+      } catch (e) { /* storage or URL unavailable: leave the page as is */ }
+    })();
   </script>
   <link rel="icon" type="image/png" href="./assets/img/favicon.png" />
   <link rel="apple-touch-icon" href="./assets/img/apple-touch-icon.png" />

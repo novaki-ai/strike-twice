@@ -196,7 +196,11 @@ and a dying boss could still hurt you), all fixed and re-verified with its repro
 achievement that could never be earned, the automatic Reduced-effects fallback not showing in Settings, QA helpers not
 marking runs as assisted, a Flare-Up wasted during a boss's death), and its follow-up test exposed a damage-number
 crash on hits above 99,999; all fixed and verified (`review3.mjs`). As a safety net, an exception in a frame is
-logged once instead of stopping PixiJS's ticker.
+logged once instead of stopping PixiJS's ticker. A fourth review of the final additions found 3 small issues (notices
+raised behind an open menu were lost, two URL forms broke the trailing-slash redirect, the new slide-whistle sound
+leaked into non-level-up cues), all fixed and verified (`review4.mjs`). Finally, `realtime.mjs` played a complete run
+at normal speed driven only by keyboard events, from the title screen through all three stages to the final boss,
+at 60 FPS with zero console errors.
 
 ## What I would improve with more time
 
@@ -214,4 +218,6 @@ logged once instead of stopping PixiJS's ticker.
   run is a real challenge but winnable. Workshop upgrades, relics and evolutions make later runs much stronger. Real
   players may find it easier or harder than intended.
 - The `state().screen` value is `transition` for about 0.4 s while the screen fades between stages.
+- If the game folder is opened without its trailing slash (e.g. `/games/novaki`), the page adds the slash itself and
+  reloads; before it does, the browser logs two harmless 404s for assets requested from the wrong folder.
 - Each stage plays a playlist of four 30-second clips (bosses two), crossfaded; some repetition is still audible.

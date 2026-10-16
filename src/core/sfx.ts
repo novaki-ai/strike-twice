@@ -82,6 +82,20 @@ export const SFX: Record<string, Gen> = {
       return (sq(ph) * 0.15 + Math.sin(ph) * 0.3) * env(t < 0.07 ? t : t - 0.07, 0.002, t < 0.07 ? 0.07 : 0.22) * 0.5;
     });
   },
+  chime: (sr) => {
+    const notes = [523, 659, 784, 1047, 1319];
+    return make(0.9, sr, (t) => {
+      let v = 0;
+      for (let k = 0; k < notes.length; k++) {
+        const st = k * 0.075;
+        if (t >= st) {
+          const tt = t - st;
+          v += (Math.sin(TAU * notes[k] * tt) * 0.6 + tri(TAU * notes[k] * 2 * tt) * 0.15) * Math.exp(-tt * 4.5);
+        }
+      }
+      return v * 0.22;
+    });
+  },
   levelup: (sr) => {
     // cartoon slide whistle glide up, then a bright chime
     const notes = [523, 659, 784, 1047, 1319];

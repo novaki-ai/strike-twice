@@ -621,7 +621,7 @@ export class Game {
     if (this.flare >= 1 || this.flaring) return; // the flare's own kills don't refill it
     this.flare = Math.min(1, this.flare + v);
     if (this.flare >= 1) {
-      audio.sfx('levelup', 0.35, 1.6);
+      audio.sfx('chime', 0.35, 1.6);
       this.hooks.flareReady();
     }
   }
@@ -1352,7 +1352,7 @@ export class Game {
         break;
       case 'magnet':
         this.magnetAll();
-        audio.sfx('levelup', 0.4, 1.4);
+        audio.sfx('chime', 0.4, 1.4);
         this.hooks.toast('Static charge! All embers attracted', 'info');
         break;
       case 'bomb': {
@@ -1369,7 +1369,7 @@ export class Game {
       }
       case 'freeze':
         this.freezeT = 6;
-        audio.sfx('levelup', 0.5, 0.6);
+        audio.sfx('chime', 0.5, 0.6);
         this.hooks.toast('Pocket watch! Enemies frozen in time', 'info');
         break;
       case 'goldmatch':

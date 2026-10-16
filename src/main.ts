@@ -281,7 +281,7 @@ export class App {
       case 'howto': this.renderHowto(); break;
       case 'records': this.renderRecords(); break;
       case 'paused': this.renderPause(); break;
-      case 'playing': this.nav.setRoot(null); break;
+      case 'playing': this.nav.setRoot(null); this.flushNotices(); break;
       default: break;
     }
     void prev;
@@ -839,6 +839,7 @@ export class App {
     this.hintsShown = 0;
     this.flareHints = 0;
     this.evoReadyAnnounced.clear();
+    this.noticeQueue.length = 0;
     this.bubble.reset();
     this.acc = 0;
     this.game.startStage(1);
@@ -1018,7 +1019,7 @@ export class App {
       if (w.evo || w.level < 8 || this.evoReadyAnnounced.has(w.id)) continue;
       if (!p.passives.some((q) => q.id === def.evo.passive)) continue;
       this.evoReadyAnnounced.add(w.id);
-      this.toast(`${def.name} is ready to evolve! Look for it on a level-up or in a chest.`, 'gold');
+      this.notice(`${def.name} is ready to evolve! Look for it on a level-up or in a chest.`, 'gold');
     }
   }
 
@@ -1171,7 +1172,7 @@ export class App {
     audio.sfx('chest', 0.8);
     // confirm after the next chapter's title card has faded, so the two don't overlap
     const rid = this.runId;
-    setTimeout(() => { if (this.runId === rid && this.screen === 'playing') this.toast(`Relic gained: ${r.name}`, 'gold'); }, 4800);
+    setTimeout(() => { if (this.runId === rid) this.notice(`Relic gained: ${r.name}`, 'gold'); }, 4800);
     this.relicChoices = [];
     this.nextStage();
     return r.id;
@@ -1372,6 +1373,19 @@ export class App {
         this.addBanner(b, 3400);
       },
     };
+  }
+
+  /** messages that should be read during play: queued while a menu / overlay is open, shown on return */
+  private noticeQueue: { text: string; kind: string }[] = [];
+  notice(text: string, kind = 'info') {
+    if (this.screen === 'playing' && this.game.running) this.toast(text, kind);
+    else this.noticeQueue.push({ text, kind });
+  }
+  private flushNotices() {
+    if (!this.noticeQueue.length) return;
+    const q = this.noticeQueue.splice(0);
+    const rid = this.runId;
+    q.forEach((n, i) => setTimeout(() => { if (this.runId === rid && this.screen === 'playing') this.toast(n.text, n.kind); }, 350 + i * 700));
   }
 
   toast(text: string, kind = 'info') {

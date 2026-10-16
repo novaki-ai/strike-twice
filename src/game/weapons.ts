@@ -245,7 +245,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
           knock: 0.6, burn: w.evo ? 8 : 0, data: { glowTint: w.evo ? 0xff7020 : 0xe8ff6a },
         });
       }
-      audio.sfx('levelup', 0.15, 2.2);
+      audio.sfx('chime', 0.15, 2.2);
     },
     projUpdate(g, p, dt) {
       const pl = g.player;
