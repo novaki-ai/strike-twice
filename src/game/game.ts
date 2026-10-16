@@ -538,6 +538,13 @@ export class Game {
       p.vx = p.dashX * speed * 3.6;
       p.vy = p.dashY * speed * 3.6;
       if (this.frameCount % 2 === 0) this.puff(p.x, p.y - 20, 0xbfb6a6, 0.35, 0.6);
+      // cartoon afterimage: a warm silhouette of Novaki left behind
+      const ghostTex = this.T.flash.novaki_torso;
+      if (ghostTex && this.frameCount % 3 === 0) {
+        const sc = (64 * 1.25) / ghostTex.height;
+        const gp = this.particle(p.x, p.y - 58, ghostTex, { life: 0.24, s0: sc, s1: sc * 0.9, a0: 0.32, tint: 0xffc070, layer: 0 });
+        if (gp) { gp.aspect = p.face; gp.rot = 0.32 * p.face; }
+      }
     } else {
       // slight acceleration smoothing
       const tx = ix * speed, ty = iy * speed;
