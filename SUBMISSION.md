@@ -63,7 +63,8 @@ hurts bosses more). A countdown auto-picks if you wait, so unattended runs never
 *Novaki's Workshop* on 13 permanent upgrades and 5 weapon blueprints that add new weapons to the pool. Nine starting
 weapons unlock through achievements (beat bosses, reach levels, total kills, survive 10 minutes, win). Winning unlocks
 **Inferno Mode** (tougher enemies and bosses, +50% coins). **Daily Strike**: a run whose seed is the same for everyone
-on a given date (your Workshop upgrades still apply), with your best result of the day saved. Records screen with lifetime stats, an illustrated
+on a given date (your Workshop upgrades and screen size still shape how it plays out), with your best result of the day
+saved. Records screen with lifetime stats, an illustrated
 bestiary that fills in as you meet each enemy, and credits.
 
 **Story & voice:** a voiced, illustrated intro (4 panels) and ending (3 panels) with subtitles, a voiced narrator
@@ -158,7 +159,10 @@ portrait/landscape with touch, a simulated gamepad, a QA-interface spec test (`q
 evolution, high-DPI sizing, a 1080p stress test, CPU-throttled runs, a 4-minute real-time soak (60 FPS minimum, stable
 heap), a determinism check, chaos tests (thousands of random inputs and QA calls on desktop and mobile, zero errors),
 and a fast-forward bot (`bot.mjs`) that plays complete runs to tune pacing and difficulty. An independent code review pass found 15 issues
-(an enemy-pool double-listing bug, determinism leaks, timers outliving a run, and more), all fixed.
+(an enemy-pool double-listing bug, determinism leaks, timers outliving a run, and more), all fixed. A second review of
+the later features found 7 more (for example a QA `skipTo` during the stage-fade could start a non-existent stage 4,
+and a dying boss could still hurt you), all fixed and re-verified with its reproduction scripts. As a safety net, an
+exception in a frame is logged once instead of stopping PixiJS's ticker.
 
 ## What I would improve with more time
 

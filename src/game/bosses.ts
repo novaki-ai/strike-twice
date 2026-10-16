@@ -575,6 +575,11 @@ const ATTACKS: Record<string, AttackFn> = {
 function bossDeath(g: Game, e: Enemy, dt: number) {
   const B = e.boss;
   if (B.deathT === 0) {
+    // whatever the boss was doing (mid-slam, faded, airborne), it falls where everyone can see it
+    e.alpha = 1;
+    e.hop = 0;
+    e.intangible = false;
+    B.rot = 0;
     g.clearBullets(true);
     g.teles.length = 0;
     g.extraDark = 0;

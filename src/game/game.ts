@@ -210,10 +210,13 @@ export class Game {
   }
 
   resize(w: number, h: number) {
-    const area = (w * h) / (1150 * 680);
+    // gameplay view (spawn ring, on-screen checks) uses whole CSS pixels, so a change of render
+    // resolution (adaptive quality) can't shift it and change a seeded run
+    const vw = Math.round(w), vh = Math.round(h);
+    const area = (vw * vh) / (1150 * 680);
     this.zoom = Math.max(0.45, Math.min(3, Math.sqrt(area)));
-    this.viewW = w / this.zoom;
-    this.viewH = h / this.zoom;
+    this.viewW = vw / this.zoom;
+    this.viewH = vh / this.zoom;
     this.ground.width = w;
     this.ground.height = h;
     this.vignette.width = w;
@@ -344,6 +347,7 @@ export class Game {
   }
 
   startStage(n: number, quiet = false) {
+    n = Math.max(1, Math.min(STAGES.length, Math.floor(n) || 1));
     // clear field but keep player build
     this.retireAllEnemies();
     for (const b of this.bullets) if (b.alive) this.killBullet(b);
@@ -451,7 +455,7 @@ export class Game {
       if (!e.alive) continue;
       alive++;
       // contact damage
-      if (!e.prop && e.dmg > 0 && !e.intangible && e.spawnT <= 0 && e.contactCd <= 0 && !(frozen && !e.boss)) {
+      if (!e.prop && e.dmg > 0 && !e.intangible && e.spawnT <= 0 && e.contactCd <= 0 && !(frozen && !e.boss) && !(e.boss && e.boss.dying)) {
         const dx = e.x - p.x, dy = e.y - p.y;
         const rr = e.r + p.r;
         if (dx * dx + dy * dy < rr * rr) {
@@ -1680,7 +1684,7 @@ export class Game {
         else if (def.anim === 'fly') useB = Math.floor(ph0 * 1.6 / Math.PI) % 2 === 1;
         else if (def.anim === 'stomp') useB = Math.floor(ph0 * 0.5 / Math.PI) % 2 === 1;
         else useB = Math.floor(ph0 / Math.PI) % 2 === 1;
-        if (useB && this.T.tex[texName + '_b']) {
+        if (useB && this.T.tex[texName] && this.T.tex[texName + '_b']) {
           // keep B at A's world-units-per-pixel, corrected so both frames have the same visual mass
           const baseH = this.T.tex[texName].height;
           texName = texName + '_b';

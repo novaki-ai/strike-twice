@@ -89,12 +89,25 @@ class App {
   qaRng: RNG | null = null;
   runResult: any = null;
   runId = 0;
+  transitionToken = 0;
   deathTimer = 0;
   qaInvincible = false;
   perfUpdate = 0;
   perfRender = 0;
 
+  /** saves from before the bestiary tracked encounters: fill it from how far the player has been */
+  migrateSeen() {
+    const s = this.save;
+    if (s.seen.length || s.stats.bestStage <= 0) return;
+    for (const st of STAGES.slice(0, s.stats.bestStage)) {
+      for (const w of st.waves) for (const k of Object.keys(w.mix)) if (!s.seen.includes(k)) s.seen.push(k);
+    }
+    for (const b of Object.keys(s.stats.bosses)) if (!s.seen.includes(b)) s.seen.push(b);
+    writeSave(s);
+  }
+
   async boot() {
+    this.migrateSeen();
     this.buildLoading();
     const app = new Application();
     const touch = this.input.touchEnabled;
@@ -750,6 +763,7 @@ class App {
 
   /* ================================================================ run lifecycle */
   inferno = false;
+  dailyKey = '';
   startRun(opts: { seed?: number; weapon?: string; inferno?: boolean; daily?: boolean } = {}) {
     const seed = opts.seed ?? ((Math.random() * 0xffffffff) >>> 0);
     const sh = this.save.shop;
@@ -762,6 +776,8 @@ class App {
     } as any);
     this.runActive = true;
     this.runId++;
+    this.transitionToken++;
+    this.dailyKey = opts.daily ? todayKey() : '';
     if (this.deathTimer) { clearTimeout(this.deathTimer); this.deathTimer = 0; }
     this.runResult = null;
     this.pendingClear = null;
@@ -824,7 +840,9 @@ class App {
           const w = g.player.weapons[0]?.id || this.save.startWeapon;
           const daily = g.daily, inferno = g.inferno, seed = g.seed;
           this.endRun(false, true);
+          const key = this.dailyKey;
           this.startRun(daily ? { seed, weapon: 'ember', daily: true } : { weapon: w, inferno });
+          if (daily && key) this.dailyKey = key;
         }),
         quit,
       ),
@@ -1083,8 +1101,10 @@ class App {
     const g = this.game;
     this.screen = 'transition'; // simulation holds while the screen fades
     const rid = this.runId;
+    const tok = ++this.transitionToken;
     this.fade(() => {
-      if (this.runId !== rid || !this.runActive) return;
+      // a new run, a QA skipTo or anything else that took over the screen cancels this transition
+      if (this.runId !== rid || !this.runActive || tok !== this.transitionToken || this.screen !== 'transition') return;
       g.heal(g.player.stats.maxHp * 0.35);
       g.startStage(g.stage + 1);
       this.acc = 0;
@@ -1132,7 +1152,7 @@ class App {
     for (const b of g.stats.bossesKilled) st.bosses[b] = (st.bosses[b] || 0) + 1;
     for (const t of g.seenTypes) if (!this.save.seen.includes(t)) this.save.seen.push(t);
     if (g.daily && !quit) {
-      const dk = todayKey();
+      const dk = this.dailyKey || todayKey();
       const prev = this.save.daily && this.save.daily.date === dk ? this.save.daily : null;
       const better = !prev || (win && (!prev.won || g.time < prev.bestTime)) || (!prev.won && !win && (g.stats.stageReached > prev.bestStage || (g.stats.stageReached === prev.bestStage && g.time > prev.bestTime)));
       if (better) this.save.daily = { date: dk, bestTime: Math.floor(g.time), bestStage: g.stats.stageReached, won: win };
@@ -1178,7 +1198,7 @@ class App {
       el('h2', { class: 'result-title' }, win ? 'Tinderbox Is Lit!' : 'Snuffed Out!'),
       g.stats.assisted ? el('div', { style: { textAlign: 'center', fontSize: '13px', opacity: '0.7' } }, '(QA-assisted run: stage skips used, best times not recorded)') : null,
       g.inferno ? el('div', { style: { textAlign: 'center', fontFamily: 'var(--font-h)', color: '#c8361d' } }, 'INFERNO MODE') : null,
-      g.daily ? el('div', { style: { textAlign: 'center', fontFamily: 'var(--font-h)', color: '#a8461a' } }, 'DAILY STRIKE ' + todayKey()) : null,
+      g.daily ? el('div', { style: { textAlign: 'center', fontFamily: 'var(--font-h)', color: '#a8461a' } }, 'DAILY STRIKE ' + (this.dailyKey || todayKey())) : null,
       el('div', { style: { textAlign: 'center', fontStyle: 'italic', fontWeight: '600', marginBottom: '6px' } }, win ? 'Novaki relit every flame in the land. Not bad for a spent match.' : GAMEOVER_LINE.text),
       el('div', { class: 'scroll' }, grid, wt,
         r.newUnlocks.length ? el('div', { class: 'unlock-note' }, 'Unlocked: ' + r.newUnlocks.join(', ') + '!') : null),
@@ -1284,7 +1304,17 @@ class App {
   }
 
   /* ================================================================ main loop */
+  private tickErrors = 0;
   tick(dt: number) {
+    try {
+      this.tickInner(dt);
+    } catch (e) {
+      // Pixi's ticker stops for good if a frame throws; report it once and keep the game running
+      if (this.tickErrors++ === 0) console.error('[novaki] frame error', e);
+    }
+  }
+
+  tickInner(dt: number) {
     dt = Math.min(dt, 0.1);
     this.adaptResolution(dt);
     this.input.update(dt);
@@ -1481,8 +1511,13 @@ class App {
         const g = self.game;
         self.pendingClear = null;
         self.relicChoices = [];
+        self.transitionToken++;
         if (self.deathTimer) { clearTimeout(self.deathTimer); self.deathTimer = 0; }
         g.rig.reset();
+        g.runWon = false;
+        g.slowmoT = 0;
+        g.hitstop = 0;
+        g.freezeT = 0;
         self.cutsceneToken++;
         self.lineQueue.length = 0;
         // catch-up build so later stages are fair when jumping ahead
