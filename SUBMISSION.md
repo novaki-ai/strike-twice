@@ -126,7 +126,7 @@ resolution steps down automatically.
   choice, next stage, or the ending + victory screen after the third boss). For the first two bosses the dropped
   experience can open level-up screens first (answer them with `chooseUpgrade`); the stage-clear screen waits for
   them, then auto-picks a relic after 20 s if nobody chooses. The final boss drops no experience, so `killBoss()` on it
-  goes straight to the ending; `state().screen` becomes `victory` about 7 seconds later with no input needed.
+  goes straight to the ending; `state().screen` becomes `victory` about 8 seconds later with no input needed.
 
 ## Code layout
 

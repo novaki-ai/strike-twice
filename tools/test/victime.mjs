@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+await page.evaluate(() => { window.NOVAKI_QA.start({ seed: 5 }); window.NOVAKI_QA.skipTo(3, 'boss'); });
+await page.waitForTimeout(2500);
+const t0 = Date.now();
+await page.evaluate(() => window.NOVAKI_QA.killBoss());
+await page.waitForFunction(() => window.NOVAKI_QA.state().screen === 'victory', null, { timeout: 30000, polling: 100 });
+console.log('killBoss -> victory in', ((Date.now() - t0) / 1000).toFixed(1), 's');
+await browser.close();
