@@ -472,3 +472,6 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
 
 .toggle-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; }
 @media (max-width: 700px) { .toggle-grid { grid-template-columns: 1fr; } }
+
+/* gameplay banners step aside while a menu overlay (level-up, pause, chest...) is open */
+body.overlay-open .banner, body.overlay-open .bosscard { visibility: hidden; }
