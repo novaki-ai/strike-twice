@@ -10,6 +10,13 @@ const LINES: Record<string, string[]> = {
   elite: ['Next.', 'Big one. Whatever.'],
   chest: ['Ooh, a box.', 'Free stuff. Finally.'],
   flare: ['Strike two.', 'FWOOSH.', 'Feeling warm yet?', 'Told you. Stubborn.'],
+  stage1: ['Moths. Why is it always moths.'],
+  stage2: ['Wet. Great. My favorite.'],
+  stage3: ['Cold in here. Let\'s warm it up.'],
+  swarm: ['That\'s... a lot of wings.', 'Here they come.'],
+  gilded: ['Ooh. Shiny moth.', 'Come back here, you.'],
+  heal: ['Marshmallow. Nice.', 'Toasty.'],
+  flareReady: ['I could get used to this.'],
   idle: ['Still smoking.', 'Is it over yet?', 'Why is it always bugs.', 'Should\'ve stayed in bed.', 'My glasses are crooked again.', 'One match. Against all this.', 'Hmph.'],
 };
 
@@ -20,6 +27,7 @@ export class Bubble {
   private idleT = 75;
   private used = new Map<string, number>();
   private lowHpSaid = false;
+  private saidStage = new Set<number>();
 
   constructor(parent: HTMLElement) {
     this.el = document.createElement('div');
@@ -33,17 +41,18 @@ export class Bubble {
     this.idleT = 70;
     this.used.clear();
     this.lowHpSaid = false;
+    this.saidStage.clear();
     this.el.classList.remove('show');
   }
 
   /** say a line from a category; important moments ignore the chatter cooldown */
   say(g: Game, kind: string, force = false) {
-    if (kind === 'gold' || kind === 'revive' || kind === 'evolve' || kind === 'flare') force = true;
+    if (kind === 'gold' || kind === 'revive' || kind === 'evolve' || kind === 'flare' || kind.startsWith('stage')) force = true;
     if (!force && this.cooldown > 0) return;
     const list = LINES[kind];
     if (!list) return;
     const n = this.used.get(kind) || 0;
-    if (kind === 'lamp' && n >= 3) return; // don't nag
+    if ((kind === 'lamp' && n >= 3) || (kind === 'flareReady' && n >= 1)) return; // don't nag
     this.used.set(kind, n + 1);
     // visual-only choice: cycle through the list so lines rarely repeat
     this.el.textContent = list[(n + Math.floor(g.time)) % list.length];
@@ -58,6 +67,11 @@ export class Bubble {
     const p = g.player;
     if (!this.lowHpSaid && p.hp < p.stats.maxHp * 0.3) { this.lowHpSaid = true; this.say(g, 'lowhp', true); }
     if (p.hp > p.stats.maxHp * 0.6) this.lowHpSaid = false;
+    // a grumble once per stage, after the narrator's chapter line has finished
+    if (g.stageTime > 12 && !this.saidStage.has(g.stage) && !g.bossActive) {
+      this.saidStage.add(g.stage);
+      this.say(g, 'stage' + g.stage);
+    }
     this.idleT -= dt;
     if (this.idleT <= 0) { this.idleT = 80 + (Math.floor(g.time * 7) % 50); if (!g.bossActive) this.say(g, 'idle'); }
     if (g.time > this.until) { this.el.classList.remove('show'); return; }

@@ -1265,6 +1265,7 @@ export class App {
       rumble: (s, ms) => this.input.rumble(s, ms),
       say: (kind) => this.bubble.say(this.game, kind),
       flareReady: () => {
+        if (this.flareHints === 0) this.bubble.say(this.game, 'flareReady');
         if (this.flareHints < 2 && this.save.stats.runs < 4) {
           this.flareHints++;
           const how = this.input.device === 'gamepad' ? 'Y' : this.input.device === 'touch' ? 'FLARE' : 'E';

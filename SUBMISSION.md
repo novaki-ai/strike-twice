@@ -87,8 +87,8 @@ meet each enemy, and credits.
 **Story & voice:** a voiced, illustrated intro (4 panels) and ending (3 panels) with subtitles, an illustrated
 storybook interlude between chapters, a voiced narrator card for each chapter, voiced intro/defeat lines for every boss (plus the Snuffer's phase line), Novaki's own
 deadpan quips (boss reactions, stage clear, death), and a voiced game-over line. All 25 voice clips of the quota are used.
-Between voiced moments Novaki grumbles in comic speech bubbles (evolutions, golden match, low health, relighting
-lamps, elite kills, idle complaints).
+Between voiced moments Novaki grumbles in comic speech bubbles (a line for each stage, swarms, the gilded moth,
+evolutions, golden match, low health, healing, relighting lamps, elite kills, his first Flare-Up, idle complaints).
 
 **Presentation:** Novaki is a generated torso sprite with code-drawn, animated rubber-hose arms and legs (walk cycle,
 swinging gloves, dash pose, hurt flash, KO pose), three facial expressions (deadpan, "ouch" when hit, a determined

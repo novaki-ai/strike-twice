@@ -1345,6 +1345,7 @@ export class Game {
         break;
       }
       case 'heal':
+        if (p.hp < p.stats.maxHp * 0.5) this.hooks.say('heal');
         this.heal(30 + p.stats.maxHp * 0.1);
         audio.sfx('heal', 0.7);
         this.sparkleAt(p.x, p.y - 30, 0x7ddc6a);

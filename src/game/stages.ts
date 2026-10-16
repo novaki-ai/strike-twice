@@ -257,6 +257,7 @@ export class StageDirector {
           if (e) { e.state = 7; e.tx = dx * 165; e.ty = dy * 165; e.kbRes = 0.3; }
         }
         g.hooks.toast('A swarm is passing through - get out of the way!', 'warn');
+        g.hooks.say('swarm');
         break;
       }
       case 'ring': {
@@ -281,6 +282,7 @@ export class StageDirector {
         const r = Math.min(g.viewW, g.viewH) * 0.32;
         g.spawnEnemy('goldmoth', p.x + Math.cos(a) * r, p.y + Math.sin(a) * r * 0.8);
         g.hooks.toast('A gilded moth! Catch it before it flies off!', 'gold');
+        g.hooks.say('gilded');
         audio.sfx('buzz', 0.4, 1.8);
         break;
       }
