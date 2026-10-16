@@ -42,7 +42,7 @@ the **Flare-Up** meter; when it's full Novaki can "strike twice": a screen-wide 
 
 ## What I built
 
-**Structure of a run (about 17-21 minutes):** three stages, each about 4.5-5 minutes of escalating waves (with swarm
+**Structure of a run (about 17-19 minutes of play):** three stages, each about 4.5-5 minutes of escalating waves (with swarm
 migrations, encirclements, elites carrying treasure, a gilded moth that flees with a chest, and destructible props), then a boss in a closed arena.
 Your build carries over between stages. Beating the third boss plays the ending and wins the run.
 
@@ -205,7 +205,7 @@ logged once instead of stopping PixiJS's ticker.
 ## Known issues
 
 - Balance was tuned with an automated bot that dodges worse than a person. With no Workshop upgrades it reaches stage 3
-  in nearly every run; using the Flare-Up it wins about half of its runs (wins took 17 to 21 minutes), so a first
+  in nearly every run; using the Flare-Up it wins a little over half of its runs (wins took 17 to 19 minutes), so a first
   run is a real challenge but winnable. Workshop upgrades, relics and evolutions make later runs much stronger. Real
   players may find it easier or harder than intended.
 - The `state().screen` value is `transition` for about 0.4 s while the screen fades between stages.
