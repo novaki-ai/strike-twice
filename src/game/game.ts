@@ -1657,8 +1657,9 @@ export class Game {
       // two-frame animation for enemies that have a second generated frame
       let frameK = 1;
       const kB = FRAME_B[texName];
+      const frozenNow = this.freezeT > 0 && !e.boss;
       if (kB && !e.boss) {
-        const ph0 = t * (def.animSpeed ?? 8) + e.phase;
+        const ph0 = frozenNow ? e.phase : t * (def.animSpeed ?? 8) + e.phase;
         let useB: boolean;
         if (def.ai === 'hop') useB = e.hop > 6;
         else if (def.anim === 'fly') useB = Math.floor(ph0 * 1.6 / Math.PI) % 2 === 1;
@@ -1675,7 +1676,7 @@ export class Game {
       if (tex && sp.texture !== tex) sp.texture = tex;
       const base = ((def.size * e.scale) / (this.T.tex[texName]?.height || 100)) * frameK;
       let bob = 0, sqx = 1, sqy = 1, rot = 0;
-      const ph = t * (def.animSpeed ?? 8) + e.phase;
+      const ph = frozenNow ? e.phase : t * (def.animSpeed ?? 8) + e.phase;
       switch (def.anim) {
         case 'fly': bob = -10 - Math.sin(ph) * 6; rot = Math.sin(ph * 0.5) * 0.12; sqx = 0.82 + 0.18 * Math.abs(Math.sin(ph * 1.6)); sqy = 1 + Math.sin(ph * 2) * 0.04; break;
         case 'float': bob = -14 - Math.sin(ph * 0.5) * 6; rot = Math.sin(ph * 0.3) * 0.06; break;
