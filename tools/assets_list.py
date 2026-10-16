@@ -12,7 +12,6 @@ if want('sprites'):
     sprite('b_snuffer', 400, 560)
     sprite('novaki_ko', 520, 420)
     sprite('novaki_cheer', 420, 520)
-    sprite('novaki_idle_full', 300, 600)
     sprite('logo', 1000, 500)
 
 if want('tiles'):
