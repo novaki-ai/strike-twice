@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch();
+const page = await browser.newPage();
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
+page.on('requestfailed', (r) => errors.push('failed ' + r.url()));
+page.on('response', (r) => { if (r.status() >= 400) errors.push(r.status() + ' ' + r.url()); });
+await page.goto('http://localhost:4317/games/novaki');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+console.log('landed on', page.url());
+console.log('ERRORS', errors.filter((e) => !e.includes('/games/novaki ')).join('\n'));
+await browser.close();

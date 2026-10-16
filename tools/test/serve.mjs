@@ -8,6 +8,8 @@ const prefix = '/games/novaki/';
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.webp': 'image/webp', '.png': 'image/png', '.mp3': 'audio/mpeg', '.woff2': 'font/woff2', '.woff': 'font/woff', '.json': 'application/json' };
 http.createServer((req, res) => {
   let u = decodeURIComponent(req.url.split('?')[0]);
+  // like many static hosts, serve the folder's index.html when the trailing slash is missing (no redirect)
+  if (u + '/' === prefix) u = prefix;
   if (!u.startsWith(prefix)) { res.writeHead(404); res.end('not under prefix: ' + u); return; }
   u = u.slice(prefix.length) || 'index.html';
   const f = path.join(root, u);
