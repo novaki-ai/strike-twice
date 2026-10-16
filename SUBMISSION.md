@@ -140,10 +140,12 @@ light-map pass and caps particles.
 
 ## Code layout
 
-- `src/main.ts`: app shell: screens and menus, HUD, cutscenes and voice lines, run lifecycle, `NOVAKI_QA`.
+- `src/main.ts`: app shell: screens and menus, HUD, cutscenes and voice lines, run lifecycle.
+- `src/qa.ts`: the `window.NOVAKI_QA` test interface.
 - `src/game/game.ts`: the simulation (fixed 60 Hz step) and renderer: player, enemies, projectiles, zones, bullets,
   pickups, particles, lighting, camera.
-- `src/game/weapons.ts`, `upgrades.ts`, `relics.ts`: weapons and evolutions, trinkets, level-up choices, Workshop, relics.
+- `src/game/weapons.ts`, `upgrades.ts`, `relics.ts`, `achievements.ts`: weapons and evolutions, trinkets, level-up
+  choices, Workshop, relics, achievements.
 - `src/game/enemies.ts`, `bosses.ts`, `stages.ts`: enemy AI, boss attack patterns, stage waves and events.
 - `src/game/rig.ts`: Novaki's animated rig; `textures.ts`: runtime atlases and procedural FX textures.
 - `src/core/`: seeded RNG, save data, input (keyboard / gamepad / touch), WebAudio engine and synthesized sounds.
