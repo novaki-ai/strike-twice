@@ -86,6 +86,9 @@ for (let iter = 0; iter < 3000; iter++) {
       g.__botX = ax; g.__botY = ay;
       g.input.x = ax; g.input.y = ay;
       if (bestScore > 40) g.input.dash = true;
+      // flare when cornered, or to clear a boss's bullet storm
+      let nb = 0; for (const bl of g.bullets) if (bl.alive) nb++;
+      if (g.flare >= 1 && (bestScore > 30 || nb > 40 || p.hp < p.stats.maxHp * 0.35)) { g.input.flare = true; g.__flares = (g.__flares || 0) + 1; }
       g.update(1 / 60);
       if (g.slowmoT > 0) g.slowmoT -= 1 / 60;
       if (g.director && g.director.bossStarted && !g.bossActive) { out.bossDone = true; break; }
@@ -94,12 +97,12 @@ for (let iter = 0; iter < 3000; iter++) {
     out.state = window.NOVAKI_QA.state();
     out.boss = g.boss && g.boss.alive ? { hp: Math.round(g.boss.hp), max: g.boss.maxHp } : null;
     out.dmg = g.player.weapons.map((w) => w.id + (w.evo ? '*' : '') + ':' + w.level + '=' + Math.round(w.dmg)).join(' ');
-    out.hp = Math.round(g.player.hp); out.taken = Math.round(g.stats.dmgTaken); out.by = JSON.stringify(Object.fromEntries(Object.entries(g.stats.dmgBy).map(([k, v]) => [k, Math.round(v)])));
+    out.flares = g.__flares || 0; out.hp = Math.round(g.player.hp); out.taken = Math.round(g.stats.dmgTaken); out.by = JSON.stringify(Object.fromEntries(Object.entries(g.stats.dmgBy).map(([k, v]) => [k, Math.round(v)])));
     return out;
   }, 900);
   for (const e of r.events) if (!e.startsWith('pick')) console.log(e);
   const s = r.state;
-  const line = `taken=${r.taken} t=${s.time.toFixed(0)} st=${s.stage} scr=${s.screen} lv=${s.player.level} hp=${r.hp}/${s.player.maxHp} foes=${s.enemies} kills=${s.kills} boss=${r.boss ? r.boss.hp + '/' + r.boss.max : '-'}`;
+  const line = `flares=${r.flares} taken=${r.taken} t=${s.time.toFixed(0)} st=${s.stage} scr=${s.screen} lv=${s.player.level} hp=${r.hp}/${s.player.maxHp} foes=${s.enemies} kills=${s.kills} boss=${r.boss ? r.boss.hp + '/' + r.boss.max : '-'}`;
   if (iter % 4 === 0) console.log(line);
   if (r.bossDone) { console.log('BOSS DOWN at', s.time.toFixed(0), ' weapons:', r.dmg, ' dmgBy:', r.by); await page.waitForTimeout(4700); }
   if (s.screen === 'gameover' || s.screen === 'victory' || s.screen === 'menu') { console.log('END', s.screen, line, '\n', r.dmg, '\n dmgBy', r.by); break; }

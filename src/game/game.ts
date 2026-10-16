@@ -44,6 +44,7 @@ export interface RunStats {
   evolutions: number;
   dmgBy: Record<string, number>;
   assisted: boolean;
+  flares: number;
 }
 
 export class Game {
@@ -290,7 +291,7 @@ export class Game {
     this.wardT = 0;
     this.danceT = 0;
     this.kindlingCount = 0;
-    this.stats = { kills: 0, dmgTaken: 0, coins: 0, maxLevel: 1, bossesKilled: [], chests: 0, heals: 0, stageReached: 1, evolutions: 0, dmgBy: {}, assisted: false };
+    this.stats = { kills: 0, dmgTaken: 0, coins: 0, maxLevel: 1, bossesKilled: [], chests: 0, heals: 0, stageReached: 1, evolutions: 0, dmgBy: {}, assisted: false, flares: 0 };
     this.lightsRelit = 0;
     const base: Stats = {
       maxHp: 120, regen: 0, armor: 0, speed: 150, might: 1, area: 1, cooldown: 1, amount: 0, projSpeed: 1,
@@ -611,6 +612,7 @@ export class Game {
   flareUp() {
     const p = this.player;
     this.flare = 0;
+    this.stats.flares++;
     p.iframes = Math.max(p.iframes, 1.2);
     p.ignite = Math.max(p.ignite, 4);
     const hw = this.viewW * 0.6, hh = this.viewH * 0.6;

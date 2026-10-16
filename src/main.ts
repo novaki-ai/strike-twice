@@ -1187,7 +1187,7 @@ class App {
     const rows: [string, string][] = [
       ['Time', fmtTime(g.time)], ['Stage reached', STAGES[g.stats.stageReached - 1].name], ['Level', String(g.player.level)],
       ['Enemies snuffed', String(g.stats.kills)], ['Bosses defeated', String(g.stats.bossesKilled.length) + ' / 3'], ['Evolutions', String(g.stats.evolutions)],
-      ['Damage taken', String(Math.round(g.stats.dmgTaken))], ['Lamps relit', String(g.lightsRelit)], ['Coins earned', `${r.earned} (incl. ${r.bonus} bonus)`],
+      ['Damage taken', String(Math.round(g.stats.dmgTaken))], ['Flare-Ups', String(g.stats.flares)], ['Lamps relit', String(g.lightsRelit)], ['Coins earned', `${r.earned} (incl. ${r.bonus} bonus)`],
     ];
     const grid = el('div', { class: 'results' });
     for (const [k, v] of rows) grid.append(el('div', { class: 'k' }, k), el('div', { class: 'v' }, v));
