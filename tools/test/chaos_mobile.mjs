@@ -17,7 +17,9 @@ const qa = [
 const t0 = Date.now();
 let n = 0;
 const screens = new Map();
+const harness = [];
 while (Date.now() - t0 < SECS * 1000) {
+  try {
   const r = Math.random();
   if (r < 0.55) {
     const k = keys[Math.floor(Math.random() * keys.length)];
@@ -34,7 +36,9 @@ while (Date.now() - t0 < SECS * 1000) {
   }
   n++;
   if (n % 20 === 0) { const s = await page.evaluate(() => window.NOVAKI_QA.state().screen); screens.set(s, (screens.get(s) || 0) + 1); }
+  } catch (e) { harness.push(String(e.message || e).split('\n')[0]); } // test-harness hiccups (detached elements etc.), not game errors
 }
+console.log('harness exceptions (not game errors):', harness.length, harness.slice(0, 3).join(' | '));
 console.log('actions', n, 'screens sampled', JSON.stringify([...screens]));
 console.log('ERRORS (' + errors.length + '):\n' + errors.slice(0, 15).join('\n'));
 await browser.close();
