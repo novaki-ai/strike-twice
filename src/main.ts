@@ -169,7 +169,7 @@ class App {
       <div class="xpbar"><div class="fill"></div></div><div class="lvl">LV 1</div>
       <div class="hud-left"><div class="hpbar"><div class="fill"></div><div class="txt">100 / 100</div></div>
         <div class="slots weapons"></div><div class="slots passives"></div></div>
-      <div class="hud-center"><div class="timer">00:00</div><div class="stagename"></div></div>
+      <div class="hud-center"><div class="timer">00:00</div><div class="stagename"></div><div class="bossin"><div class="bossin-fill"></div><span></span></div></div>
       <div class="hud-right"><div class="stat"><img src="${icon('skull')}" alt=""><span class="kills">0</span></div>
         <div class="stat"><img src="${icon('coin')}" alt=""><span class="coins">0</span></div></div>
       <div class="bossbar"><div class="name"></div><div class="bar"><div class="fill"></div></div></div>
@@ -180,7 +180,7 @@ class App {
     this.hudEls = {
       xp: q('.xpbar .fill'), lvl: q('.lvl'), hp: q('.hpbar .fill'), hpt: q('.hpbar .txt'), weapons: q('.weapons'), passives: q('.passives'),
       timer: q('.timer'), stage: q('.stagename'), kills: q('.kills'), coins: q('.coins'), boss: q('.bossbar'), bossName: q('.bossbar .name'),
-      bossFill: q('.bossbar .fill'), dash: q('.dash-ind .ring'), dashLabel: q('.dash-label'), fps: q('.fps'), dashInd: q('.dash-ind'),
+      bossFill: q('.bossbar .fill'), bossIn: q('.bossin'), bossInFill: q('.bossin-fill'), bossInTxt: q('.bossin span'), dash: q('.dash-ind .ring'), dashLabel: q('.dash-label'), fps: q('.fps'), dashInd: q('.dash-ind'),
     };
     this.fadeEl = el('div', { id: 'fade', class: 'passthrough' });
     this.ui.appendChild(this.fadeEl);
@@ -1349,6 +1349,14 @@ class App {
     });
     const b = g.boss;
     const bossOn = !!(b && b.alive && g.bossActive);
+    const stDef = STAGES[g.stage - 1];
+    const left = Math.max(0, stDef.duration - g.stageTime);
+    const showIn = !bossOn && !g.director?.bossStarted;
+    this.setHud('bossInShow', String(showIn), (v) => { H.bossIn.style.display = v === 'true' ? 'block' : 'none'; });
+    if (showIn) {
+      this.setHud('bossInTxt', fmtTime(left), (v) => { H.bossInTxt.textContent = 'BOSS IN ' + v; });
+      this.setHud('bossInFill', (Math.min(1, g.stageTime / stDef.duration) * 100).toFixed(1), (v) => { H.bossInFill.style.width = v + '%'; });
+    }
     this.setHud('bossOn', String(bossOn), (v) => { H.boss.classList.toggle('show', v === 'true'); });
     if (bossOn) {
       this.setHud('bossName', b!.def.name, (v) => { H.bossName.textContent = v; });
