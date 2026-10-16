@@ -1,0 +1,18 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
+const page = await ctx.newPage();
+const logs = [];
+page.on('console', (m) => logs.push(m.type() + ': ' + m.text()));
+page.on('pageerror', (e) => logs.push('pageerror: ' + e.message));
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+await page.evaluate(() => { window.NOVAKI_QA.start({ seed: 1 }); window.NOVAKI_QA.setInvincible(true); window.NOVAKI_QA.spawnEnemies(500); window.__novaki.game.player.xpNext = 1e12; });
+const cdp = await ctx.newCDPSession(page);
+await cdp.send('Emulation.setCPUThrottlingRate', { rate: 10 });
+await page.waitForTimeout(12000);
+await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+const r = await page.evaluate(() => ({ res: window.__novaki.app.renderer.resolution, canvas: [window.__novaki.app.canvas.width, window.__novaki.app.canvas.height], css: [window.__novaki.app.canvas.style.width, window.__novaki.app.canvas.style.height], screen: window.NOVAKI_QA.state().screen }));
+console.log(JSON.stringify(r));
+console.log(logs.filter((l) => l.includes('novaki') || l.includes('error')).join('\n'));
+await browser.close();

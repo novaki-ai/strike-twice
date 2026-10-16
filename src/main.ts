@@ -1237,9 +1237,32 @@ class App {
     setTimeout(() => t.remove(), 2800);
   }
 
+  /* ================================================================ adaptive resolution */
+  private perfWin = { t: 0, frames: 0 };
+  private adaptCooldown = 0;
+  /** If gameplay runs slow on a high-DPI screen, render at a lower resolution. */
+  adaptResolution(dt: number) {
+    if (this.screen !== 'playing' || !this.game.running) { this.perfWin.t = 0; this.perfWin.frames = 0; return; }
+    if (this.adaptCooldown > 0) { this.adaptCooldown -= dt; return; }
+    this.perfWin.t += dt;
+    this.perfWin.frames++;
+    if (this.perfWin.t < 3) return;
+    const fps = this.perfWin.frames / this.perfWin.t;
+    this.perfWin.t = 0;
+    this.perfWin.frames = 0;
+    const r = this.app.renderer.resolution;
+    if (fps < 48 && r > 1) {
+      const nr = Math.max(1, Math.round((r - 0.5) * 4) / 4);
+      this.app.renderer.resize(this.app.screen.width, this.app.screen.height, nr);
+      this.adaptCooldown = 4;
+      console.info(`[novaki] low FPS (${fps.toFixed(0)}), render resolution ${r} -> ${nr}`);
+    }
+  }
+
   /* ================================================================ main loop */
   tick(dt: number) {
     dt = Math.min(dt, 0.1);
+    this.adaptResolution(dt);
     this.input.update(dt);
     this.fpsAcc += dt;
     this.fpsFrames++;
