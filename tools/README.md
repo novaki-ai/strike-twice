@@ -33,6 +33,7 @@ node tools/test/qa_spec.mjs                # NOVAKI_QA interface, end to end (21
 | `smoke.mjs`, `screens.mjs` | Menus and screens (set `TOUCH=1 VW=390 VH=844` for a phone; `BROWSER=webkit|firefox` too). |
 | `determinism.mjs` | Same seed + same inputs in two fresh pages gives an identical simulation; pool integrity. |
 | `bot.mjs` | Fast-forward bot that plays whole runs (`SEED=7 INV=0`); used for pacing and balance. |
+| `realtime.mjs` | A complete run at normal speed from the title screen, driven only by keyboard events (no QA helpers). |
 | `chaos.mjs`, `chaos_mobile.mjs` | Thousands of random keys, clicks and QA calls; fails on any console error. |
 | `perf.mjs`, `soak.mjs`, `throttle.mjs` | 1080p stress with 600 enemies, long real-time soak, CPU-throttled runs. |
 | `xbrowser.mjs` | Menus, a big run, boss skips and the victory flow in Firefox / WebKit (`BROWSER=...`). |
