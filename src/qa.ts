@@ -54,11 +54,13 @@ export function installQA(self: App) {
     setInvincible(on: boolean) {
       self.qaInvincible = !!on;
       if (self.game.player) self.game.player.invincible = !!on;
+      if (on && self.runActive && self.game.stats) self.game.stats.assisted = true;
       return !!on;
     },
     addXp(amount: number) {
       const g = self.game;
       if (!g.player || !self.runActive) return false;
+      g.stats.assisted = true;
       const p = g.player;
       p.xp += Number(amount) || 0;
       while (p.xp >= p.xpNext) { p.xp -= p.xpNext; p.level++; p.xpNext = xpFor(p.level); g.pendingLevels++; g.stats.maxLevel = Math.max(g.stats.maxLevel, p.level); }
@@ -114,6 +116,7 @@ export function installQA(self: App) {
     killBoss() {
       const g = self.game;
       if (!g.boss || !g.boss.alive || !g.boss.boss) return false;
+      g.stats.assisted = true;
       g.boss.boss.entry = 99;
       g.boss.boss.invuln = false;
       g.boss.hp = 0;

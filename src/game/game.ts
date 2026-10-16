@@ -45,6 +45,7 @@ export interface RunStats {
   dmgBy: Record<string, number>;
   assisted: boolean;
   flares: number;
+  dmgAtStage1Boss: number; // damage taken when the first boss fell (-1 = not yet)
 }
 
 export class Game {
@@ -301,7 +302,7 @@ export class Game {
     this.wardT = 0;
     this.danceT = 0;
     this.kindlingCount = 0;
-    this.stats = { kills: 0, dmgTaken: 0, coins: 0, maxLevel: 1, bossesKilled: [], chests: 0, heals: 0, stageReached: 1, evolutions: 0, dmgBy: {}, assisted: false, flares: 0 };
+    this.stats = { kills: 0, dmgTaken: 0, coins: 0, maxLevel: 1, bossesKilled: [], chests: 0, heals: 0, stageReached: 1, evolutions: 0, dmgBy: {}, assisted: false, flares: 0, dmgAtStage1Boss: -1 };
     this.lightsRelit = 0;
     const base: Stats = {
       maxHp: 120, regen: 0, armor: 0, speed: 150, might: 1, area: 1, cooldown: 1, amount: 0, projSpeed: 1,
@@ -530,7 +531,7 @@ export class Game {
       this.director?.onDash?.();
     }
     this.input.dash = false;
-    if (this.input.flare && this.flare >= 1 && !this.over) this.flareUp();
+    if (this.input.flare && this.flare >= 1 && !this.over && !this.runWon && !(this.boss && this.boss.boss && this.boss.boss.dying)) this.flareUp();
     this.input.flare = false;
     let speed = s.speed * (p.goldT > 0 ? 1.25 : 1);
     if (p.dashT > 0) {
@@ -1491,11 +1492,17 @@ export class Game {
         this.nums.push(n);
       }
     }
-    const str = String(Math.max(1, Math.round(v)));
+    const str = String(Math.max(1, Math.min(999999999, Math.round(v) || 1)));
     const c = n.c;
+    // huge hits (e.g. a revive blast with every multiplier) need more digit sprites than the usual five
+    while (c.children.length < str.length) {
+      const s = new Sprite(this.digits.digits[0]);
+      s.anchor.set(0.5);
+      c.addChild(s);
+    }
     let total = 0;
     const ws: number[] = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < c.children.length; i++) {
       const s = c.children[i] as Sprite;
       if (i < str.length) {
         const d = str.charCodeAt(i) - 48;

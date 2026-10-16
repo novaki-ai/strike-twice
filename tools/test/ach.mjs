@@ -11,14 +11,14 @@ await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
 // fair run: fast-forward the sim with an invincible player, then die
 await page.evaluate(() => {
   const A = window.__novaki, g = A.game, Q = window.NOVAKI_QA;
-  Q.start({ seed: 4 }); Q.setInvincible(true);
+  Q.start({ seed: 4 }); g.player.invincible = true;
   for (let i = 0; i < 60 * 200; i++) {
     if (A.screen === 'levelup') { A.pickChoice(0); continue; }
     if (A.screen === 'chest') { A.navLockUntil = 0; A.closeChest(); continue; }
     if (A.screen !== 'playing') break;
     g.input.x = Math.cos(i / 120); g.input.y = Math.sin(i / 170); g.update(1 / 60);
   }
-  Q.setInvincible(false); g.player.iframes = 0; g.player.revives = 0; g.hurtPlayer(99999, null);
+  g.player.invincible = false; g.player.iframes = 0; g.player.revives = 0; g.hurtPlayer(99999, null);
 });
 await page.waitForFunction(() => window.NOVAKI_QA.state().screen === 'gameover', null, { timeout: 20000 });
 await page.waitForTimeout(800);

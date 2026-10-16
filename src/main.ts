@@ -470,10 +470,16 @@ export class App {
       return el('div', { class: 'row' }, el('span', {}, label), r);
     };
     const toggle = (label: string, key: 'shake' | 'flashes' | 'dmgNumbers' | 'showFps' | 'subtitles' | 'vibration' | 'lowFx') => {
-      const t = el('div', { class: 'toggle' + (st[key] ? ' on' : ''), 'data-nav': '1', role: 'switch', 'aria-label': label });
+      const isOn = () => (key === 'lowFx' ? st.lowFx || this.autoLowFx : st[key]);
+      const t = el('div', { class: 'toggle' + (isOn() ? ' on' : ''), 'data-nav': '1', role: 'switch', 'aria-label': label });
       t.addEventListener('click', () => {
-        st[key] = !st[key];
-        t.classList.toggle('on', st[key]);
+        if (key === 'lowFx') {
+          // the player's choice overrides the automatic fallback for the rest of the session
+          st.lowFx = !isOn();
+          this.autoLowFx = false;
+          this.lowFxUserSet = true;
+        } else st[key] = !st[key];
+        t.classList.toggle('on', isOn());
         this.applySettings();
         writeSave(this.save);
         audio.sfx('click', 0.6);
@@ -812,7 +818,7 @@ export class App {
     this.show('playing');
     audio.sfx('strike', 0.9);
     this.game.player.ignite = 1.5;
-    if (this.qaInvincible) this.game.player.invincible = true;
+    if (this.qaInvincible) { this.game.player.invincible = true; this.game.stats.assisted = true; }
   }
 
   pause() {
@@ -1192,7 +1198,7 @@ export class App {
     if (win && g.inferno && !this.save.unlocks.includes('inferno_victory')) this.save.unlocks.push('inferno_victory');
     const achieved = quit ? [] : awardAchievements({
       win, time: g.time, level: g.player.level, kills: g.stats.kills, stage: g.stats.stageReached, bosses: g.stats.bossesKilled,
-      evolutions: g.stats.evolutions, dmgTaken: g.stats.dmgTaken, flares: g.stats.flares, lamps: g.lightsRelit, relics: g.relics.size,
+      evolutions: g.stats.evolutions, dmgTaken: g.stats.dmgTaken, dmgAtStage1Boss: g.stats.dmgAtStage1Boss, flares: g.stats.flares, lamps: g.lightsRelit, relics: g.relics.size,
       inferno: g.inferno, daily: g.daily, weapons: g.player.weapons.length, startWeapon: g.player.weapons[0]?.id || '', assisted: g.stats.assisted,
     }, this.save);
     writeSave(this.save);
@@ -1334,6 +1340,7 @@ export class App {
   private adaptCooldown = 0;
   private slowWindows = 0;
   autoLowFx = false;
+  lowFxUserSet = false;
   /** If gameplay runs slow on a high-DPI screen, render at a lower resolution. */
   adaptResolution(dt: number) {
     if (this.screen !== 'playing' || !this.game.running) { this.perfWin.t = 0; this.perfWin.frames = 0; return; }
@@ -1345,7 +1352,7 @@ export class App {
     this.perfWin.t = 0;
     this.perfWin.frames = 0;
     const r = this.app.renderer.resolution;
-    if (fps < 40 && r <= 1 && !this.game.settings.lowFx) {
+    if (fps < 40 && r <= 1 && !this.game.settings.lowFx && !this.lowFxUserSet) {
       // already at 1x: two slow windows in a row switch effects to reduced for this session
       if (++this.slowWindows >= 2) {
         this.autoLowFx = true;

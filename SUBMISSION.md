@@ -143,12 +143,12 @@ light-map pass and caps particles.
 - `setInvincible(on)` persists across runs until turned off. `chooseUpgrade(index)` also picks a relic on the stage-clear
   screen (`state().relicChoices`). `spawnEnemies(count)` uses its own seeded stream and is capped at 2000 per call.
 - `skipTo(stage, 'start' | 'boss')`: when jumping ahead it grants catch-up levels (level 12 for stage 2, 22 for stage 3,
-  upgrades picked by the seeded RNG) so the later content is fair; runs that used `skipTo` are marked "QA-assisted" and do
-  not set best times.
+  upgrades picked by the seeded RNG) so the later content is fair. Runs that used `skipTo`, `killBoss`, `addXp` or
+  invincibility are marked "QA-assisted": coins are still earned, but they don't set best times or unlock achievements.
 - `killBoss()` uses the normal defeat path (death animation, voiced line, boss treasure, stage clear with relic
   choice, next stage, or the ending + victory screen after the third boss). For the first two bosses the dropped
   experience can open level-up screens first (answer them with `chooseUpgrade`); the stage-clear screen waits for
-  them, then auto-picks a relic after 20 s if nobody chooses. The final boss drops no experience, so `killBoss()` on it
+  them, then auto-picks a relic after 22 s if nobody chooses (input is ignored for the first 2.6 s while the interlude plays). The final boss drops no experience, so `killBoss()` on it
   goes straight to the ending; `state().screen` becomes `victory` about 8 seconds later with no input needed.
 
 ## Code layout
@@ -187,8 +187,11 @@ has no WebGL, so it exercised PixiJS's Canvas2D fallback, which the game now sup
 map there). Firefox and WebKit were installed into a gitignored folder inside the project for these tests. An independent code review pass found 15 issues
 (an enemy-pool double-listing bug, determinism leaks, timers outliving a run, and more), all fixed. A second review of
 the later features found 7 more (for example a QA `skipTo` during the stage-fade could start a non-existent stage 4,
-and a dying boss could still hurt you), all fixed and re-verified with its reproduction scripts. As a safety net, an
-exception in a frame is logged once instead of stopping PixiJS's ticker.
+and a dying boss could still hurt you), all fixed and re-verified with its reproduction scripts. A third review of the newest features found 4 more (an
+achievement that could never be earned, the automatic Reduced-effects fallback not showing in Settings, QA helpers not
+marking runs as assisted, a Flare-Up wasted during a boss's death), and its follow-up test exposed a damage-number
+crash on hits above 99,999; all fixed and verified (`review3.mjs`). As a safety net, an exception in a frame is
+logged once instead of stopping PixiJS's ticker.
 
 ## What I would improve with more time
 

@@ -629,6 +629,7 @@ function bossDeath(g: Game, e: Enemy, dt: number) {
     g.bossActive = false;
     g.arena = null;
     g.stats.bossesKilled.push(B.id);
+    if (B.id === 'duchess' && g.stats.dmgAtStage1Boss < 0) g.stats.dmgAtStage1Boss = g.stats.dmgTaken;
     g.hooks.bossDefeated(B.id);
   }
 }

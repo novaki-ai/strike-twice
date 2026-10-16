@@ -10,6 +10,7 @@ export interface RunSummary {
   bosses: string[];
   evolutions: number;
   dmgTaken: number;
+  dmgAtStage1Boss: number;
   flares: number;
   lamps: number;
   relics: number;
@@ -38,7 +39,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'horde', name: 'Kindling Pile', desc: 'Snuff out 3,000 enemies in one run.', reward: 60, check: (r) => r.kills >= 3000 },
   { id: 'lamplighter', name: 'Lamplighter', desc: 'Relight 15 lamps in one run.', reward: 40, check: (r) => r.lamps >= 15 },
   { id: 'flare_fan', name: 'Strike, Strike, Strike', desc: 'Use 10 Flare-Ups in one run.', reward: 40, check: (r) => r.flares >= 10 },
-  { id: 'untouched', name: 'Fireproof', desc: 'Clear stage 1 taking less than 30 damage.', reward: 60, check: (r) => r.bosses.includes('duchess') && r.dmgTaken < 30 },
+  { id: 'untouched', name: 'Fireproof', desc: 'Clear stage 1 taking less than 30 damage.', reward: 60, check: (r) => r.dmgAtStage1Boss >= 0 && r.dmgAtStage1Boss < 30 },
   { id: 'speedrun', name: 'Quick Match', desc: 'Win in under 19 minutes.', reward: 120, check: (r) => r.win && r.time < 19 * 60 },
   { id: 'inferno_win', name: 'Inferno', desc: 'Win a run in Inferno Mode.', reward: 200, check: (r) => r.win && r.inferno },
   { id: 'daily_win', name: 'Daily Spark', desc: 'Win a Daily Strike.', reward: 80, check: (r) => r.win && r.daily },
