@@ -39,7 +39,7 @@ Your build carries over between stages. Beating the third boss plays the ending 
 |---|---|---|---|
 | 1. The Mothwood | dusk forest, spooky-cute swing | Mothling, Mold Blob, Toadstool, Stag Beetle, Soggy Stump | **Duchess Dustwing** (dust spirals, telegraphed swoops, fan gusts, moth broods; enraged phase adds double swoops and lamp lures that spin out dust spirals) |
 | 2. Drizzleport | rainy harbor at night, noir big band | Raindrop, Puddle Slime, Bullfrog, Storm Cloud, Water Balloon, Watering Can | **Baron von Drizzle** (downpour circles, lightning lines, umbrella bullet rings, summons; storm phase adds slanted rain, curving rings and staggered puddle bursts) |
-| 3. The Snuffer's Spire | dark candle castle, danse-macabre swing | Wax Ghost, Snufflet, Frost Wisp, Wax Knight, Smoke Wraith (+ returning foes) | **The Snuffer** (shadow-tracking slam with shockwave, rotating spokes, sweeping walls with gaps, "lights out" darkness + homing smoke, summons; 3 phases with voiced phase line and music change) |
+| 3. The Snuffer's Spire | dark candle castle, danse-macabre swing | Wax Ghost, Snufflet, Frost Wisp, Wax Knight, Smoke Wraith (+ returning foes) | **The Snuffer** (shadow-tracking slam with shockwave, rotating spokes, sweeping walls with gaps, "lights out" darkness + homing smoke, summons, and in the final phase a ring of dark closing in with one gap; 3 phases with voiced phase line and music change) |
 
 **Enemies (16 types, all with distinct behaviour, each with a two-frame walk / flap / leap animation):** chaser, sine-weaving flier, spore-ring shooter, telegraphed
 charger, knockback-resistant tank, fast chaser, splitter (splits in two), hopper, artillery cloud (telegraphed

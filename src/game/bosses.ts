@@ -43,9 +43,9 @@ export const BOSSES: Record<string, BossDef> = {
     phases: [0.5], desc: 'A pompous storm cloud who rains on every parade.',
   },
   snuffer: {
-    name: 'The Snuffer', title: 'Extinguisher of All Flames', tex: 'b_snuffer', atkTex: 'b_snuffer_atk', koTex: 'b_snuffer_ko', posed: ['slam', 'spokes', 'sweep', 'lightsout'], hp: 15000, size: 215, r: 50, speed: 55, dmg: 18, xp: 0,
+    name: 'The Snuffer', title: 'Extinguisher of All Flames', tex: 'b_snuffer', atkTex: 'b_snuffer_atk', koTex: 'b_snuffer_ko', posed: ['slam', 'spokes', 'sweep', 'lightsout', 'collapse'], hp: 15000, size: 215, r: 50, speed: 55, dmg: 18, xp: 0,
     anim: 'float', noFlip: true, light: 0xd0d8ff, shadowW: 150, anchorY: 0.9,
-    attacks: [['slam', 'spokes', 'sweep', 'snuffers'], ['slam', 'spokes', 'lightsout', 'sweep', 'slam'], ['slam', 'spokes', 'sweep', 'lightsout', 'slam', 'spokes']],
+    attacks: [['slam', 'spokes', 'sweep', 'snuffers'], ['slam', 'spokes', 'lightsout', 'sweep', 'slam'], ['slam', 'spokes', 'collapse', 'sweep', 'lightsout', 'slam', 'collapse']],
     phases: [0.6, 0.25], desc: 'The cold hand that put out every light in Tinderbox.',
   },
 };
@@ -530,6 +530,33 @@ const ATTACKS: Record<string, AttackFn> = {
       audio.sfx('dash', 0.6, 0.6);
     }
     return B.at > (waves * 1.1 + 0.5) / fast;
+  },
+  // final phase: the dark closes in from every side, leaving one gap to slip through
+  collapse(g, e, B, dt, fast) {
+    const a = g.arena!;
+    const waves = 2;
+    if (B.count === 0) {
+      B.count = 1;
+      B.data.next = 0.8;
+      B.data.wave = 0;
+      g.tele({ kind: 'ring', x: a.x, y: a.y, r: a.r - 20, w: 26, dur: 0.8, color: 0xb48aff });
+      audio.sfx('roar', 0.5, 1.4);
+    }
+    if (B.data.wave < waves && B.at >= B.data.next) {
+      B.data.wave++;
+      B.data.next = B.at + 1.5 / fast;
+      const n = 44;
+      const gap = Math.floor(g.rng.next() * n);
+      for (let i = 0; i < n; i++) {
+        const d = Math.min(Math.abs(i - gap), n - Math.abs(i - gap));
+        if (d <= 2) continue; // the way out
+        const ang = (i / n) * Math.PI * 2;
+        const x = a.x + Math.cos(ang) * (a.r - 15), y = a.y + Math.sin(ang) * (a.r - 15);
+        g.spawnBullet(x, y, -Math.cos(ang) * 105, -Math.sin(ang) * 105, { r: 10, dmg: 13, life: (a.r * 2) / 105, tint: 0xd8ccff });
+      }
+      audio.sfx('dash', 0.6, 0.5);
+    }
+    return B.data.wave >= waves && B.at > B.data.next - 0.4;
   },
   snuffers(g, e, B) {
     if (B.count === 0) {
