@@ -250,6 +250,9 @@ export class App {
     audio.unlock();
     audio.sfx('strike', 0.8);
     this.show('menu');
+    // the key / tap that left the title must never also press the first menu button
+    this.navLockUntil = performance.now() + 400;
+    this.input.clearQueued();
   }
 
   /* ================================================================ screens */
