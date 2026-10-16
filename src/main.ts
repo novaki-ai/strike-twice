@@ -136,7 +136,12 @@ export class App {
     this.game = new Game(app, T, fx, icons, tiles, digits, this.hooks());
     app.stage.addChild(this.game.root);
     app.stage.visible = false;
-    const onResize = () => this.game.resize(app.screen.width, app.screen.height);
+    const onResize = () => {
+      this.game.resize(app.screen.width, app.screen.height);
+      // big monitors: grow the HTML HUD and cards with the screen (1x up to 1600x900)
+      const s = Math.max(1, Math.min(1.8, Math.min(window.innerWidth / 1600, window.innerHeight / 900)));
+      document.documentElement.style.setProperty('--ui-scale', s.toFixed(3));
+    };
     app.renderer.on('resize', onResize);
     onResize();
     this.applySettings();

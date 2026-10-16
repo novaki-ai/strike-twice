@@ -494,3 +494,6 @@ body.subtitle-top #subtitle { top: calc(10px + var(--safe-t)); bottom: auto; }
 .credits-roll p b { font-family: var(--font-h); font-weight: 400; color: var(--ember2); letter-spacing: 1px; }
 .cr-thanks { font-family: var(--font-h); font-size: clamp(22px, 3.6vw, 32px) !important; margin-top: 40px !important; }
 @media (prefers-reduced-motion: reduce) { .cr-inner { animation: none; top: 50%; transform: translate(-50%, -50%); } }
+
+/* large screens: scale the in-game HTML layers (set from JS; 1 on laptops and phones) */
+#hud, #toasts, #levelup > * { zoom: var(--ui-scale, 1); }
