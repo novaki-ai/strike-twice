@@ -1750,6 +1750,11 @@ export class Game {
         const B = e.boss;
         if (B.dying && def.koTex && this.T.tex[def.koTex]) texName = def.koTex;
         else if (B.attack && def.posed && def.posed.includes(B.attack) && def.atkTex && this.T.tex[def.atkTex]) texName = def.atkTex;
+        else {
+          // idle: alternate with a second generated frame (wing flap, cloud billow, cloak sway)
+          const period = B.id === 'duchess' ? 0.16 : B.id === 'baron' ? 0.4 : 0.55;
+          if (Math.floor(t / period) % 2 === 1 && this.T.tex[def.tex + '_b']) texName = def.tex + '_b';
+        }
       }
       // two-frame animation for enemies that have a second generated frame
       let frameK = 1;

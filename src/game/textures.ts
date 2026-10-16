@@ -12,7 +12,7 @@ export const SPRITES = [
   'd1_moss', 'd1_leaves', 'd1_ring', 'd2_puddle', 'd2_manhole', 'd2_net', 'd3_wax', 'd3_rug', 'd3_bones',
   ...Object.keys(FRAME_B).map((n) => n + '_b'),
 ];
-export const BIG_SPRITES = ['b_duchess', 'b_baron', 'b_snuffer', 'novaki_ko', 'b_duchess_atk', 'b_duchess_ko', 'b_baron_atk', 'b_baron_ko', 'b_snuffer_atk', 'b_snuffer_ko'];
+export const BIG_SPRITES = ['b_duchess', 'b_baron', 'b_snuffer', 'novaki_ko', 'b_duchess_atk', 'b_duchess_ko', 'b_baron_atk', 'b_baron_ko', 'b_snuffer_atk', 'b_snuffer_ko', 'b_duchess_b', 'b_baron_b', 'b_snuffer_b'];
 export const ICONS = [
   'marshmallow', 'magnet', 'coin', 'chest', 'ember', 'goldmatch', 'firecracker', 'watch', 'heartcandle',
 ];

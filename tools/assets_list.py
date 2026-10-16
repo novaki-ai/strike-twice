@@ -54,3 +54,11 @@ if want('interludes'):
 
 if want('back'):
     sprite('novaki_torso_back', 200, 320)
+
+if want('bossidle'):
+    # second idle frames, scaled to the same height as the first frame
+    for n in ['b_duchess', 'b_baron', 'b_snuffer']:
+        a = Image.open(OUT + '/' + n + '.webp')
+        b = fit(despill(Image.open(RAW + '/' + n + '_b.png')), 10000, 10000)
+        s = a.height / b.height
+        save_webp(b.resize((max(1, round(b.width * s)), a.height), Image.LANCZOS), OUT + '/' + n + '_b.webp')
