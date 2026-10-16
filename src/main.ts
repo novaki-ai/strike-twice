@@ -811,6 +811,7 @@ export class App {
     this.clearBanners();
     this.hintsShown = 0;
     this.flareHints = 0;
+    this.evoReadyAnnounced.clear();
     this.bubble.reset();
     this.acc = 0;
     this.game.startStage(1);
@@ -981,8 +982,22 @@ export class App {
     return c.id;
   }
 
+  /** announce (once per weapon per run) when a weapon becomes ready to evolve */
+  evoReadyAnnounced = new Set<string>();
+  checkEvolutionReady() {
+    const p = this.game.player;
+    for (const w of p.weapons) {
+      const def = WEAPONS[w.id];
+      if (w.evo || w.level < 8 || this.evoReadyAnnounced.has(w.id)) continue;
+      if (!p.passives.some((q) => q.id === def.evo.passive)) continue;
+      this.evoReadyAnnounced.add(w.id);
+      this.toast(`${def.name} is ready to evolve! Look for it on a level-up or in a chest.`, 'gold');
+    }
+  }
+
   afterChoice() {
     const g = this.game;
+    this.checkEvolutionReady();
     g.pendingLevels = Math.max(0, g.pendingLevels - 1);
     if (g.pendingLevels > 0) {
       this.choices = rollChoices(g, g.choiceCount);
@@ -1013,6 +1028,7 @@ export class App {
 
   /* ---------------- chests */
   showChest(items: Choice[], title = 'Treasure Matchbox!') {
+    setTimeout(() => this.checkEvolutionReady(), 0);
     const evo = items.find((c) => c.kind === 'evo');
     if (evo) setTimeout(() => this.evoBanner(evo), 100);
     const s = this.screens.chest;

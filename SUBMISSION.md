@@ -108,7 +108,8 @@ game over) crossfaded into seamless playlists in WebAudio; 31 sound effects (fro
 slide-whistle level-up) plus three looping stage ambiences (forest crickets, rain, tower wind and a distant bell)
 synthesized in code; music ducks under voice and softens while paused.
 
-**Quality of life:** first-run control hints for the active device, evolution hints on level-up cards, boss health
+**Quality of life:** first-run control hints for the active device, evolution hints on level-up cards, a notice when
+a weapon becomes ready to evolve, boss health
 bar with phase notches, off-screen arrows to treasure, a pulsing red vignette at low health, auto-pause when the tab
 is hidden, restart from the pause menu.
 
