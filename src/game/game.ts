@@ -449,7 +449,7 @@ export class Game {
       if (!e.alive) continue;
       alive++;
       // contact damage
-      if (!e.prop && e.dmg > 0 && !e.intangible && e.spawnT <= 0 && !(frozen && !e.boss)) {
+      if (!e.prop && e.dmg > 0 && !e.intangible && e.spawnT <= 0 && e.contactCd <= 0 && !(frozen && !e.boss)) {
         const dx = e.x - p.x, dy = e.y - p.y;
         const rr = e.r + p.r;
         if (dx * dx + dy * dy < rr * rr) {

@@ -108,13 +108,13 @@ export const STAGES: StageDef[] = [
       { tex: 'd3_wax', size: 85, flat: true }, { tex: 'd3_rug', size: 140, flat: true }, { tex: 'd3_bones', size: 95, flat: true },
     ],
     darkness: 0.58, ambient: [0.3, 0.22, 0.5], music: ['stage3_a', 'stage3_b', 'stage3_c'], bossMusic: ['boss3'],
-    hpMul: 4.6, dmgMul: 1.55, duration: 300, boss: 'snuffer', arenaColor: 0xb48aff, propEnemy: 'candleprop', voice: 'chapter3', ambience: 'tower',
+    hpMul: 4.6, dmgMul: 1.4, duration: 300, boss: 'snuffer', arenaColor: 0xb48aff, propEnemy: 'candleprop', voice: 'chapter3', ambience: 'tower',
     waves: [
       { t: 0, rate: 2.2, max: 80, mix: { waxghost: 2, snufflet: 2 } },
       { t: 50, rate: 2.8, max: 110, mix: { waxghost: 2, snufflet: 2, wisp: 1.4 } },
       { t: 115, rate: 3.4, max: 140, mix: { waxghost: 2, snufflet: 2, wisp: 1.4, wraith: 1.4, knight: 0.4 } },
       { t: 185, rate: 4.2, max: 180, mix: { waxghost: 1.8, snufflet: 2, wisp: 1.4, wraith: 1.6, knight: 0.8, moth: 1 } },
-      { t: 245, rate: 5.0, max: 220, mix: { waxghost: 2, snufflet: 2, wisp: 1.5, wraith: 1.8, knight: 1, raindrop: 1 } },
+      { t: 245, rate: 4.6, max: 200, mix: { waxghost: 2, snufflet: 2, wisp: 1.5, wraith: 1.6, knight: 0.9, raindrop: 1 } },
     ],
     events: [
       { t: 80, kind: 'swarm', type: 'snufflet', n: 24 },

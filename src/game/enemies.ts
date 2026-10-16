@@ -252,6 +252,7 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
           e.y = e.py = p.y + Math.sin(a) * r;
           if (g.arena) g.clampToArena(e, 30);
           e.state = 2; e.t = 0;
+          e.contactCd = 0.55;
           g.puff(e.x, e.y - 30, 0xf3ead8, 0.6, 0.6);
         }
       } else if (e.state === 2) { // fade in (telegraph), then lunge
@@ -312,6 +313,7 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
     case 'phase': {
       const cycle = (e.t + e.phase) % 4;
       const phased = cycle > 2.8;
+      if (e.intangible && !phased) e.contactCd = 0.4; // grace period while it re-forms
       e.intangible = phased;
       e.alpha = phased ? 0.3 : Math.min(1, e.alpha + dt * 4);
       moveToward(g, e, p.x, p.y, e.speed * (phased ? 1.7 : 1), dt);
