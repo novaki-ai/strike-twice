@@ -403,3 +403,11 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
 .bossin-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: linear-gradient(90deg, #6a3fb0, #b48aff); opacity: 0.85; }
 .bossin span { position: relative; display: block; text-align: center; font-family: var(--font-h); font-size: 11px; line-height: 13px; color: var(--paper); text-shadow: 1px 1px 0 var(--ink); letter-spacing: 0.5px; }
 @media (max-width: 600px) { .bossin { width: 110px; } }
+
+.bubble { position: absolute; left: 0; top: 0; z-index: 8; max-width: 220px; padding: 6px 12px 5px; background: #fffaf0; color: var(--ink);
+  border: 3px solid var(--ink); border-radius: 16px; font-family: var(--font-b); font-weight: 700; font-size: 15px; line-height: 1.15;
+  text-align: center; box-shadow: 3px 3px 0 rgba(27,22,18,0.6); opacity: 0; transition: opacity 0.18s; white-space: nowrap; }
+.bubble::after { content: ''; position: absolute; left: 50%; bottom: -12px; margin-left: -8px; border: 8px solid transparent; border-top: 10px solid var(--ink); border-bottom: 0; }
+.bubble::before { content: ''; position: absolute; left: 50%; bottom: -7px; margin-left: -5px; border: 5px solid transparent; border-top: 7px solid #fffaf0; border-bottom: 0; z-index: 1; }
+.bubble.show { opacity: 1; }
+@media (max-width: 600px) { .bubble { font-size: 13px; } }

@@ -20,6 +20,7 @@ const MAX_ENEMIES = 520;
 export interface Hooks {
   levelUp(): void;
   rumble(strength: number, ms: number): void;
+  say(kind: string): void;
   bossSpawn(bossId: string): void;
   bossPhase(bossId: string, phase: number): void;
   bossDefeated(bossId: string): void;
@@ -571,6 +572,7 @@ export class Game {
         p.iframes = 2.5;
         audio.sfx('revive', 1);
         this.hooks.toast('SECOND STRIKE! Novaki relights!', 'gold');
+        this.hooks.say('revive');
         this.blast(p.x, p.y, 220, 9999, null, 0xffc23a, true);
         p.ignite = 3;
         return;
@@ -893,6 +895,7 @@ export class Game {
       if (this.relics.size) relicOnKill(this);
       if (e.elite) {
         // a beat of impact for big kills
+        this.hooks.say('elite');
         this.hitstop = 0.07;
         this.shake(9, 0.3);
         this.explosionFx(e.x, e.y - 30, 70, 0xffd23a, true);
@@ -1292,6 +1295,7 @@ export class Game {
         p.ignite = 8;
         audio.sfx('strike', 0.9);
         this.hooks.toast('GOLDEN MATCH! Novaki is ablaze', 'gold');
+        this.hooks.say('gold');
         break;
       case 'chest':
         this.openChest();
@@ -1514,6 +1518,7 @@ export class Game {
     if (!silent) {
       this.litProps.add(d.key);
       this.lightsRelit++;
+      this.hooks.say('lamp');
       audio.sfx('strike', 0.25, 1.4, 0.2);
     }
   }

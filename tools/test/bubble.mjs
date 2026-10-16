@@ -1,0 +1,15 @@
+import { chromium } from 'playwright';
+const OUT = process.env.OUT;
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+await page.evaluate(() => { window.NOVAKI_QA.skipTo(2, 'start'); window.NOVAKI_QA.setInvincible(true); window.__novaki.clearBanners(); window.__novaki.interruptBarks(); const g = window.__novaki.game; g.director.update = () => {}; g.dropPickup('goldmatch', g.player.x, g.player.y - 20); });
+await page.waitForTimeout(1200);
+await page.screenshot({ path: OUT + '/bubble.png' });
+const t = await page.evaluate(() => document.querySelector('.bubble').textContent + ' | shown=' + document.querySelector('.bubble').classList.contains('show'));
+console.log(t);
+console.log('ERRORS', errors.join('\n'));
+await browser.close();

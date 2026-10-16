@@ -16,6 +16,7 @@ import { RELICS, RELIC_ICONS, rollRelics, grantRelic, RelicDef } from './game/re
 import { ENEMIES } from './game/enemies';
 import { BOSSES } from './game/bosses';
 import { el, button, icon, img, FocusNav, ASSET } from './ui/dom';
+import { Bubble } from './ui/bubble';
 import { INTRO, ENDING, CHAPTER_LINES, BOSS_LINES, GAMEOVER_LINE, DEATH_LINE, CLEAR_LINE, Line, Panel } from './ui/story';
 
 type Screen = 'loading' | 'title' | 'menu' | 'loadout' | 'shop' | 'settings' | 'howto' | 'records' | 'intro' | 'playing' | 'paused'
@@ -62,6 +63,7 @@ class App {
   ui = document.getElementById('ui')!;
   screens: Record<string, HTMLElement> = {};
   hud!: HTMLElement;
+  bubble!: Bubble;
   fadeEl!: HTMLElement;
   dangerEl!: HTMLElement;
   hintsShown = 0;
@@ -187,6 +189,7 @@ class App {
     this.ui.appendChild(this.toasts);
     this.subtitle = el('div', { id: 'subtitle', class: 'passthrough' });
     this.ui.appendChild(this.subtitle);
+    this.bubble = new Bubble(this.ui);
 
     for (const id of ['title', 'menu', 'loadout', 'shop', 'settings', 'howto', 'records', 'cutscene', 'levelup', 'chest', 'pause', 'stageclear', 'gameover', 'victory']) {
       const s = el('div', { class: 'screen', id });
@@ -744,6 +747,7 @@ class App {
     this.interruptBarks();
     this.clearBanners();
     this.hintsShown = 0;
+    this.bubble.reset();
     this.acc = 0;
     this.game.startStage(1);
     this.lastHud = {};
@@ -906,7 +910,7 @@ class App {
     }
     applyChoice(g, c);
     audio.sfx(c.kind === 'evo' ? 'chest' : 'click', 0.8);
-    if (c.kind === 'evo') this.evoBanner(c);
+    if (c.kind === 'evo') { this.evoBanner(c); this.bubble.say(g, 'evolve', true); }
     this.afterChoice();
     return c.id;
   }
@@ -1170,6 +1174,7 @@ class App {
     return {
       levelUp: () => this.openLevelUp(),
       rumble: (s, ms) => this.input.rumble(s, ms),
+      say: (kind) => this.bubble.say(this.game, kind),
       bossSpawn: (id) => {
         const b = BOSSES[id];
         const bar = this.hudEls.bossFill.parentElement!;
@@ -1308,6 +1313,7 @@ class App {
       g.render(1, 0);
     }
     this.updatePendingClear();
+    this.bubble.update(g, dt, this.screen === 'playing' && g.running);
     // dash readiness for touch button
     const p = g.player;
     this.input.dashReady = p ? 1 - Math.max(0, p.dashCd) / p.stats.dashCd : 1;
