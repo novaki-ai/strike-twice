@@ -263,6 +263,7 @@ export class App {
     for (const [k, e] of Object.entries(this.screens)) e.classList.toggle('show', k === id);
     const inRun = ['playing', 'paused', 'levelup', 'chest', 'stageclear', 'transition'].includes(s);
     document.body.classList.toggle('overlay-open', ['paused', 'levelup', 'chest', 'stageclear', 'gameover', 'victory'].includes(s));
+    if (s !== 'stageclear') document.body.classList.remove('subtitle-top');
     this.hud.classList.toggle('show', inRun);
     this.input.setTouchActive(s === 'playing');
     audio.setPaused(s === 'paused' || (prev === 'paused' && (s === 'settings' || s === 'howto')) || ((s === 'settings' || s === 'howto') && this.runActive));
@@ -1108,6 +1109,8 @@ export class App {
     this.stageClearT = 22;
     audio.playMusic('victory', MUSIC.victory, 0.5);
     this.bark([CLEAR_LINE]);
+    const rid = this.runId;
+    setTimeout(() => { if (this.screen === 'stageclear' && this.runId === rid) document.body.classList.add('subtitle-top'); }, 2100);
   }
   countdownEl: HTMLElement | null = null;
 

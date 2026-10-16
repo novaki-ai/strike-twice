@@ -6,6 +6,14 @@
 > spent, smoking, grumpy match with crooked glasses. When the Snuffer puts out every flame in the land, the one
 > match nobody bothered to count has to strike again.
 
+| | |
+|---|---|
+| ![Main menu](docs/screenshots/01_menu.jpg) | ![The Mothwood](docs/screenshots/02_mothwood.jpg) |
+| ![Drizzleport](docs/screenshots/03_drizzleport.jpg) | ![The Snuffer](docs/screenshots/04_snuffer.jpg) |
+| ![Level up](docs/screenshots/05_levelup.jpg) | ![Interlude](docs/screenshots/06_interlude.jpg) |
+
+*Screenshots captured from the game by `tools/test/docshots.mjs`.*
+
 ## Build & play
 
 ```bash

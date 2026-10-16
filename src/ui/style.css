@@ -475,3 +475,7 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
 
 /* gameplay banners step aside while a menu overlay (level-up, pause, chest...) is open */
 body.overlay-open .banner, body.overlay-open .bosscard { visibility: hidden; }
+
+body.overlay-open #toasts { visibility: hidden; }
+/* once the stage-clear panel is up, subtitles move to the top so they don't cover the relics */
+body.subtitle-top #subtitle { top: calc(10px + var(--safe-t)); bottom: auto; }
