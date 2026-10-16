@@ -357,7 +357,7 @@ class App {
     const dkey = todayKey();
     const dbest = this.save.daily && this.save.daily.date === dkey ? this.save.daily : null;
     const dailyRow = el('div', { class: 'row daily-row' },
-      el('span', {}, el('b', {}, 'Daily Strike'), ` - today's seeded run (${dkey}), the same for everyone. Starts with Ember Toss.`,
+      el('span', {}, el('b', {}, 'Daily Strike'), ` - today's run (${dkey}) uses the same seed for everyone and starts with Ember Toss.`,
         dbest ? el('span', { class: 'daily-best' }, ` Best today: ${dbest.won ? 'WON in ' + fmtTime(dbest.bestTime) : STAGES[Math.max(1, dbest.bestStage) - 1].name + ', ' + fmtTime(dbest.bestTime)}`) : null),
       button('Play Daily', () => this.startRun({ seed: dailySeed(dkey), weapon: 'ember', daily: true }), 'small'));
     let infernoRow: HTMLElement | null = null;

@@ -62,8 +62,8 @@ hurts bosses more). A countdown auto-picks if you wait, so unattended runs never
 **Meta-progression (saved in `localStorage`):** cinder coins earned every run (kept on death) are spent in
 *Novaki's Workshop* on 13 permanent upgrades and 5 weapon blueprints that add new weapons to the pool. Nine starting
 weapons unlock through achievements (beat bosses, reach levels, total kills, survive 10 minutes, win). Winning unlocks
-**Inferno Mode** (tougher enemies and bosses, +50% coins). **Daily Strike**: a seeded run that is the same for
-everyone on a given date, with your best result of the day saved. Records screen with lifetime stats, an illustrated
+**Inferno Mode** (tougher enemies and bosses, +50% coins). **Daily Strike**: a run whose seed is the same for everyone
+on a given date (your Workshop upgrades still apply), with your best result of the day saved. Records screen with lifetime stats, an illustrated
 bestiary that fills in as you meet each enemy, and credits.
 
 **Story & voice:** a voiced, illustrated intro (4 panels) and ending (3 panels) with subtitles, a voiced narrator
