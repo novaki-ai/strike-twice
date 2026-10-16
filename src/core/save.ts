@@ -37,7 +37,12 @@ export interface SaveData {
 
 const KEY = 'novaki-strike-twice-save-v1';
 
+function prefersReducedMotion(): boolean {
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
+}
+
 export function defaultSave(): SaveData {
+  const calm = prefersReducedMotion();
   return {
     v: 1,
     coins: 0,
@@ -52,7 +57,7 @@ export function defaultSave(): SaveData {
       bestStage: 0, bestLevel: 0, totalCoins: 0, bosses: {},
     },
     settings: {
-      music: 0.7, sfx: 0.8, voice: 1, shake: true, dmgNumbers: true, flashes: true,
+      music: 0.7, sfx: 0.8, voice: 1, shake: !calm, dmgNumbers: true, flashes: !calm,
       showFps: false, subtitles: true, vibration: true,
     },
   };
