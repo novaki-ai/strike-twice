@@ -327,7 +327,7 @@ export const AMBIENCE: Record<string, Gen> = {
           v += chirp * 0.05;
         }
       }
-      return v;
+      return v * 2.5;
     });
     return loopify(d, sr);
   },
