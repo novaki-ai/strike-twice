@@ -588,6 +588,8 @@ class App {
       ['Highest level', String(st.bestLevel)], ['Enemies snuffed', String(st.kills)], ['Coins earned', String(st.totalCoins)],
       ['Duchess Dustwing defeated', String(st.bosses.duchess || 0)], ['Baron von Drizzle defeated', String(st.bosses.baron || 0)], ['The Snuffer defeated', String(st.bosses.snuffer || 0)],
     ];
+    const dly = this.save.daily && this.save.daily.date === todayKey() ? this.save.daily : null;
+    rows.push(['Daily Strike today', dly ? (dly.won ? 'Won in ' + fmtTime(dly.bestTime) : STAGES[Math.max(1, dly.bestStage) - 1].name + ', ' + fmtTime(dly.bestTime)) : 'Not played yet']);
     const grid = el('div', { class: 'results' });
     for (const [k, v] of rows) grid.append(el('div', { class: 'k' }, k), el('div', { class: 'v' }, v));
     const unl = el('div', { style: { marginTop: '10px', fontWeight: '600' } }, 'Starting sparks unlocked: ' + STARTERS.filter((id) => this.starterUnlocked(id)).map((id) => WEAPONS[id].name).join(', '));
