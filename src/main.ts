@@ -1066,6 +1066,14 @@ class App {
       relics.appendChild(card);
     });
     this.countdownEl = el('div', { class: 'countdown' }, '');
+    // a storybook interlude plays first, then the relic choice slides in
+    const INTERLUDE: Record<number, string> = {
+      1: 'Past the Mothwood, the road wound down to Drizzleport, where the rain never stops.',
+      2: "Up the Snuffer's Spire, step after cold step... and the little flame burned brighter with every one.",
+    };
+    s.appendChild(el('div', { class: 'interlude' },
+      el('div', { class: 'interlude-img', style: { backgroundImage: `url(${img('interlude_' + Math.min(2, g.stage))})` } }),
+      el('div', { class: 'interlude-cap' }, INTERLUDE[g.stage] || '')));
     s.appendChild(el('div', { class: 'panel paper stageclear-panel', style: { width: 'min(820px, 96vw)', alignItems: 'center', textAlign: 'center', marginTop: '40px' } },
       el('img', { class: 'result-art', src: img('novaki_cheer'), alt: '' }),
       el('h2', { class: 'result-title' }, 'Stage Clear!'),
@@ -1083,8 +1091,8 @@ class App {
     this.input.setTouchActive(false);
     document.body.classList.add('overlay-open');
     this.nav.setRoot(s, null);
-    this.navLockUntil = performance.now() + 600;
-    this.stageClearT = 20;
+    this.navLockUntil = performance.now() + 2600; // no accidental picks while the panel slides in
+    this.stageClearT = 22;
     audio.playMusic('victory', MUSIC.victory, 0.5);
     this.bark([CLEAR_LINE]);
   }

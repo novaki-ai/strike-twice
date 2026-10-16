@@ -47,3 +47,7 @@ if want('extra'):
 
 if want('decals'):
     grid_sheet('sheet_decals', ['d1_moss','d1_leaves','d1_ring','d2_puddle','d2_manhole','d2_net','d3_wax','d3_rug','d3_bones'], 260, 260)
+
+if want('interludes'):
+    picture('interlude_1', 1280, 720)
+    picture('interlude_2', 1280, 720)
