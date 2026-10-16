@@ -1078,7 +1078,7 @@ class App {
       el('img', { class: 'result-art', src: img('novaki_cheer'), alt: '' }),
       el('h2', { class: 'result-title' }, 'Stage Clear!'),
       el('div', { style: { fontWeight: '700', fontSize: '17px' } }, `${BOSSES[id].name} has been snuffed out!  Time ${fmtTime(g.time)} - Level ${g.player.level}`),
-      el('div', { class: 'sc-label' }, 'Boss treasure'),
+      el('div', { class: 'sc-label sc-treasure' }, 'Boss treasure'),
       list,
       el('div', { class: 'sc-label' }, 'Choose a relic for the road ahead'),
       relics,
