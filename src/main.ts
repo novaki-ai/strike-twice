@@ -81,12 +81,9 @@ class App {
   lastHud: Record<string, string> = {};
   stageClearT = 0;
   chestT = 0;
-  seedNext: number | null = null;
-  pendingVictory = false;
   cutsceneToken = 0;
   settingsBack: Screen = 'menu';
   howtoBack: Screen = 'menu';
-  qaChoicesLog: string[] = [];
   qaRng: RNG | null = null;
   runResult: any = null;
   runId = 0;
@@ -198,7 +195,6 @@ class App {
     }
     // title
     const t = this.screens.title;
-    t.classList.add('passthrough-no');
     t.append(
       el('div', { class: 'menu-bg', style: { backgroundImage: `url(${img('menu_bg')})` } }),
       el('div', { class: 'menu-shade' }),
@@ -212,8 +208,6 @@ class App {
     // the whole document unlocks audio on first gesture
     const unlock = () => audio.unlock();
     for (const ev of ['pointerdown', 'touchend', 'click', 'keydown']) window.addEventListener(ev, unlock, { capture: true, passive: true });
-    // pause button (touch / mouse)
-    this.input.pauseBtn.addEventListener('click', () => {});
   }
 
   embers(): HTMLElement {
@@ -288,8 +282,6 @@ class App {
   renderMenu() {
     const m = this.screens.menu;
     m.innerHTML = '';
-    const canContinue = false;
-    void canContinue;
     const btns = el('div', { class: 'menu-buttons' },
       button('Play', () => this.onPlay(), 'primary'),
       button('Workshop', () => this.show('shop')),
@@ -731,9 +723,8 @@ class App {
 
   /* ================================================================ run lifecycle */
   inferno = false;
-  startRun(opts: { seed?: number; weapon?: string; skipIntroCard?: boolean; inferno?: boolean; daily?: boolean } = {}) {
-    const seed = opts.seed ?? this.seedNext ?? ((Math.random() * 0xffffffff) >>> 0);
-    this.seedNext = null;
+  startRun(opts: { seed?: number; weapon?: string; inferno?: boolean; daily?: boolean } = {}) {
+    const seed = opts.seed ?? ((Math.random() * 0xffffffff) >>> 0);
     const sh = this.save.shop;
     const unlockedWeapons = Object.keys(WEAPONS).filter((id) => !WEAPONS[id].locked || (sh['bp_' + id] || 0) > 0);
     this.game.newRun(seed, {
@@ -746,7 +737,6 @@ class App {
     this.runId++;
     if (this.deathTimer) { clearTimeout(this.deathTimer); this.deathTimer = 0; }
     this.runResult = null;
-    this.pendingVictory = false;
     this.pendingClear = null;
     this.relicChoices = [];
     this.interruptBarks();
@@ -1085,7 +1075,6 @@ class App {
 
   victory() {
     if (!this.runActive) return;
-    this.pendingVictory = true;
     this.endRun(true);
   }
 

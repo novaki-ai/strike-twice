@@ -6,7 +6,7 @@ import type { Bolt, Bullet, DmgNum, Enemy, Particle, Pickup, Player, Proj, Stats
 import type { FxTex, TexSet } from './textures';
 import { ENEMIES, updateEnemy, onEnemyDeath } from './enemies';
 import { WEAPONS, updateWeapon } from './weapons';
-import { PASSIVES, applyPassives } from './upgrades';
+import { applyPassives } from './upgrades';
 import { STAGES, StageDirector } from './stages';
 import { updateBoss, BOSSES } from './bosses';
 import { NovakiRig } from './rig';

@@ -29,7 +29,6 @@ export class AudioSys {
   private voiceBuf = new Map<string, AudioBuffer>();
   private loading = new Map<string, Promise<AudioBuffer | null>>();
   private track: Track | null = null;
-  private fading: Track[] = [];
   private sfxLast: Record<string, number> = {};
   private sfxActive: Record<string, number> = {};
   private voiceSrc: AudioBufferSourceNode | null = null;

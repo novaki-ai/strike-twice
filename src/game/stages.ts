@@ -1,7 +1,6 @@
 /** Stage definitions and the director that runs waves, events and the boss trigger. */
 import type { Game } from './game';
 import { audio } from '../core/audio';
-import { vrange } from '../core/rng';
 import { BOSSES, startBossFight } from './bosses';
 
 export interface Wave {

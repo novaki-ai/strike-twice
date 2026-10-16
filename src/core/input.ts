@@ -27,7 +27,6 @@ export class Input {
   private joyX = 0;
   private joyY = 0;
   private joyEl: HTMLDivElement;
-  private knobEl: HTMLDivElement;
   private touchLayer: HTMLDivElement;
   dashBtn: HTMLDivElement;
   pauseBtn: HTMLDivElement;
@@ -173,7 +172,6 @@ export class Input {
     joy.appendChild(knob);
     layer.appendChild(joy);
     this.joyEl = joy;
-    this.knobEl = knob;
 
     const dash = document.createElement('div');
     dash.className = 'touch-btn dash-btn';
