@@ -1169,7 +1169,9 @@ export class App {
     if (!r) return null;
     grantRelic(this.game, r.id);
     audio.sfx('chest', 0.8);
-    this.toast(`Relic gained: ${r.name}`, 'gold');
+    // confirm after the next chapter's title card has faded, so the two don't overlap
+    const rid = this.runId;
+    setTimeout(() => { if (this.runId === rid && this.screen === 'playing') this.toast(`Relic gained: ${r.name}`, 'gold'); }, 4800);
     this.relicChoices = [];
     this.nextStage();
     return r.id;
