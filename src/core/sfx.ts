@@ -83,17 +83,27 @@ export const SFX: Record<string, Gen> = {
     });
   },
   levelup: (sr) => {
+    // cartoon slide whistle glide up, then a bright chime
     const notes = [523, 659, 784, 1047, 1319];
-    return make(0.9, sr, (t) => {
+    const nz = new Noise(); const lp = new LP();
+    let ph = 0;
+    const slide = 0.34, off = 0.26;
+    return make(1.15, sr, (t) => {
       let v = 0;
+      if (t < slide) {
+        const f = 620 * Math.pow(2, 1.5 * Math.pow(t / slide, 0.8)) * (1 + 0.025 * Math.sin(TAU * 7 * t));
+        ph += (TAU * f) / sr;
+        const e = Math.min(1, t / 0.02) * Math.min(1, (slide - t) / 0.06);
+        v += (Math.sin(ph) * 0.8 + Math.sin(ph * 2) * 0.08 + lp.step(nz.next(), 0.2) * 0.12) * e * 0.36;
+      }
       for (let k = 0; k < notes.length; k++) {
-        const st = k * 0.075;
+        const st = off + k * 0.075;
         if (t >= st) {
           const tt = t - st;
-          v += (Math.sin(TAU * notes[k] * tt) * 0.6 + tri(TAU * notes[k] * 2 * tt) * 0.15) * Math.exp(-tt * 4.5);
+          v += (Math.sin(TAU * notes[k] * tt) * 0.6 + tri(TAU * notes[k] * 2 * tt) * 0.15) * Math.exp(-tt * 4.5) * 0.22;
         }
       }
-      return v * 0.22;
+      return v;
     });
   },
   hurt: (sr) => {
