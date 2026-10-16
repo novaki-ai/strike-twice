@@ -1,6 +1,6 @@
-import '@fontsource/luckiest-guy/400.css';
-import '@fontsource/fredoka/400.css';
-import '@fontsource/fredoka/600.css';
+import '@fontsource/luckiest-guy/latin-400.css';
+import '@fontsource/fredoka/latin-400.css';
+import '@fontsource/fredoka/latin-600.css';
 import './ui/style.css';
 import { Application } from 'pixi.js';
 import { audio } from './core/audio';
