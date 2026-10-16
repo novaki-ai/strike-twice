@@ -546,12 +546,13 @@ export class Game {
     if (this.relics.size && relicOnHurt(this, src)) return;
     const armor = opts.pierceArmor ? 0 : p.stats.armor;
     const d = Math.max(1, dmg - armor);
+    const lost = Math.min(d, Math.max(0, p.hp));
     p.hp -= d;
     const by = opts.by || (src ? src.type : 'bullet');
-    this.stats.dmgBy[by] = (this.stats.dmgBy[by] || 0) + d;
+    this.stats.dmgBy[by] = (this.stats.dmgBy[by] || 0) + lost;
     p.iframes = 0.75;
     p.hurtT = 0.3;
-    this.stats.dmgTaken += d;
+    this.stats.dmgTaken += lost;
     audio.sfx('hurt', 0.8);
     this.shake(7, 0.25);
     this.dmgNumber(p.x, p.y - 60, d, 0xff5a3c, 1.1);
