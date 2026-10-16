@@ -469,3 +469,6 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
 .ach-got { border: 2px solid var(--ink); border-radius: 10px; padding: 5px 10px; background: rgba(230,179,74,0.3); font-size: 14px; font-weight: 600; animation: card-deal 0.4s cubic-bezier(.2,1.4,.4,1) backwards; }
 .ach-got img { width: 16px; height: 16px; vertical-align: middle; }
 .ach-coin { font-family: var(--font-h); color: #8a5a10; }
+
+.toggle-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; }
+@media (max-width: 700px) { .toggle-grid { grid-template-columns: 1fr; } }
