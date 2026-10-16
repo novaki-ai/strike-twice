@@ -8,6 +8,7 @@ export interface Settings {
   flashes: boolean;
   showFps: boolean;
   subtitles: boolean;
+  vibration: boolean;
 }
 
 export interface SaveData {
@@ -52,7 +53,7 @@ export function defaultSave(): SaveData {
     },
     settings: {
       music: 0.7, sfx: 0.8, voice: 1, shake: true, dmgNumbers: true, flashes: true,
-      showFps: false, subtitles: true,
+      showFps: false, subtitles: true, vibration: true,
     },
   };
 }

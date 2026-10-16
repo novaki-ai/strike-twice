@@ -89,6 +89,21 @@ export class Input {
     return null;
   }
 
+  rumbleOn = true;
+  /** Controller rumble (gamepad) or phone vibration (touch), if supported and enabled. */
+  rumble(strength: number, ms: number) {
+    if (!this.rumbleOn) return;
+    try {
+      if (this.device === 'gamepad') {
+        const pad = this.anyPad() as any;
+        const act = pad && pad.vibrationActuator;
+        if (act && act.playEffect) act.playEffect('dual-rumble', { duration: ms, strongMagnitude: Math.min(1, strength), weakMagnitude: Math.min(1, strength * 0.6) }).catch?.(() => {});
+      } else if (this.device === 'touch' && navigator.vibrate) {
+        navigator.vibrate(Math.round(ms * Math.min(1, strength)));
+      }
+    } catch { /* unsupported */ }
+  }
+
   /** Call once per frame. dt in seconds. */
   update(dt: number) {
     let x = 0, y = 0;

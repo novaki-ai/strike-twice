@@ -19,6 +19,7 @@ const MAX_ENEMIES = 520;
 
 export interface Hooks {
   levelUp(): void;
+  rumble(strength: number, ms: number): void;
   bossSpawn(bossId: string): void;
   bossPhase(bossId: string, phase: number): void;
   bossDefeated(bossId: string): void;
@@ -554,6 +555,7 @@ export class Game {
     p.hurtT = 0.3;
     this.stats.dmgTaken += lost;
     audio.sfx('hurt', 0.8);
+    this.hooks.rumble(Math.min(1, 0.35 + d / 40), 140);
     this.shake(7, 0.25);
     this.dmgNumber(p.x, p.y - 60, d, 0xff5a3c, 1.1);
     if (this.settings.flashes) { this.flashT = 0.12; this.flashColor = 0xc8361d; }
@@ -1318,6 +1320,7 @@ export class Game {
   /* ------------------------------------------------------------------ FX helpers */
 
   shake(amp: number, t: number) {
+    if (amp >= 12) this.hooks.rumble(Math.min(1, amp / 18), Math.round(t * 600));
     if (!this.settings.shake) return;
     this.shakeAmp = Math.max(this.shakeAmp * (this.shakeT > 0 ? 1 : 0), amp);
     this.shakeT = Math.max(this.shakeT, t);

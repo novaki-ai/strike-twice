@@ -439,7 +439,7 @@ class App {
       });
       return el('div', { class: 'row' }, el('span', {}, label), r);
     };
-    const toggle = (label: string, key: 'shake' | 'flashes' | 'dmgNumbers' | 'showFps' | 'subtitles') => {
+    const toggle = (label: string, key: 'shake' | 'flashes' | 'dmgNumbers' | 'showFps' | 'subtitles' | 'vibration') => {
       const t = el('div', { class: 'toggle' + (st[key] ? ' on' : ''), 'data-nav': '1', role: 'switch', 'aria-label': label });
       t.addEventListener('click', () => {
         st[key] = !st[key];
@@ -480,6 +480,7 @@ class App {
         toggle('Screen flashes', 'flashes'),
         toggle('Damage numbers', 'dmgNumbers'),
         toggle('Subtitles', 'subtitles'),
+        toggle('Vibration (gamepad / phone)', 'vibration'),
         toggle('Show FPS', 'showFps'),
         el('div', { class: 'row' }, el('span', {}, 'Display'), fsBtn),
         el('div', { class: 'row' }, el('span', {}, 'Save data'), reset),
@@ -492,6 +493,7 @@ class App {
   applySettings() {
     const st = this.save.settings;
     audio.setVolumes(st.music, st.sfx, st.voice);
+    this.input.rumbleOn = st.vibration !== false;
     if (this.game) {
       this.game.settings.shake = st.shake;
       this.game.settings.dmgNumbers = st.dmgNumbers;
@@ -1167,6 +1169,7 @@ class App {
   hooks(): Hooks {
     return {
       levelUp: () => this.openLevelUp(),
+      rumble: (s, ms) => this.input.rumble(s, ms),
       bossSpawn: (id) => {
         const b = BOSSES[id];
         const bar = this.hudEls.bossFill.parentElement!;

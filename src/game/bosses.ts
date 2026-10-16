@@ -43,7 +43,7 @@ export const BOSSES: Record<string, BossDef> = {
     phases: [0.5], desc: 'A pompous storm cloud who rains on every parade.',
   },
   snuffer: {
-    name: 'The Snuffer', title: 'Extinguisher of All Flames', tex: 'b_snuffer', atkTex: 'b_snuffer_atk', koTex: 'b_snuffer_ko', posed: ['slam', 'spokes', 'sweep', 'lightsout'], hp: 16000, size: 215, r: 50, speed: 55, dmg: 18, xp: 0,
+    name: 'The Snuffer', title: 'Extinguisher of All Flames', tex: 'b_snuffer', atkTex: 'b_snuffer_atk', koTex: 'b_snuffer_ko', posed: ['slam', 'spokes', 'sweep', 'lightsout'], hp: 15000, size: 215, r: 50, speed: 55, dmg: 18, xp: 0,
     anim: 'float', noFlip: true, light: 0xd0d8ff, shadowW: 150, anchorY: 0.9,
     attacks: [['slam', 'spokes', 'sweep', 'snuffers'], ['slam', 'spokes', 'lightsout', 'sweep', 'slam'], ['slam', 'spokes', 'sweep', 'lightsout', 'slam', 'spokes']],
     phases: [0.6, 0.25], desc: 'The cold hand that put out every light in Tinderbox.',
