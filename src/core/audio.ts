@@ -21,6 +21,7 @@ export class AudioSys {
   private master!: GainNode;
   private musicBus!: GainNode;
   private duck!: GainNode;
+  private pauseGain!: GainNode;
   private sfxBus!: GainNode;
   private voiceBus!: GainNode;
   private sfxBuf: Record<string, AudioBuffer> = {};
@@ -73,8 +74,10 @@ export class AudioSys {
       comp.connect(this.master);
       this.musicBus = c.createGain();
       this.duck = c.createGain();
+      this.pauseGain = c.createGain();
       this.musicBus.connect(this.duck);
-      this.duck.connect(this.master);
+      this.duck.connect(this.pauseGain);
+      this.pauseGain.connect(this.master);
       this.sfxBus = c.createGain();
       this.sfxBus.connect(comp);
       this.voiceBus = c.createGain();
@@ -83,6 +86,12 @@ export class AudioSys {
       this.buildSfx();
     }
     if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
+  }
+
+  /** soften the music while the game is paused */
+  setPaused(on: boolean) {
+    if (!this.ctx) return;
+    this.pauseGain.gain.setTargetAtTime(on ? 0.45 : 1, this.ctx.currentTime, 0.12);
   }
 
   setVolumes(music: number, sfx: number, voice: number) {

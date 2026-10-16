@@ -263,6 +263,7 @@ class App {
     document.body.classList.toggle('overlay-open', ['paused', 'levelup', 'chest', 'stageclear', 'gameover', 'victory'].includes(s));
     this.hud.classList.toggle('show', inRun);
     this.input.setTouchActive(s === 'playing');
+    audio.setPaused(s === 'paused' || (prev === 'paused' && (s === 'settings' || s === 'howto')) || ((s === 'settings' || s === 'howto') && this.runActive));
     if (this.app) this.app.stage.visible = inRun || (s === 'gameover' && this.runActive) || s === 'victory' && false;
     if (s === 'gameover') this.app.stage.visible = true;
     this.input.clearQueued();
