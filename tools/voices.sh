@@ -1,6 +1,6 @@
 #!/bin/bash
 # Voice lines for Novaki: Strike Twice (22 clips; quota is 25)
-cd /home/selim/arena/006-oyun/oyun-a/assets-raw/voice
+cd "$(dirname "$0")/../assets-raw/voice"
 NARR="Sadaltager"; NARR_S="Warm, theatrical old-timey 1930s storybook narrator, like a classic radio announcer reading a fairy tale aloud, playful and a little dramatic, measured pace"
 NOV="Algenib"; NOV_S="Dry, deadpan, sleepy and unimpressed young man, a raspy smoky voice, mumbled and sarcastic, slow"
 v() { varlik voice "$3" --voice "$2" --style "$4" --out "$1.mp3" > "../logs/voice_$1.log" 2>&1; echo "$1: $(tail -1 ../logs/voice_$1.log)"; }
