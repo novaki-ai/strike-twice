@@ -697,9 +697,33 @@ export class App {
         }
       }
       if (token !== this.cutsceneToken) return;
+      if (screen === 'ending') await this.creditsRoll(s, token);
+      if (token !== this.cutsceneToken) return;
       this.endCutscene();
     };
     run();
+  }
+
+  /** a short "The End" credits roll after the ending's last panel (skippable like the rest of the cutscene) */
+  creditsRoll(s: HTMLElement, token: number): Promise<void> {
+    const roll = el('div', { class: 'credits-roll', html: `
+      <div class="cr-inner">
+        <div class="cr-end">The End</div>
+        <div class="cr-title">Novaki: Strike Twice</div>
+        <p><b>Starring</b><br>Novaki, the match who struck twice</p>
+        <p><b>Villains</b><br>Duchess Dustwing &middot; Baron von Drizzle &middot; The Snuffer</p>
+        <p><b>Art, music &amp; voices</b><br>generated with varlik (GPT image, Lyria, Gemini TTS)</p>
+        <p><b>Code, design &amp; writing</b><br>an AI coding agent, for the Novaki game test</p>
+        <p><b>Engine</b><br>PixiJS &middot; fonts Luckiest Guy &amp; Fredoka</p>
+        <p class="cr-thanks">Thanks for playing!</p>
+      </div>` });
+    s.appendChild(roll);
+    return new Promise<void>((resolve) => {
+      let done = false;
+      const finish = () => { if (done) return; done = true; this.csLineSkip = null; roll.remove(); resolve(); };
+      this.csLineSkip = finish; // tap / Enter skips the roll
+      setTimeout(() => { if (token === this.cutsceneToken) finish(); else resolve(); }, 11000);
+    });
   }
 
   nextLine() { this.csLineSkip?.(); }

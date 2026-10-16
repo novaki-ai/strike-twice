@@ -84,7 +84,7 @@ saved. Records screen with lifetime stats, 16 achievements
 that pay out coins (from "snuff 100 enemies" to "win in Inferno Mode"), an illustrated bestiary that fills in as you
 meet each enemy, and credits.
 
-**Story & voice:** a voiced, illustrated intro (4 panels) and ending (3 panels) with subtitles, an illustrated
+**Story & voice:** a voiced, illustrated intro (4 panels) and ending (3 panels plus a rolling "The End" credits card) with subtitles, an illustrated
 storybook interlude between chapters, a voiced narrator card for each chapter, voiced intro/defeat lines for every boss (plus the Snuffer's phase line), Novaki's own
 deadpan quips (boss reactions, stage clear, death), and a voiced game-over line. All 25 voice clips of the quota are used.
 Between voiced moments Novaki grumbles in comic speech bubbles (a line for each stage, swarms, the gilded moth,

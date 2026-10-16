@@ -1,0 +1,20 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+await page.evaluate(() => { window.__done = false; window.__novaki.playCutscene([], 'ending', 'ending', () => { window.__done = true; }); });
+await page.waitForTimeout(4500);
+await page.screenshot({ path: process.env.OUT + '/credits.png' });
+await page.waitForTimeout(7500);
+console.log('roll finished on its own:', await page.evaluate(() => window.__done));
+// skippable
+await page.evaluate(() => { window.__done = false; window.__novaki.playCutscene([], 'ending', 'ending', () => { window.__done = true; }); });
+await page.waitForTimeout(800);
+await page.keyboard.press('Enter');
+await page.waitForTimeout(300);
+console.log('skipped with Enter:', await page.evaluate(() => window.__done));
+console.log('ERRORS', errors.join('\n'));
+await browser.close();

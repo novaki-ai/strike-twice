@@ -482,3 +482,15 @@ body.subtitle-top #subtitle { top: calc(10px + var(--safe-t)); bottom: auto; }
 
 #stageclear .stageclear-panel { max-height: 96vh; overflow-y: auto; }
 @media (max-height: 500px) { body.subtitle-top #subtitle { display: none; } }
+
+/* ending credits roll */
+.credits-roll { position: absolute; inset: 0; z-index: 4; background: rgba(10,6,4,0.82); overflow: hidden; animation: cr-fade 0.8s ease-out; }
+@keyframes cr-fade { from { opacity: 0; } }
+.cr-inner { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); width: min(640px, 90vw); text-align: center; color: var(--paper); animation: cr-roll 10.5s linear forwards; }
+@keyframes cr-roll { to { top: -10%; transform: translate(-50%, -100%); } }
+.cr-end { font-family: var(--font-h); font-size: clamp(40px, 8vw, 80px); color: var(--ember2); text-shadow: 4px 4px 0 var(--ink); }
+.cr-title { font-family: var(--font-h); font-size: clamp(22px, 4vw, 36px); margin-bottom: 30px; text-shadow: 3px 3px 0 var(--ink); }
+.credits-roll p { font-size: clamp(15px, 2.2vw, 20px); font-weight: 600; margin: 0 0 26px; line-height: 1.4; }
+.credits-roll p b { font-family: var(--font-h); font-weight: 400; color: var(--ember2); letter-spacing: 1px; }
+.cr-thanks { font-family: var(--font-h); font-size: clamp(22px, 3.6vw, 32px) !important; margin-top: 40px !important; }
+@media (prefers-reduced-motion: reduce) { .cr-inner { animation: none; top: 50%; transform: translate(-50%, -50%); } }
