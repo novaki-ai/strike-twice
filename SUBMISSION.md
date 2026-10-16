@@ -50,7 +50,8 @@ time). Elite versions glow and drop a treasure matchbox.
 **Build system:** 14 weapons x 8 levels, 15 trinkets (passives), and **14 evolutions** (weapon at level 8 + its partner
 trinket), e.g. Ember Toss + Sulfur Tip = Sulfur Storm, Smoke Rings + Ash Urn = Smog Cyclone, Static Crackle + Static Wool
 = Ball Lightning, Glare + Magnifying Lens = Burning Gaze. Burn, crit, area, cooldown, projectile-count, pierce and
-duration stats interact across weapons. Level-up offers 3 cards (4 with a Workshop perk), with reroll, banish and skip.
+duration stats interact across weapons. Level-up offers 3 cards (4 with a Workshop perk) and a skip option; reroll and
+banish charges come from Workshop perks. Cards show which trinket evolves a weapon (and vice versa).
 Chests from elites and bosses grant upgrades and prioritise evolutions. Pickups: healing marshmallow, magnet,
 screen-clearing firecracker, time-freezing pocket watch, golden match (invincible + ablaze), coins.
 
@@ -78,7 +79,8 @@ candelabras and braziers relight as Novaki walks past and light up the dark; glo
 (puddles reflecting the moon, wax pools, rugs, leaf piles), off-screen chest arrows.
 Dynamic lighting (multiply light map) darkens each stage differently; fire projectiles, explosions and pickups light
 the scene; the final boss can smother the light. Film grain, vignette, rain, hit-flash, knockback, damage numbers,
-screen shake, hit-stop slow-motion on boss deaths, inked "boom" explosions, telegraphs for every dangerous attack.
+screen shake, slow-motion on boss deaths and a hit-stop on elite kills, inked "boom" explosions, telegraphs for every
+dangerous attack, controller rumble / phone vibration on big hits.
 
 **Audio:** 22 music clips (menu, intro, three stages x 3, boss tracks + final phase, workshop, victory, ending,
 game over) crossfaded into seamless playlists in WebAudio; 31 sound effects plus three looping stage ambiences
@@ -88,15 +90,17 @@ game over) crossfaded into seamless playlists in WebAudio; 31 sound effects plus
 bar with phase notches, off-screen arrows to treasure, a pulsing red vignette at low health, auto-pause when the tab
 is hidden, restart from the pause menu.
 
-**Menus:** title, main menu, starting-weapon select (plus Inferno and Daily toggles), Workshop, settings (music / sound / voice volume, screen shake,
-screen flashes, damage numbers, subtitles, FPS counter, fullscreen, reset progress), How to Play (controls, evolution
-table, illustrated bestiary), records & credits, pause (build + stats), level-up, chest, stage clear, game over and
-victory screens with run stats and per-weapon damage.
+**Menus:** title, main menu, starting-weapon select (plus Inferno Mode and Daily Strike), Workshop, settings
+(music / sound / voice volume, screen shake, screen flashes, damage numbers, subtitles, vibration, FPS counter,
+fullscreen, reset progress), How to Play (basics and controls, evolution table, relics, illustrated bestiary),
+records & credits, pause (build, stats, restart, quit), level-up, chest, stage clear with relic choice, game over and
+victory screens with run stats and per-weapon damage. Every menu works with mouse, touch, keyboard and gamepad.
 
 **Performance:** pooled entities, spatial hash collisions, batched sprites in runtime-built texture atlases, fixed
 60 Hz simulation with render interpolation. Measured in headless Chromium on this machine (Intel Arc iGPU): steady
 60 FPS at 1920x1080 with 600 enemies, six evolved weapons, ~1,100 particles and 450+ boss bullets (about 2.5 ms CPU
-per frame).
+per frame); 54+ FPS with 500 enemies under 6x CPU throttling. If a high-DPI screen still runs slow, the render
+resolution steps down automatically.
 
 ## QA interface
 
@@ -118,24 +122,40 @@ per frame).
 - `skipTo(stage, 'start' | 'boss')`: when jumping ahead it grants catch-up levels (level 12 for stage 2, 22 for stage 3,
   upgrades picked by the seeded RNG) so the later content is fair; runs that used `skipTo` are marked "QA-assisted" and do
   not set best times.
-- `killBoss()` uses the normal defeat path (death animation, voiced line, boss XP and treasure, stage clear with relic
-  choice, next stage, or the ending + victory screen after the third boss). Boss XP can trigger level-ups first; the
-  stage-clear screen waits for them, then auto-picks a relic after 20 s if nobody chooses.
+- `killBoss()` uses the normal defeat path (death animation, voiced line, boss treasure, stage clear with relic
+  choice, next stage, or the ending + victory screen after the third boss). For the first two bosses the dropped
+  experience can open level-up screens first (answer them with `chooseUpgrade`); the stage-clear screen waits for
+  them, then auto-picks a relic after 20 s if nobody chooses. The final boss drops no experience, so `killBoss()` on it
+  goes straight to the ending; `state().screen` becomes `victory` about 7 seconds later with no input needed.
+
+## Code layout
+
+- `src/main.ts`: app shell: screens and menus, HUD, cutscenes and voice lines, run lifecycle, `NOVAKI_QA`.
+- `src/game/game.ts`: the simulation (fixed 60 Hz step) and renderer: player, enemies, projectiles, zones, bullets,
+  pickups, particles, lighting, camera.
+- `src/game/weapons.ts`, `upgrades.ts`, `relics.ts`: weapons and evolutions, trinkets, level-up choices, Workshop, relics.
+- `src/game/enemies.ts`, `bosses.ts`, `stages.ts`: enemy AI, boss attack patterns, stage waves and events.
+- `src/game/rig.ts`: Novaki's animated rig; `textures.ts`: runtime atlases and procedural FX textures.
+- `src/core/`: seeded RNG, save data, input (keyboard / gamepad / touch), WebAudio engine and synthesized sounds.
 
 ## Assets
 
-Every image, voice line and music track was generated with `varlik` (see `tools/` for the job lists:
-`jobs_sprites.txt`, `jobs_batch2.txt`, `jobs_icons.txt`, `voices.sh`). Raw generations live in `assets-raw/`
-(not committed); `tools/process.py` despills the magenta key, trims, slices sprite sheets, makes ground textures
-seamless and exports WebP; `tools/audio.sh` loudness-normalizes voices and music. Fonts (Luckiest Guy, Fredoka) are
+Every image, voice line and music track was generated with `varlik`; the exact prompts are in `tools/`
+(`jobs_*.txt` for images, run with `tools/gen.py`; `music.sh` / `music2.sh` plus the first menu clip; `voices.sh` plus
+three extra lines generated by hand). Raw generations live in `assets-raw/` (not committed); `tools/process.py` despills the magenta key,
+trims, slices sprite sheets, makes ground textures seamless and exports WebP; `tools/frames.py` aligns the second
+animation frames; `tools/audio.sh` loudness-normalizes voices and music. In total (`varlik usage`): 73 images (a few early
+tests are unused), 22 music clips and 25 voice lines. Fonts (Luckiest Guy, Fredoka) are
 open-source npm packages (`@fontsource`). Sound effects are synthesized in code.
 
 ## How I tested
 
-Playwright scripts in `tools/test/` drive the real game in headless Chromium on the GPU: screen flows on desktop,
-phone portrait/landscape with touch, a simulated gamepad, every weapon and evolution, high-DPI sizing, a 1080p stress
-test, a 4-minute real-time soak (60 FPS minimum, stable heap), a determinism check, and a fast-forward bot
-(`bot.mjs`) that plays complete runs to tune pacing and difficulty. An independent code review pass found 15 issues
+Playwright scripts in `tools/test/` drive the real game in headless Chromium on the GPU (serve `dist/` with
+`node tools/test/serve.mjs dist 4317`, which mounts it under a sub-path): screen flows on desktop and on phone
+portrait/landscape with touch, a simulated gamepad, a QA-interface spec test (`qa_spec.mjs`), every weapon and
+evolution, high-DPI sizing, a 1080p stress test, CPU-throttled runs, a 4-minute real-time soak (60 FPS minimum, stable
+heap), a determinism check, chaos tests (thousands of random inputs and QA calls on desktop and mobile, zero errors),
+and a fast-forward bot (`bot.mjs`) that plays complete runs to tune pacing and difficulty. An independent code review pass found 15 issues
 (an enemy-pool double-listing bug, determinism leaks, timers outliving a run, and more), all fixed.
 
 ## What I would improve with more time
@@ -148,8 +168,9 @@ test, a 4-minute real-time soak (60 FPS minimum, stable heap), a determinism che
 
 ## Known issues
 
-- Balance was tuned with an automated bot that dodges worse than a person; in its no-upgrade runs it reliably clears
-  stage 1 and usually falls at the second boss, so a first run is meant to be hard. Workshop upgrades, relics and
-  evolutions make later runs much stronger. Real players may find it easier or harder than intended.
+- Balance was tuned with an automated bot that dodges worse than a person. With no Workshop upgrades it usually reaches
+  stage 3 or the final boss and sometimes wins (its winning run took 21 minutes), so a first run is meant to be a real
+  challenge; Workshop upgrades, relics and evolutions make later runs much stronger. Real players may find it easier
+  or harder than intended.
 - The `state().screen` value is `transition` for about 0.4 s while the screen fades between stages.
-- Music clips are 30-second generations looped with crossfades, so repetition is noticeable over long stages.
+- Each stage plays a playlist of three 30-second clips (bosses two), crossfaded; some repetition is still audible.
