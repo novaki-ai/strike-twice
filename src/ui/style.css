@@ -439,4 +439,4 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
 .flare-btn.full { opacity: 1; animation: flare-pulse 0.7s ease-in-out infinite alternate; }
 @media (prefers-reduced-motion: reduce) { .flarebar.full, .flare-btn.full { animation: none; } }
 
-.thanks { margin-top: 10px; text-align: center; font-family: var(--font-h); font-size: 17px; color: #a8461a; }
+.thanks { margin: 0 0 6px; text-align: center; font-family: var(--font-h); font-size: 15px; color: #a8461a; }
