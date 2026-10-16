@@ -12,7 +12,7 @@ export interface Wave {
 
 export interface StageEvent {
   t: number;
-  kind: 'swarm' | 'ring' | 'elite' | 'warning' | 'prop';
+  kind: 'swarm' | 'ring' | 'elite' | 'warning' | 'prop' | 'gilded';
   type?: string;
   n?: number;
   text?: string;
@@ -65,6 +65,7 @@ export const STAGES: StageDef[] = [
     ],
     events: [
       { t: 60, kind: 'swarm', type: 'moth', n: 16 },
+      { t: 95, kind: 'gilded' },
       { t: 118, kind: 'elite', type: 'beetle' },
       { t: 175, kind: 'ring', type: 'mold', n: 30 },
       { t: 200, kind: 'elite', type: 'stump' },
@@ -92,6 +93,7 @@ export const STAGES: StageDef[] = [
     events: [
       { t: 70, kind: 'swarm', type: 'raindrop', n: 26 },
       { t: 125, kind: 'elite', type: 'frog' },
+      { t: 160, kind: 'gilded' },
       { t: 185, kind: 'ring', type: 'slime', n: 20 },
       { t: 225, kind: 'elite', type: 'wateringcan' },
       { t: 260, kind: 'swarm', type: 'balloon', n: 16 },
@@ -117,6 +119,7 @@ export const STAGES: StageDef[] = [
     ],
     events: [
       { t: 80, kind: 'swarm', type: 'snufflet', n: 24 },
+      { t: 110, kind: 'gilded' },
       { t: 140, kind: 'elite', type: 'knight' },
       { t: 200, kind: 'ring', type: 'wraith', n: 22 },
       { t: 240, kind: 'elite', type: 'wisp' },
@@ -270,6 +273,15 @@ export class StageDirector {
         const sp = g.spawnPoint();
         g.spawnEnemy(ev.type!, sp.x, sp.y, { elite: true });
         g.hooks.toast('An elite foe appears - it carries treasure!', 'gold');
+        break;
+      }
+      case 'gilded': {
+        // appears on screen, a little away from Novaki, and runs
+        const a = g.rng.angle();
+        const r = Math.min(g.viewW, g.viewH) * 0.32;
+        g.spawnEnemy('goldmoth', p.x + Math.cos(a) * r, p.y + Math.sin(a) * r * 0.8);
+        g.hooks.toast('A gilded moth! Catch it before it flies off!', 'gold');
+        audio.sfx('buzz', 0.4, 1.8);
         break;
       }
       case 'warning':

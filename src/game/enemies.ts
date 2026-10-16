@@ -25,6 +25,7 @@ export interface EnemyDef {
   shadowW?: number;
   anchorY?: number;
   light?: number;
+  gilded?: boolean;
   desc: string;
 }
 
@@ -48,6 +49,8 @@ export const ENEMIES: Record<string, EnemyDef> = {
   wisp: { name: 'Frost Wisp', tex: 'e_wisp', hp: 30, speed: 62, dmg: 0, r: 14, size: 50, xp: 3, ai: 'shooter', anim: 'float', noFlip: true, light: 0x9fd8ff, desc: 'Hangs back and fires bursts of frost.' },
   knight: { name: 'Wax Knight', tex: 'e_knight', hp: 190, speed: 33, dmg: 16, r: 22, size: 74, xp: 10, ai: 'chase', anim: 'stomp', animSpeed: 4, kbRes: 0.15, shield: true, noFlip: true, desc: 'Its shield blocks hits from the front. Flank it!' },
   wraith: { name: 'Smoke Wraith', tex: 'e_wraith', hp: 44, speed: 80, dmg: 10, r: 16, size: 60, xp: 4, ai: 'phase', anim: 'float', noFlip: true, desc: 'Turns to smoke and drifts through attacks.' },
+  // ---- treasure runner: flees, drops a chest if caught
+  goldmoth: { name: 'Gilded Moth', tex: 'e_moth', hp: 50, speed: 128, dmg: 0, r: 15, size: 44, xp: 0, ai: 'flee', anim: 'fly', animSpeed: 18, noFlip: true, gilded: true, kbRes: 0.2, desc: 'Flees with a belly full of gold. Catch it!' },
   // ---- destructible props (drop goodies)
   lanternprop: { name: 'Lantern Stump', tex: 'p1_lantern', hp: 18, speed: 0, dmg: 0, r: 22, size: 70, xp: 0, ai: 'prop', prop: true, desc: '' },
   barrelprop: { name: 'Barrel', tex: 'p2_barrel', hp: 22, speed: 0, dmg: 0, r: 20, size: 58, xp: 0, ai: 'prop', prop: true, desc: '' },
@@ -79,7 +82,7 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
   const dxp = p.x - e.x, dyp = p.y - e.y;
   const distP = Math.hypot(dxp, dyp);
   // relocate stragglers far behind (keeps pressure on a moving player)
-  if (!e.prop && !g.arena && distP > Math.max(g.viewW, g.viewH) * 0.95 + 200 && e.state !== 9) {
+  if (!e.prop && !e.def.gilded && !g.arena && distP > Math.max(g.viewW, g.viewH) * 0.95 + 200 && e.state !== 9) {
     const ang = Math.atan2(p.dirY, p.dirX) + g.rr(-1, 1);
     const sp = g.spawnPoint(p.moving ? ang : undefined);
     e.x = e.px = sp.x;
@@ -319,6 +322,22 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
       if (phased && g.frameCount % 4 === 0) g.puff(e.x, e.y - 30, 0x3a3430, 0.5, 0.7);
       break;
     }
+    case 'flee': {
+      // run away from Novaki in a wobbly arc; escape after a while
+      const d = distP || 1;
+      const away = Math.atan2(-dyp, -dxp) + Math.sin(e.t * 2.3 + e.phase) * 0.9;
+      const sl = e.slowT > 0 ? e.slowF : 1;
+      const sp = e.speed * (d < 170 ? 1.15 : 0.85) * sl;
+      e.x += (Math.cos(away) * sp + e.vx) * dt;
+      e.y += (Math.sin(away) * sp + e.vy) * dt;
+      e.face = Math.cos(away) > 0 ? 1 : -1;
+      if (g.frameCount % 4 === 0) g.particle(e.x + vrange(-12, 12), e.y - 30 + vrange(-8, 8), g.fx.star, { add: true, vy: -25, life: 0.5, s0: 0.35, s1: 0, tint: 0xffd23a });
+      if (e.t > 13) {
+        g.hooks.toast('The gilded moth got away!', 'warn');
+        g.despawn(e, true);
+      }
+      break;
+    }
     case 'prop':
       e.vx = e.vy = 0;
       break;
@@ -360,6 +379,13 @@ export function onEnemyDeath(g: Game, e: Enemy, w: WeaponInst | null) {
   // wildfire evolution: burning enemies spread fire
   if (e.burnT > 0 && g.director?.wildfire) g.director.wildfire(e.x, e.y);
   // drops
+  if (def.gilded) {
+    g.dropPickup('chest', e.x, e.y);
+    for (let i = 0; i < 10; i++) g.dropPickup('coin', e.x + g.rr(-40, 40), e.y + g.rr(-40, 40), 2);
+    g.hooks.toast('Caught the gilded moth!', 'gold');
+    audio.sfx('chest', 0.6, 1.2);
+    return;
+  }
   if (e.prop) {
     const r = g.rng.next();
     const kind = r < 0.42 ? 'heal' : r < 0.6 ? 'coin' : r < 0.73 ? 'magnet' : r < 0.84 ? 'bomb' : r < 0.93 ? 'freeze' : 'goldmatch';

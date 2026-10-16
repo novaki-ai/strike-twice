@@ -35,7 +35,7 @@ the **Flare-Up** meter; when it's full Novaki can "strike twice": a screen-wide 
 ## What I built
 
 **Structure of a run (about 18-22 minutes):** three stages, each about 4.5-5 minutes of escalating waves (with swarm
-migrations, encirclements, elites carrying treasure and destructible props), then a boss in a closed arena.
+migrations, encirclements, elites carrying treasure, a gilded moth that flees with a chest, and destructible props), then a boss in a closed arena.
 Your build carries over between stages. Beating the third boss plays the ending and wins the run.
 
 | Stage | Look & music | Enemies | Boss |

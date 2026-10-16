@@ -1793,6 +1793,7 @@ export class Game {
       sp.rotation = rot + (e.boss?.rot || 0);
       sp.alpha = e.alpha;
       if (e.boss) sp.tint = e.flash > 0 ? 0xff8f7a : 0xffffff;
+      else if (def.gilded) sp.tint = 0xffd23a;
       else if (!e.elite) sp.tint = e.burnT > 0 ? 0xffb38a : e.freezeT > 0 || this.freezeT > 0 ? 0x9fd8ff : e.slowT > 0 ? 0xdfe6f6 : 0xffffff;
       sp.zIndex = ey;
       e.sh.x = ex;
