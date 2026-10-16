@@ -500,8 +500,11 @@ function bossDeath(g: Game, e: Enemy, dt: number) {
     g.shake(18, 0.6);
     if (g.settings.flashes) { g.flashT = 0.35; g.flashColor = 0xfff8e0; }
     audio.sfx('explode', 1, 0.7);
+    const finalBoss = g.stage >= 3;
     for (let i = 0; i < 20; i++) g.dropPickup('coin', e.x + g.rr(-90, 90), e.y + g.rr(-60, 60), 3);
-    for (let i = 0; i < 12; i++) g.dropPickup('xp', e.x + g.rr(-90, 90), e.y + g.rr(-60, 60), 20);
+    // the final boss drops no experience: the run is over, so no level-up screens get in the way of the ending
+    if (!finalBoss) for (let i = 0; i < 12; i++) g.dropPickup('xp', e.x + g.rr(-90, 90), e.y + g.rr(-60, 60), 20);
+    if (finalBoss) g.runWon = true;
     g.dropPickup('heal', e.x, e.y + 30);
     g.magnetAll();
     g.releaseEnemy(e);

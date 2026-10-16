@@ -990,7 +990,8 @@ class App {
   updatePendingClear() {
     const pc = this.pendingClear;
     if (!pc || !this.runActive) return;
-    if (this.game.time < pc.at || this.screen !== 'playing' || this.game.pendingLevels > 0) return;
+    const final = pc.stage >= 3;
+    if (this.game.time < pc.at || this.screen !== 'playing' || (!final && this.game.pendingLevels > 0)) return;
     this.pendingClear = null;
     if (this.game.stage !== pc.stage) return;
     if (pc.stage >= 3) this.victory();

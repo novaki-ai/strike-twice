@@ -101,6 +101,7 @@ export class Game {
   choiceCount = 3;
   inferno = false;
   daily = false;
+  runWon = false;
   seenTypes = new Set<string>();
   relics = new Set<string>();
   wardT = 0;
@@ -275,6 +276,7 @@ export class Game {
     this.choiceCount = meta.choices;
     this.inferno = !!meta.inferno;
     this.daily = !!(meta as any).daily;
+    this.runWon = false;
     this.seenTypes.clear();
     this.relics.clear();
     this.wardT = 0;
@@ -468,7 +470,7 @@ export class Game {
     this.updatePickups(dt);
 
     // level-ups queued -> UI
-    if (this.pendingLevels > 0 && !this.over && p.hp > 0) {
+    if (this.pendingLevels > 0 && !this.over && p.hp > 0 && !this.runWon) {
       this.hooks.levelUp();
     }
   }
