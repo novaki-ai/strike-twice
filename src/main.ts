@@ -463,7 +463,9 @@ class App {
     }, 'small');
     const reset = button('Reset Progress', () => {
       if (reset.dataset.armed) {
+        const keep = this.save.settings;
         this.save = wipeSave();
+        this.save.settings = keep; // progress only: audio / display settings stay
         writeSave(this.save);
         this.applySettings();
         this.toast('Progress wiped. A fresh match!', 'warn');
