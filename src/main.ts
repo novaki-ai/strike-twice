@@ -7,7 +7,7 @@ import { audio } from './core/audio';
 import { RNG } from './core/rng';
 import { Input } from './core/input';
 import { loadSave, writeSave, wipeSave, SaveData } from './core/save';
-import { Game, STEP, Hooks, xpFor } from './game/game';
+import { Game, STEP, Hooks } from './game/game';
 import { loadSpriteAtlas, loadTiles, loadIcons, makeFxTextures, makeDigitTextures, ICONS } from './game/textures';
 import { WEAPONS } from './game/weapons';
 import { PASSIVES, rollChoices, applyChoice, rollChest, Choice, SHOP, metaStats, STARTERS } from './game/upgrades';

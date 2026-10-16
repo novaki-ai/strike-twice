@@ -1,3 +1,4 @@
+/** Shared shapes of the simulation: stats, the player, enemies, projectiles, zones, bullets, telegraphs, pickups, particles. */
 import type { Container, Graphics, Sprite } from 'pixi.js';
 
 export interface Stats {
