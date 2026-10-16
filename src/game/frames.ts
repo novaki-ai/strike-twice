@@ -11,5 +11,9 @@ export const FRAME_B: Record<string, number> = {
   "e_moth": 0.984,
   "e_mold": 0.893,
   "e_wisp": 0.922,
-  "e_waxghost": 0.881
+  "e_waxghost": 0.881,
+  "e_cloud": 0.77,
+  "e_balloon": 1.02,
+  "e_slime": 1.047,
+  "e_wraith": 0.913
 };

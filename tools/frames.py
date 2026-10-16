@@ -1,7 +1,7 @@
 
 exec(open('tools/process.py').read().split("if __name__ == '__main__':")[0])
 from PIL import Image
-names = ['toadstool','raindrop','wateringcan','snufflet','beetle','stump','knight','frog','moth','mold','wisp','waxghost']
+names = ['toadstool','raindrop','wateringcan','snufflet','beetle','stump','knight','frog','moth','mold','wisp','waxghost','cloud','balloon','slime','wraith']
 info = {}
 for n in names:
     a = fit(despill(Image.open(RAW + '/e_' + n + '.png')), 10000, 10000)
