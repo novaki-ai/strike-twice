@@ -26,6 +26,7 @@ export function button(label: string, onClick: () => void, cls = ''): HTMLButton
   const b = el('button', { class: 'btn ' + cls, 'data-nav': '1', type: 'button' }, label);
   b.addEventListener('click', (e) => {
     e.stopPropagation();
+    b.blur(); // keyboard navigation is handled by FocusNav; native focus would make Enter fire twice
     if (b.disabled) return;
     audio.sfx('click', 0.6);
     onClick();
@@ -49,6 +50,8 @@ export class FocusNav {
     this.root = root;
     this.onBack = onBack;
     this.mouseMoved = false;
+    const active = document.activeElement as HTMLElement | null;
+    if (active && active !== document.body && active.blur) active.blur();
     this.setCurrent(null);
     if (root && autoFocus) {
       const first = this.items()[0];

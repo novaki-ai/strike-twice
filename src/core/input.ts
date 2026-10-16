@@ -49,7 +49,7 @@ export class Input {
     const c = e.code;
     const target = e.target as HTMLElement;
     if (target && (target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'text')) return;
-    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(c)) e.preventDefault();
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Enter', 'NumpadEnter', 'Tab'].includes(c)) e.preventDefault();
     if (this.device !== 'keyboard') this.device = 'keyboard';
     this.onAnyInput?.();
     if (!e.repeat) {
@@ -63,7 +63,7 @@ export class Input {
       ArrowRight: 'right', KeyD: 'right', Enter: 'confirm', NumpadEnter: 'confirm', Space: 'confirm',
       Escape: 'back', Backspace: 'back',
     };
-    const d = map[c];
+    const d = c === 'Tab' ? (e.shiftKey ? 'up' : 'down') : map[c];
     if (d && this.onNav && !(e.repeat && (d === 'confirm' || d === 'back'))) this.onNav(d);
     if (!e.repeat && this.onDigit && /^(Digit|Numpad)[1-4]$/.test(c)) this.onDigit(Number(c.slice(-1)));
   }
