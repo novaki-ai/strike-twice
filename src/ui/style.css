@@ -421,3 +421,5 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
 .ars-evo img { width: 18px; height: 18px; object-fit: contain; vertical-align: middle; margin-right: 3px; }
 .ars-h { font-size: 20px; margin: 10px 0 6px; }
 @media (max-width: 600px) { .arsenal { grid-template-columns: 1fr; } }
+
+.btn .badge { position: absolute; right: -10px; top: -10px; width: 26px; height: 26px; border-radius: 50%; background: var(--red); color: var(--paper); border: 3px solid var(--ink); font-size: 16px; line-height: 21px; text-align: center; animation: pop 0.4s cubic-bezier(.2,1.6,.4,1); }

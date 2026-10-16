@@ -287,7 +287,7 @@ class App {
     m.innerHTML = '';
     const btns = el('div', { class: 'menu-buttons' },
       button('Play', () => this.onPlay(), 'primary'),
-      button('Workshop', () => this.show('shop')),
+      this.workshopButton(),
       button('How to Play', () => { this.howtoBack = 'menu'; this.show('howto'); }),
       button('Settings', () => { this.settingsBack = 'menu'; this.show('settings'); }),
       button('Records & Credits', () => this.show('records')),
@@ -304,6 +304,13 @@ class App {
       el('div', { class: 'version' }, 'v1.0 - made with varlik-generated art, music & voices'),
     );
     this.nav.setRoot(m, null);
+  }
+
+  workshopButton() {
+    const b = button('Workshop', () => this.show('shop'));
+    const affordable = SHOP.some((it) => (this.save.shop[it.id] || 0) < it.max && this.save.coins >= it.cost(this.save.shop[it.id] || 0));
+    if (affordable) b.appendChild(el('span', { class: 'badge' }, '!'));
+    return b;
   }
 
   onPlay() {
