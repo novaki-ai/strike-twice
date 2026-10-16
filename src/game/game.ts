@@ -1149,6 +1149,12 @@ export class Game {
 
   tele(o: Partial<Tele> & { kind: Tele['kind']; dur: number }): Tele {
     const t: Tele = { alive: true, x: 0, y: 0, r: 40, ang: 0, len: 300, w: 30, t: 0, color: 0xe8501c, follow: false, onDone: null, ...o };
+    if (t.subtle) {
+      // minor-enemy hints: keep at most a few on screen so a crowd doesn't draw a starburst
+      let n = 0;
+      for (const q of this.teles) if (q.alive && q.subtle) n++;
+      if (n >= 5) return t;
+    }
     this.teles.push(t);
     return t;
   }
@@ -1883,11 +1889,11 @@ export class Game {
       } else if (t.kind === 'line' && t.subtle) {
         // thin dashed arrow for regular enemies
         const cx = Math.cos(t.ang), cy = Math.sin(t.ang);
-        const a = 0.35 + 0.45 * f;
+        const a = 0.25 + 0.4 * f;
         for (let d = 0; d < t.len - 14; d += 18) {
           g.moveTo(t.x + cx * d, t.y + cy * d).lineTo(t.x + cx * Math.min(t.len - 14, d + 10), t.y + cy * Math.min(t.len - 14, d + 10));
         }
-        g.stroke({ width: 3, color: t.color, alpha: a, cap: 'round' });
+        g.stroke({ width: 2.5, color: t.color, alpha: a, cap: 'round' });
         const ex = t.x + cx * t.len, ey = t.y + cy * t.len;
         g.poly([ex, ey, ex - cx * 16 - cy * 9, ey - cy * 16 + cx * 9, ex - cx * 16 + cy * 9, ey - cy * 16 - cx * 9]).fill({ color: t.color, alpha: a });
       } else if (t.kind === 'line') {

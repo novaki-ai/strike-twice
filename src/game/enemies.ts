@@ -198,8 +198,7 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
         moveToward(g, e, p.x, p.y, e.speed, dt);
         if (distP < 58) {
           e.state = 9; e.t = 0; audio.sfx('buzz', 0.3, 1.6);
-          const tl = g.tele({ kind: 'circle', x: e.x, y: e.y, r: 72, dur: 0.6, color: 0x7fb6e6 });
-          e.ang = g.teles.indexOf(tl);
+          g.tele({ kind: 'circle', x: e.x, y: e.y, r: 72, dur: 0.6, color: 0x7fb6e6 });
         }
       } else if (e.state === 9) {
         e.scale = (e.elite ? 1.55 : 1) * (1 + e.t * 0.5);
