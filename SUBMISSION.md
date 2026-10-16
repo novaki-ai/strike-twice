@@ -103,8 +103,9 @@ screen shake, slow-motion on boss deaths and a hit-stop on elite kills, inked "b
 dangerous attack, controller rumble / phone vibration on big hits.
 
 **Audio:** 25 music clips (menu, intro, three stages x 4, boss tracks + final phase, workshop, victory, ending,
-game over) crossfaded into seamless playlists in WebAudio; 31 sound effects plus three looping stage ambiences
-(forest crickets, rain, tower wind and a distant bell) synthesized in code; music ducks under voice.
+game over) crossfaded into seamless playlists in WebAudio; 31 sound effects (from a match strike to a cartoon
+slide-whistle level-up) plus three looping stage ambiences (forest crickets, rain, tower wind and a distant bell)
+synthesized in code; music ducks under voice and softens while paused.
 
 **Quality of life:** first-run control hints for the active device, evolution hints on level-up cards, boss health
 bar with phase notches, off-screen arrows to treasure, a pulsing red vignette at low health, auto-pause when the tab
