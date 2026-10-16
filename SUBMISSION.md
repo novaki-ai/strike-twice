@@ -170,8 +170,8 @@ and a fast-forward bot (`bot.mjs`) that plays complete runs to tune pacing and d
 
 ## Known issues
 
-- Balance was tuned with an automated bot that dodges worse than a person. With no Workshop upgrades it usually reaches
-  stage 3 or the final boss and sometimes wins (its winning run took 21 minutes), so a first run is meant to be a real
+- Balance was tuned with an automated bot that dodges worse than a person. With no Workshop upgrades it reaches stage 3 in nearly
+  every run and wins about one run in three (its wins took 18 and 21 minutes), so a first run is meant to be a real
   challenge; Workshop upgrades, relics and evolutions make later runs much stronger. Real players may find it easier
   or harder than intended.
 - The `state().screen` value is `transition` for about 0.4 s while the screen fades between stages.
