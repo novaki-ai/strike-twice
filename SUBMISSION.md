@@ -41,7 +41,7 @@ Your build carries over between stages. Beating the third boss plays the ending 
 | 2. Drizzleport | rainy harbor at night, noir big band | Raindrop, Puddle Slime, Bullfrog, Storm Cloud, Water Balloon, Watering Can | **Baron von Drizzle** (downpour circles, lightning lines, umbrella bullet rings, slanted rain, summons; storm phase) |
 | 3. The Snuffer's Spire | dark candle castle, danse-macabre swing | Wax Ghost, Snufflet, Frost Wisp, Wax Knight, Smoke Wraith (+ returning foes) | **The Snuffer** (shadow-tracking slam with shockwave, rotating spokes, sweeping walls with gaps, "lights out" darkness + homing smoke, summons; 3 phases with voiced phase line and music change) |
 
-**Enemies (16 types, all with distinct behaviour):** chaser, sine-weaving flier, spore-ring shooter, telegraphed
+**Enemies (16 types, all with distinct behaviour, each with a two-frame walk / flap / leap animation):** chaser, sine-weaving flier, spore-ring shooter, telegraphed
 charger, knockback-resistant tank, fast chaser, splitter (splits in two), hopper, artillery cloud (telegraphed
 lightning), kamikaze (telegraphed burst), healer (heals allies), blinker (vanishes and reappears beside you),
 orbit-and-dive, ranged burst shooter, frontal shield (must be flanked), phasing wraith (intangible part of the
@@ -61,7 +61,9 @@ hurts bosses more). A countdown auto-picks if you wait, so unattended runs never
 **Meta-progression (saved in `localStorage`):** cinder coins earned every run (kept on death) are spent in
 *Novaki's Workshop* on 13 permanent upgrades and 5 weapon blueprints that add new weapons to the pool. Nine starting
 weapons unlock through achievements (beat bosses, reach levels, total kills, survive 10 minutes, win). Winning unlocks
-**Inferno Mode** (tougher enemies and bosses, +50% coins). Records screen with lifetime stats.
+**Inferno Mode** (tougher enemies and bosses, +50% coins). **Daily Strike**: a seeded run that is the same for
+everyone on a given date, with your best result of the day saved. Records screen with lifetime stats, an illustrated
+bestiary that fills in as you meet each enemy, and credits.
 
 **Story & voice:** a voiced, illustrated intro (4 panels) and ending (3 panels) with subtitles, a voiced narrator
 card for each chapter, voiced intro/defeat lines for every boss (plus the Snuffer's phase line), Novaki's own
@@ -78,9 +80,14 @@ the scene; the final boss can smother the light. Film grain, vignette, rain, hit
 screen shake, hit-stop slow-motion on boss deaths, inked "boom" explosions, telegraphs for every dangerous attack.
 
 **Audio:** 22 music clips (menu, intro, three stages x 3, boss tracks + final phase, workshop, victory, ending,
-game over) crossfaded into seamless playlists in WebAudio; 31 sound effects synthesized in code; music ducks under voice.
+game over) crossfaded into seamless playlists in WebAudio; 31 sound effects plus three looping stage ambiences
+(forest crickets, rain, tower wind and a distant bell) synthesized in code; music ducks under voice.
 
-**Menus:** title, main menu, starting-weapon select, Workshop, settings (music / sound / voice volume, screen shake,
+**Quality of life:** first-run control hints for the active device, evolution hints on level-up cards, boss health
+bar with phase notches, off-screen arrows to treasure, a pulsing red vignette at low health, auto-pause when the tab
+is hidden, restart from the pause menu.
+
+**Menus:** title, main menu, starting-weapon select (plus Inferno and Daily toggles), Workshop, settings (music / sound / voice volume, screen shake,
 screen flashes, damage numbers, subtitles, FPS counter, fullscreen, reset progress), How to Play (controls, evolution
 table, illustrated bestiary), records & credits, pause (build + stats), level-up, chest, stage clear, game over and
 victory screens with run stats and per-weapon damage.
@@ -132,13 +139,16 @@ test, a 4-minute real-time soak (60 FPS minimum, stable heap), a determinism che
 
 ## What I would improve with more time
 
-- Real multi-frame animation for enemies and bosses (they are single generated sprites animated with squash, bob, sway
-  and flip).
+- Longer animation cycles: enemies have two generated frames plus squash/bob/sway in code; bosses have idle, attack
+  and defeat poses rather than full animation.
 - More bespoke visuals per weapon level, more boss attack variety in later phases, and an endless mode.
 - Real-device testing on Safari/iOS and Firefox (only Chromium was available here; the code avoids engine-specific APIs).
 - More balance passes with human players; I tuned with an automated bot, which plays worse than a decent human.
 
 ## Known issues
 
-- Balance was tuned with a bot; the first run may feel hard or easy depending on the player. Workshop upgrades help.
+- Balance was tuned with an automated bot that dodges worse than a person; in its no-upgrade runs it reliably clears
+  stage 1 and usually falls at the second boss, so a first run is meant to be hard. Workshop upgrades, relics and
+  evolutions make later runs much stronger. Real players may find it easier or harder than intended.
+- The `state().screen` value is `transition` for about 0.4 s while the screen fades between stages.
 - Music clips are 30-second generations looped with crossfades, so repetition is noticeable over long stages.
