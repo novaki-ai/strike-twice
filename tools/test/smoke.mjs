@@ -1,7 +1,7 @@
 // Smoke test: load, start a run, play a bit via QA, screenshot.
 import { chromium } from 'playwright';
 const URL = process.env.URL || 'http://localhost:4317/games/novaki/';
-const OUT = process.env.OUT || '/tmp/shots';
+const OUT = process.env.OUT || 'test-results';
 import fs from 'node:fs';
 fs.mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan', '--autoplay-policy=no-user-gesture-required'] });

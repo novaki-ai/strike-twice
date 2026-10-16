@@ -1,7 +1,9 @@
 // Verify the world fills the screen on high-DPI displays (desktop retina + phone).
+import fs from 'node:fs';
 import { chromium } from 'playwright';
 const URL = process.env.URL || 'http://localhost:4317/games/novaki/';
-const OUT = process.env.OUT;
+const OUT = process.env.OUT || 'test-results';
+fs.mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
 for (const [w, h, dpr, mobile] of [[1440, 900, 2, false], [844, 390, 3, true], [390, 844, 3, true]]) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dpr, isMobile: mobile, hasTouch: mobile });

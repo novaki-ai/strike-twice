@@ -1,7 +1,9 @@
 // Cross-browser smoke: load, menus, a short run with QA calls, stage/boss skips, end screens. Reports console errors.
+import fs from 'node:fs';
 import { chromium, firefox, webkit } from 'playwright';
 const URL = process.env.URL || 'http://localhost:4317/games/novaki/';
-const OUT = process.env.OUT || '/tmp';
+const OUT = process.env.OUT || 'test-results';
+fs.mkdirSync(OUT, { recursive: true });
 const which = process.env.BROWSER || 'firefox';
 const bt = { chromium, firefox, webkit }[which];
 const browser = await bt.launch(which === 'firefox' ? { firefoxUserPrefs: { 'media.autoplay.default': 0, 'webgl.force-enabled': true } } : {});

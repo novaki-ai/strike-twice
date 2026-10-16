@@ -1,4 +1,6 @@
+import fs from 'node:fs';
 import { chromium } from 'playwright';
+fs.mkdirSync(process.env.OUT || 'test-results', { recursive: true });
 const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
@@ -9,6 +11,6 @@ await page.keyboard.down('KeyD');
 await page.waitForTimeout(300);
 await page.keyboard.press('Space');
 await page.waitForTimeout(130);
-await page.screenshot({ path: process.env.OUT + '/dashfx.png', clip: { x: 440, y: 230, width: 500, height: 220 } });
+await page.screenshot({ path: (process.env.OUT || 'test-results') + '/dashfx.png', clip: { x: 440, y: 230, width: 500, height: 220 } });
 await page.keyboard.up('KeyD');
 await browser.close();

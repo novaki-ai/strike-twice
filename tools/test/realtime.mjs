@@ -1,8 +1,10 @@
 // Real-time full playthrough driven only by synthetic keyboard events (WASD, Space, E, digits, Enter).
 // No QA helpers: the run is a normal player run from the title screen to the ending.
+import fs from 'node:fs';
 import { chromium } from 'playwright';
 const URL = process.env.URL || 'http://localhost:4317/games/novaki/';
-const OUT = process.env.OUT || '/tmp';
+const OUT = process.env.OUT || 'test-results';
+fs.mkdirSync(OUT, { recursive: true });
 const MAXMIN = Number(process.env.MAXMIN || 26);
 const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan', '--autoplay-policy=no-user-gesture-required'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });

@@ -1,5 +1,7 @@
+import fs from 'node:fs';
 import { chromium } from 'playwright';
-const OUT = process.env.OUT;
+const OUT = process.env.OUT || 'test-results';
+fs.mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
 const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
 const errors = [];

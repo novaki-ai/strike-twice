@@ -1,5 +1,7 @@
+import fs from 'node:fs';
 import { chromium } from 'playwright';
 const URL = process.env.URL || 'http://localhost:4317/games/novaki/';
+fs.mkdirSync(process.env.OUT || 'test-results', { recursive: true });
 const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 page.on('pageerror', (e) => console.log('pageerror: ' + e.message));
@@ -17,5 +19,5 @@ const r = await page.evaluate(() => {
   return { w: width, h: height, corner: at(2, 2), center: at(Math.floor(width / 2), Math.floor(height / 2) - 10), dark: g.darkness, vis: g.lightSprite.visible, blend: g.lightSprite.blendMode, lights: g.lightScene.children.length, ambTint: g.lightScene.children[0].tint, ambW: g.lightScene.children[0].width, rtW: g.lightRT.width, sw: g.lightSprite.width };
 });
 console.log(JSON.stringify(r));
-await page.screenshot({ path: process.env.OUT + '/dbg.png' });
+await page.screenshot({ path: (process.env.OUT || 'test-results') + '/dbg.png' });
 await browser.close();

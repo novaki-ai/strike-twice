@@ -2,7 +2,7 @@
 import { chromium, webkit, firefox } from 'playwright';
 import fs from 'node:fs';
 const URL = process.env.URL || 'http://localhost:4317/games/novaki/';
-const OUT = process.env.OUT || '/tmp/shots';
+const OUT = process.env.OUT || 'test-results';
 const VW = Number(process.env.VW || 1280), VH = Number(process.env.VH || 720);
 const MOBILE = process.env.TOUCH === '1';
 fs.mkdirSync(OUT, { recursive: true });

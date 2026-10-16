@@ -1,4 +1,6 @@
+import fs from 'node:fs';
 import { chromium } from 'playwright';
+fs.mkdirSync(process.env.OUT || 'test-results', { recursive: true });
 const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 const errors = [];
@@ -7,7 +9,7 @@ await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
 await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
 await page.evaluate(() => { window.__done = false; window.__novaki.playCutscene([], 'ending', 'ending', () => { window.__done = true; }); });
 await page.waitForTimeout(4500);
-await page.screenshot({ path: process.env.OUT + '/credits.png' });
+await page.screenshot({ path: (process.env.OUT || 'test-results') + '/credits.png' });
 await page.waitForTimeout(7500);
 console.log('roll finished on its own:', await page.evaluate(() => window.__done));
 // skippable

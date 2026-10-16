@@ -1,4 +1,6 @@
+import fs from 'node:fs';
 import { chromium } from 'playwright';
+fs.mkdirSync(process.env.OUT || 'test-results', { recursive: true });
 const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 const errors = [];
@@ -7,6 +9,6 @@ await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
 await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
 await page.evaluate(() => { window.NOVAKI_QA.start({ seed: 9 }); window.NOVAKI_QA.setInvincible(true); window.__novaki.clearBanners(); const g = window.__novaki.game; g.dropPickup('chest', 900, -300); g.dropPickup('chest', -200, 700); });
 await page.waitForTimeout(1500);
-await page.screenshot({ path: process.env.OUT + '/arrow.png' });
+await page.screenshot({ path: (process.env.OUT || 'test-results') + '/arrow.png' });
 console.log('ERRORS', errors.join('\n'));
 await browser.close();
