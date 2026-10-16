@@ -1,0 +1,20 @@
+import { webkit } from 'playwright';
+const browser = await webkit.launch();
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 60000 });
+await page.evaluate(() => { window.NOVAKI_QA.skipTo(3, 'start'); window.NOVAKI_QA.setInvincible(true); window.__novaki.game.director.update = () => {}; window.NOVAKI_QA.spawnEnemies(150); });
+await page.waitForTimeout(2000);
+const r = await page.evaluate(() => {
+  const g = window.__novaki.game; const R = g.app.renderer; const out = {};
+  const time = (label) => { const t0 = performance.now(); for (let k = 0; k < 4; k++) R.render(g.app.stage); R.gl?.finish?.(); out[label] = ((performance.now() - t0) / 4).toFixed(1) + 'ms'; };
+  time('all');
+  g.grain.visible = false; time('-grain');
+  g.vignette.visible = false; time('-vignette');
+  g.lightSprite.visible = false; time('-light');
+  g.ground.visible = false; time('-ground');
+  g.actorLayer.visible = false; time('-actors');
+  return out;
+});
+console.log(JSON.stringify(r));
+await browser.close();

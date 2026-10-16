@@ -1,0 +1,21 @@
+import { webkit, chromium } from 'playwright';
+const which = process.env.BROWSER || 'webkit';
+const browser = await ({ webkit, chromium })[which].launch(which === 'chromium' ? { args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] } : {});
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 60000 });
+await page.evaluate(() => {
+  const g = window.__novaki.game;
+  window.__prof = { light: 0, lightN: 0, total: 0, n: 0, max: 0 };
+  const P = window.__prof;
+  const rl = g.renderLight.bind(g);
+  g.renderLight = (dt) => { const t = performance.now(); rl(dt); P.light += performance.now() - t; P.lightN++; };
+  const r = g.render.bind(g);
+  g.render = (a, dt) => { const t = performance.now(); r(a, dt); const d = performance.now() - t; P.total += d; P.n++; if (d > P.max) P.max = d; };
+});
+await page.evaluate(() => { window.NOVAKI_QA.skipTo(3, 'boss'); window.NOVAKI_QA.setInvincible(true); });
+await page.waitForTimeout(3000);
+await page.evaluate(() => { const P = window.__prof; P.light = P.lightN = P.total = P.n = P.max = 0; window.NOVAKI_QA.killBoss(); });
+await page.waitForTimeout(4000);
+console.log(which, JSON.stringify(await page.evaluate(() => { const P = window.__prof; return { frames: P.n, avgRender: (P.total / P.n).toFixed(1), avgLight: (P.light / P.lightN).toFixed(1), maxRender: P.max.toFixed(1), gameT: window.__novaki.game.time.toFixed(2) }; })));
+await browser.close();

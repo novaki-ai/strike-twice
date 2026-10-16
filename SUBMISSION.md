@@ -107,7 +107,8 @@ victory screens with run stats and per-weapon damage. Every menu works with mous
 60 Hz simulation with render interpolation. Measured in headless Chromium on this machine (Intel Arc iGPU): steady
 60 FPS at 1920x1080 with 600 enemies, six evolved weapons, ~1,100 particles and 450+ boss bullets (about 2.5 ms CPU
 per frame); 54+ FPS with 500 enemies under 6x CPU throttling. If a high-DPI screen still runs slow, the render
-resolution steps down automatically.
+resolution steps down automatically. The vignette is drawn into the low-resolution light map instead of as its own
+full-screen layer, which cut frame cost dramatically on WebKit's software renderer.
 
 ## QA interface
 
@@ -162,7 +163,11 @@ Playwright scripts in `tools/test/` drive the real game in headless Chromium on 
 portrait/landscape with touch, a simulated gamepad, a QA-interface spec test (`qa_spec.mjs`), every weapon and
 evolution, high-DPI sizing, a 1080p stress test, CPU-throttled runs, a 4-minute real-time soak (60 FPS minimum, stable
 heap), a determinism check, chaos tests (thousands of random inputs and QA calls on desktop and mobile, zero errors),
-and a fast-forward bot (`bot.mjs`) that plays complete runs to tune pacing and difficulty. An independent code review pass found 15 issues
+and a fast-forward bot (`bot.mjs`) that plays complete runs to tune pacing and difficulty. `xbrowser.mjs` runs the
+menus, a 250-enemy run, stage/boss skips and the full victory flow in **Firefox** and **WebKit** as well (zero console
+errors in both; WebKit also passed the full touch screen flow with iPhone emulation). Headless Firefox on this machine
+has no WebGL, so it exercised PixiJS's Canvas2D fallback, which the game now supports cleanly (it skips the GPU light
+map there). Firefox and WebKit were installed into a gitignored folder inside the project for these tests. An independent code review pass found 15 issues
 (an enemy-pool double-listing bug, determinism leaks, timers outliving a run, and more), all fixed. A second review of
 the later features found 7 more (for example a QA `skipTo` during the stage-fade could start a non-existent stage 4,
 and a dying boss could still hurt you), all fixed and re-verified with its reproduction scripts. As a safety net, an
@@ -173,7 +178,8 @@ exception in a frame is logged once instead of stopping PixiJS's ticker.
 - Longer animation cycles: enemies have two generated frames plus squash/bob/sway in code; bosses have idle, attack
   and defeat poses rather than full animation.
 - More bespoke visuals per weapon level, even more boss attacks, and an endless mode.
-- Real-device testing on Safari/iOS and Firefox (only Chromium was available here; the code avoids engine-specific APIs).
+- Testing on real devices: I tested Chromium (GPU), Firefox and WebKit (Safari's engine) in headless Playwright on
+  Linux, but not real iPhones, Android phones or macOS Safari.
 - More balance passes with human players; I tuned with an automated bot, which plays worse than a decent human.
 
 ## Known issues

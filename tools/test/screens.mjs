@@ -1,13 +1,14 @@
 // Visit every menu screen and the end-of-run flows; screenshot each and collect console errors.
-import { chromium } from 'playwright';
+import { chromium, webkit, firefox } from 'playwright';
 import fs from 'node:fs';
 const URL = process.env.URL || 'http://localhost:4317/games/novaki/';
 const OUT = process.env.OUT || '/tmp/shots';
 const VW = Number(process.env.VW || 1280), VH = Number(process.env.VH || 720);
 const MOBILE = process.env.TOUCH === '1';
 fs.mkdirSync(OUT, { recursive: true });
-const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
-const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, hasTouch: MOBILE, isMobile: MOBILE, deviceScaleFactor: MOBILE ? 3 : 1 });
+const BR = process.env.BROWSER || 'chromium';
+const browser = BR === 'chromium' ? await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] }) : await ({ webkit, firefox })[BR].launch();
+const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, hasTouch: MOBILE, isMobile: MOBILE && BR !== 'firefox', deviceScaleFactor: MOBILE ? 3 : 1 });
 const page = await ctx.newPage();
 const errors = [];
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
@@ -65,7 +66,7 @@ await page.evaluate(() => { window.NOVAKI_QA.skipTo(3, 'boss'); window.NOVAKI_QA
 await page.waitForTimeout(2500);
 await page.evaluate(() => window.NOVAKI_QA.killBoss());
 await page.waitForTimeout(3000); await shot('bossdeath');
-await page.waitForFunction(() => window.NOVAKI_QA.state().screen === 'victory', null, { timeout: 30000 });
+await page.waitForFunction(() => window.NOVAKI_QA.state().screen === 'victory', null, { timeout: Number(process.env.VICTORY_MS || 30000) });
 await page.waitForTimeout(1500); await shot('ending');
 await clickText('Skip');
 await page.waitForTimeout(800); await shot('victory');

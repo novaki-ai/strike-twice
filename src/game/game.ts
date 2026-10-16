@@ -145,7 +145,12 @@ export class Game {
   numLayer = new Container();
   screenLayer = new Container();
   lightRT!: RenderTexture;
+  /** two light maps, alternated each frame so we never overwrite the one the previous frame is still drawing with */
+  lightRTs: RenderTexture[] = [];
+  lightIdx = 0;
   lightScene = new Container();
+  lightSprites = new Container();
+  lightVignette!: Sprite;
   lightSprite!: Sprite;
   lightPool: Sprite[] = [];
   lightUsed = 0;
@@ -187,7 +192,8 @@ export class Game {
     this.actorLayer.sortableChildren = true;
     this.addLayer.blendMode = 'add';
     this.worldA.addChild(this.decalLayer, this.arenaG, this.pickupLayer, this.shadowLayer, this.actorLayer, this.projLayer, this.addLayer);
-    this.lightRT = RenderTexture.create({ width: 64, height: 64 });
+    this.lightRTs = [RenderTexture.create({ width: 64, height: 64 }), RenderTexture.create({ width: 64, height: 64 })];
+    this.lightRT = this.lightRTs[0];
     this.lightSprite = new Sprite(this.lightRT);
     this.lightSprite.blendMode = 'multiply';
     r.addChild(this.lightSprite);
@@ -209,6 +215,10 @@ export class Game {
     const amb = new Sprite(Texture.WHITE);
     amb.label = 'ambient';
     this.lightScene.addChild(amb);
+    this.lightScene.addChild(this.lightSprites);
+    // the vignette is folded into the light map, saving a full-screen pass when lighting is on
+    this.lightVignette = new Sprite(this.fx.vignette);
+    this.lightScene.addChild(this.lightVignette);
   }
 
   resize(w: number, h: number) {
@@ -228,7 +238,7 @@ export class Game {
     this.flashSprite.width = w;
     this.flashSprite.height = h;
     const lw = Math.max(16, Math.ceil(w / 4)), lh = Math.max(16, Math.ceil(h / 4));
-    this.lightRT.resize(lw, lh);
+    for (const rt of this.lightRTs) rt.resize(lw, lh);
     this.lightSprite.width = w;
     this.lightSprite.height = h;
     this.screenW = w;
@@ -1995,7 +2005,7 @@ export class Game {
       s = new Sprite(this.fx.light);
       s.anchor.set(0.5);
       s.blendMode = 'add';
-      this.lightScene.addChild(s);
+      this.lightSprites.addChild(s);
       this.lightPool.push(s);
     }
     this.lightUsed++;
@@ -2019,6 +2029,7 @@ export class Game {
     this.darkness += (target - this.darkness) * Math.min(1, frameDt * 2);
     const d = this.darkness;
     if (!this.gpuLighting()) {
+      this.vignette.visible = true;
       this.lightSprite.visible = false;
       this.lights.length = 0;
       this.lightUsed = 0;
@@ -2033,6 +2044,7 @@ export class Game {
       if (d > 0.05) this.pushLight(L.x, L.y, L.r, L.tint, L.life / L.max);
     }
     if (d <= 0.05) {
+      this.vignette.visible = true;
       this.lightSprite.visible = false;
       this.lightUsed = 0;
       for (const s of this.lightPool) s.visible = false;
@@ -2045,6 +2057,9 @@ export class Game {
     this.pushLight(this.rig.x, this.rig.y - 40, pr * 2.3, 0xfff0d8, 1);
     this.pushLight(this.rig.x, this.rig.y - 40, pr * 1.1, 0xffffff, 0.5);
     if (this.boss && this.boss.alive) this.pushLight(this.boss.x, this.boss.y - 60, 300, this.boss.def.light ?? 0xb0c0ff, 0.6);
+    this.vignette.visible = false; // drawn inside the light map instead
+    this.lightVignette.width = this.screenW / 4 + 4;
+    this.lightVignette.height = this.screenH / 4 + 4;
     const amb = this.lightScene.children[0] as Sprite;
     amb.width = this.screenW / 4 + 4;
     amb.height = this.screenH / 4 + 4;
@@ -2056,7 +2071,10 @@ export class Game {
     const r = ch(0), gg = ch(1), b = ch(2);
     amb.tint = (r << 16) | (gg << 8) | b;
     for (let i = this.lightUsed; i < this.lightPool.length; i++) this.lightPool[i].visible = false;
+    this.lightIdx ^= 1;
+    this.lightRT = this.lightRTs[this.lightIdx];
     this.app.renderer.render({ container: this.lightScene, target: this.lightRT, clear: true });
+    this.lightSprite.texture = this.lightRT;
     this.lightUsed = 0;
     void p;
   }

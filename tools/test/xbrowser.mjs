@@ -36,7 +36,7 @@ for (const st of [2, 3]) { await page.evaluate((st) => window.NOVAKI_QA.skipTo(s
 s = await S(); console.log(which, 'boss3:', s.bossActive, s.stage);
 await page.screenshot({ path: `${OUT}/x_${which}_boss.png` });
 await page.evaluate(() => window.NOVAKI_QA.killBoss());
-await page.waitForFunction(() => window.NOVAKI_QA.state().screen === 'victory', null, { timeout: 30000 });
+await page.waitForFunction(() => window.NOVAKI_QA.state().screen === 'victory', null, { timeout: Number(process.env.VICTORY_MS || 30000) });
 await page.waitForTimeout(1500);
 await page.screenshot({ path: `${OUT}/x_${which}_end.png` });
 console.log(which, 'final screen', (await S()).screen);

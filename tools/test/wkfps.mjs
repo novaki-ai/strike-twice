@@ -1,0 +1,15 @@
+import { webkit } from 'playwright';
+const browser = await webkit.launch();
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 60000 });
+const fps = () => page.evaluate(() => new Promise((res) => { let n = 0; const t0 = performance.now(); const f = () => { n++; if (performance.now() - t0 < 2500) requestAnimationFrame(f); else res((n / ((performance.now() - t0) / 1000)).toFixed(1)); }; requestAnimationFrame(f); }));
+const setup = async (fn) => { await page.evaluate(fn); await page.waitForTimeout(1500); return fps(); };
+console.log('stage1 start', await setup(() => { window.NOVAKI_QA.skipTo(1, 'start'); window.NOVAKI_QA.setInvincible(true); window.__novaki.game.director.update = () => {}; }));
+console.log('stage3 start', await setup(() => { window.NOVAKI_QA.skipTo(3, 'start'); window.__novaki.game.director.update = () => {}; }));
+console.log('stage3 +darkness0', await setup(() => { const g = window.__novaki.game; g.darkTarget = 0; g.darkness = 0; }));
+console.log('stage3 boss', await setup(() => { window.NOVAKI_QA.skipTo(3, 'boss'); }));
+console.log('stage3 boss no grain', await setup(() => { window.__novaki.game.grain.visible = false; }));
+console.log('stage3 boss no add layer', await setup(() => { window.__novaki.game.addLayer.visible = false; }));
+console.log('stage3 boss no light', await setup(() => { const g = window.__novaki.game; g.darkTarget = 0; g.darkness = 0; g.extraDark = 0; }));
+await browser.close();
