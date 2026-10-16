@@ -1,0 +1,16 @@
+import { chromium } from 'playwright';
+const OUT = process.env.OUT;
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+await page.evaluate(() => { window.NOVAKI_QA.skipTo(3, 'start'); window.NOVAKI_QA.setInvincible(true); window.__novaki.clearBanners(); window.__novaki.interruptBarks(); window.__novaki.game.director.update = () => {}; window.NOVAKI_QA.spawnEnemies(80); });
+await page.waitForTimeout(1500);
+await page.screenshot({ path: OUT + '/fx_full.png' });
+await page.evaluate(() => { const A = window.__novaki; A.save.settings.lowFx = true; A.applySettings(); });
+await page.waitForTimeout(800);
+await page.screenshot({ path: OUT + '/fx_low.png' });
+console.log('ERRORS', errors.join('\n'));
+await browser.close();

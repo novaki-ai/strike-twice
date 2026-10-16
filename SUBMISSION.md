@@ -99,7 +99,7 @@ is hidden, restart from the pause menu.
 
 **Menus:** title, main menu, starting-weapon select (plus Inferno Mode and Daily Strike), Workshop, settings
 (music / sound / voice volume, screen shake, screen flashes, damage numbers, subtitles, vibration, FPS counter,
-fullscreen, reset progress), How to Play (basics and controls, an arsenal of every weapon, evolution and trinket, relics, illustrated bestiary),
+reduced effects, fullscreen, reset progress), How to Play (basics and controls, an arsenal of every weapon, evolution and trinket, relics, illustrated bestiary),
 records & credits, pause (build, stats, restart, quit), level-up, chest, stage clear with relic choice, game over and
 victory screens with run stats and per-weapon damage. Every menu works with mouse, touch, keyboard and gamepad.
 
@@ -108,7 +108,9 @@ victory screens with run stats and per-weapon damage. Every menu works with mous
 60 FPS at 1920x1080 with 600 enemies, six evolved weapons, ~1,100 particles and 450+ boss bullets (about 2.5 ms CPU
 per frame); 54+ FPS with 500 enemies under 6x CPU throttling. If a high-DPI screen still runs slow, the render
 resolution steps down automatically. The vignette is drawn into the low-resolution light map instead of as its own
-full-screen layer, which cut frame cost dramatically on WebKit's software renderer.
+full-screen layer, which cut frame cost dramatically on WebKit's software renderer. A "Reduced effects" setting
+(also switched on automatically for the session if FPS stays under 40 at 1x resolution) drops the film grain and the
+light-map pass and caps particles.
 
 ## QA interface
 

@@ -467,7 +467,7 @@ class App {
       });
       return el('div', { class: 'row' }, el('span', {}, label), r);
     };
-    const toggle = (label: string, key: 'shake' | 'flashes' | 'dmgNumbers' | 'showFps' | 'subtitles' | 'vibration') => {
+    const toggle = (label: string, key: 'shake' | 'flashes' | 'dmgNumbers' | 'showFps' | 'subtitles' | 'vibration' | 'lowFx') => {
       const t = el('div', { class: 'toggle' + (st[key] ? ' on' : ''), 'data-nav': '1', role: 'switch', 'aria-label': label });
       t.addEventListener('click', () => {
         st[key] = !st[key];
@@ -511,6 +511,7 @@ class App {
         toggle('Damage numbers', 'dmgNumbers'),
         toggle('Subtitles', 'subtitles'),
         toggle('Vibration (gamepad / phone)', 'vibration'),
+        toggle('Reduced effects (faster on slow devices)', 'lowFx'),
         toggle('Show FPS', 'showFps'),
         el('div', { class: 'row' }, el('span', {}, 'Display'), fsBtn),
         el('div', { class: 'row' }, el('span', {}, 'Save data'), reset),
@@ -525,6 +526,7 @@ class App {
     audio.setVolumes(st.music, st.sfx, st.voice);
     this.input.rumbleOn = st.vibration !== false;
     if (this.game) {
+      this.game.settings.lowFx = !!st.lowFx || this.autoLowFx;
       this.game.settings.shake = st.shake;
       this.game.settings.dmgNumbers = st.dmgNumbers;
       this.game.settings.flashes = st.flashes;
@@ -1325,6 +1327,8 @@ class App {
   /* ================================================================ adaptive resolution */
   private perfWin = { t: 0, frames: 0 };
   private adaptCooldown = 0;
+  private slowWindows = 0;
+  autoLowFx = false;
   /** If gameplay runs slow on a high-DPI screen, render at a lower resolution. */
   adaptResolution(dt: number) {
     if (this.screen !== 'playing' || !this.game.running) { this.perfWin.t = 0; this.perfWin.frames = 0; return; }
@@ -1336,6 +1340,17 @@ class App {
     this.perfWin.t = 0;
     this.perfWin.frames = 0;
     const r = this.app.renderer.resolution;
+    if (fps < 40 && r <= 1 && !this.game.settings.lowFx) {
+      // already at 1x: two slow windows in a row switch effects to reduced for this session
+      if (++this.slowWindows >= 2) {
+        this.autoLowFx = true;
+        this.applySettings();
+        this.toast('Effects reduced for smoother play (see Settings)', 'info');
+        console.info(`[novaki] low FPS (${fps.toFixed(0)}) at 1x, effects reduced`);
+      }
+      return;
+    }
+    if (fps >= 40) this.slowWindows = 0;
     if (fps < 48 && r > 1) {
       const nr = Math.max(1, Math.round((r - 0.5) * 4) / 4);
       this.app.renderer.resize(this.app.screen.width, this.app.screen.height, nr);

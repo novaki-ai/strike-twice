@@ -66,7 +66,7 @@ export class Game {
   hitstop = 0;
   running = false;
   over = false;
-  settings = { shake: true, dmgNumbers: true, flashes: true };
+  settings = { shake: true, dmgNumbers: true, flashes: true, lowFx: false };
 
   player!: Player;
   baseStats!: Stats;
@@ -1411,7 +1411,7 @@ export class Game {
   }
 
   particle(x: number, y: number, tex: Texture, o: Partial<Particle> & { add?: boolean; tint?: number } = {}): Particle | null {
-    if (this.particles.length > 1400) {
+    if (this.particles.length > (this.settings.lowFx ? 450 : 1400)) {
       // recycle
       const old = this.particles.find((q) => !q.alive);
       if (!old) return null;
@@ -1893,6 +1893,7 @@ export class Game {
       this.flashSprite.tint = this.flashColor;
       this.flashSprite.alpha = Math.max(0, Math.min(0.45, this.flashT * 3));
     } else this.flashSprite.alpha = 0;
+    this.grain.visible = !this.settings.lowFx;
     if (this.frameCount % 3 === 0) this.grain.tilePosition.set(Math.random() * 256, Math.random() * 256);
     // rain
     if (this.rain.length) {
@@ -1903,7 +1904,7 @@ export class Game {
         r.sp.x = r.x; r.sp.y = r.y;
         r.sp.scale.set(1, 0.5 + r.v / 2400);
       }
-      if (Math.random() < 0.5) {
+      if (!this.settings.lowFx && Math.random() < 0.5) {
         const wx = this.camX + vrange(-this.viewW / 2, this.viewW / 2), wy = this.camY + vrange(-this.viewH / 2, this.viewH / 2);
         this.particle(wx, wy, this.fx.ring, { life: 0.4, s0: 0.03, s1: 0.18, a0: 0.4, tint: 0xbcd4ea });
       }
@@ -2035,14 +2036,20 @@ export class Game {
     const target = Math.min(0.95, this.darkTarget + this.extraDark);
     this.darkness += (target - this.darkness) * Math.min(1, frameDt * 2);
     const d = this.darkness;
-    if (!this.gpuLighting()) {
+    if (!this.gpuLighting() || this.settings.lowFx) {
+      // no light map: a vignette plus a darker ground keep the mood at a fraction of the cost
       this.vignette.visible = true;
       this.lightSprite.visible = false;
       this.lights.length = 0;
       this.lightUsed = 0;
       this.vignette.alpha = Math.min(1, 0.7 + d * 0.6);
+      const gt = this.stageDef?.groundTint ?? 0xffffff;
+      const k = 1 - d * 0.6;
+      const ch = (sh: number) => Math.round(((gt >> sh) & 255) * k);
+      this.ground.tint = (ch(16) << 16) | (ch(8) << 8) | ch(0);
       return;
     }
+    this.ground.tint = this.stageDef?.groundTint ?? 0xffffff;
     // transient lights
     for (let i = this.lights.length - 1; i >= 0; i--) {
       const L = this.lights[i];
