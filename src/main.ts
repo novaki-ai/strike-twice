@@ -13,6 +13,7 @@ import { WEAPONS } from './game/weapons';
 import { PASSIVES, rollChoices, applyChoice, rollChest, Choice, SHOP, metaStats, STARTERS } from './game/upgrades';
 import { STAGES } from './game/stages';
 import { RELICS, RELIC_ICONS, rollRelics, grantRelic, RelicDef } from './game/relics';
+import { ACHIEVEMENTS, awardAchievements } from './game/achievements';
 import { ENEMIES } from './game/enemies';
 import { BOSSES } from './game/bosses';
 import { el, button, icon, img, FocusNav, ASSET } from './ui/dom';
@@ -628,11 +629,19 @@ class App {
     const grid = el('div', { class: 'results' });
     for (const [k, v] of rows) grid.append(el('div', { class: 'k' }, k), el('div', { class: 'v' }, v));
     const unl = el('div', { style: { marginTop: '10px', fontWeight: '600' } }, 'Starting sparks unlocked: ' + STARTERS.filter((id) => this.starterUnlocked(id)).map((id) => WEAPONS[id].name).join(', '));
+    const achWrap = el('div', { class: 'ach-wrap' }, el('h3', {}, `Achievements (${ACHIEVEMENTS.filter((a) => this.save.unlocks.includes('ach_' + a.id)).length} / ${ACHIEVEMENTS.length})`));
+    const achGrid = el('div', { class: 'ach-grid' });
+    for (const a of ACHIEVEMENTS) {
+      const got = this.save.unlocks.includes('ach_' + a.id);
+      achGrid.appendChild(el('div', { class: 'ach' + (got ? ' got' : '') }, el('span', { class: 'ach-star' }, got ? '★' : '☆'),
+        el('div', {}, el('div', { class: 'ach-nm' }, a.name), el('div', { class: 'ach-ds' }, a.desc + (got ? '' : `  (+${a.reward} coins)`)))));
+    }
+    achWrap.appendChild(achGrid);
     const credits = el('div', { class: 'credits', html: `<h3>Credits</h3>
       <p><b>Novaki: Strike Twice</b> was built for the Novaki AI game test.</p>
       <p>All illustrations, sprites and icons were generated with <b>varlik image</b> (GPT image model); the soundtrack with <b>varlik music</b> (Lyria); every voice line with <b>varlik voice</b> (Gemini TTS). Sound effects are synthesized in code. Novaki is based on the official reference sheet.</p>
       <p>Code, design and writing by an AI coding agent. Engine: PixiJS. Fonts: Luckiest Guy &amp; Fredoka (SIL Open Font License).</p>` });
-    s.appendChild(el('div', { class: 'panel paper', style: { width: 'min(620px, 94vw)' } }, el('h2', {}, 'Records'), el('div', { class: 'scroll' }, grid, unl, credits), el('div', { class: 'footer' }, button('Back', back))));
+    s.appendChild(el('div', { class: 'panel paper', style: { width: 'min(760px, 94vw)' } }, el('h2', {}, 'Records'), el('div', { class: 'scroll' }, grid, unl, achWrap, credits), el('div', { class: 'footer' }, button('Back', back))));
     this.nav.setRoot(s, back);
   }
 
@@ -701,7 +710,7 @@ class App {
   wait(ms: number) { return new Promise<void>((r) => setTimeout(r, ms)); }
 
   /** Speak a line with subtitles; resolves when finished (or skipped). */
-  sayLine(line: Line, skippable = false): Promise<void> {
+  sayLine(line: Line, skippable = false, subtitle = true): Promise<void> {
     const token = ++this.lineToken;
     return new Promise<void>((resolve) => {
       let finished = false;
@@ -713,7 +722,7 @@ class App {
         resolve();
       };
       if (skippable) this.csLineSkip = () => { audio.stopVoice(); finish(); };
-      this.showSubtitle(line);
+      if (subtitle) this.showSubtitle(line);
       const fallback = setTimeout(finish, Math.max(2500, line.text.length * 75) + 2000);
       const started = audio.ctx && audio.ctx.state === 'running';
       if (!started) {
@@ -1174,10 +1183,15 @@ class App {
     for (const [id, u] of Object.entries(STARTER_UNLOCKS)) if (u && u.check(this.save) && !this.save.unlocks.includes('start_' + id)) this.save.unlocks.push('start_' + id);
     if (win && !this.save.unlocks.includes('victory')) this.save.unlocks.push('victory');
     if (win && g.inferno && !this.save.unlocks.includes('inferno_victory')) this.save.unlocks.push('inferno_victory');
+    const achieved = quit ? [] : awardAchievements({
+      win, time: g.time, level: g.player.level, kills: g.stats.kills, stage: g.stats.stageReached, bosses: g.stats.bossesKilled,
+      evolutions: g.stats.evolutions, dmgTaken: g.stats.dmgTaken, flares: g.stats.flares, lamps: g.lightsRelit, relics: g.relics.size,
+      inferno: g.inferno, daily: g.daily, weapons: g.player.weapons.length, startWeapon: g.player.weapons[0]?.id || '', assisted: g.stats.assisted,
+    }, this.save);
     writeSave(this.save);
     const newUnlocks = this.save.unlocks.filter((u) => !before.has(u) && u.startsWith('start_')).map((u) => WEAPONS[u.slice(6)]?.name).filter(Boolean);
     if (win && !before.has('victory')) newUnlocks.push('Inferno Mode (toggle it when choosing your spark)');
-    this.runResult = { win, earned, bonus, newUnlocks, quit };
+    this.runResult = { win, earned, bonus, newUnlocks, quit, achieved };
     if (quit) { this.show('menu'); return; }
     if (win) {
       this.playCutscene(ENDING, 'ending', 'ending', () => this.showResults(true));
@@ -1204,7 +1218,7 @@ class App {
     const ws = [...g.player.weapons].sort((a, b) => b.dmg - a.dmg);
     for (const w of ws) {
       const d = WEAPONS[w.id];
-      wt.appendChild(el('tr', {}, el('td', {}, el('img', { src: icon(d.icon), alt: '' })), el('td', {}, (w.evo ? d.evo.name : d.name) + (w.evo ? '' : ` (Lv ${w.level})`)), el('td', { class: 'n' }, Math.round(w.dmg).toLocaleString() + ' dmg'), el('td', { class: 'n' }, w.kills + ' kills')));
+      wt.appendChild(el('tr', {}, el('td', {}, el('img', { src: icon(d.icon), alt: '' })), el('td', {}, (w.evo ? d.evo.name : d.name) + (w.evo ? '' : ` (Lv ${w.level})`)), el('td', { class: 'n' }, Math.round(w.dmg).toLocaleString('en-US') + ' dmg'), el('td', { class: 'n' }, w.kills + ' kills')));
     }
     const again = button('Strike Again', () => this.show('loadout'), 'primary');
     s.appendChild(el('div', { class: 'panel paper', style: { width: 'min(720px, 94vw)', marginTop: '50px' } },
@@ -1215,15 +1229,20 @@ class App {
       g.daily ? el('div', { style: { textAlign: 'center', fontFamily: 'var(--font-h)', color: '#a8461a' } }, 'DAILY STRIKE ' + (this.dailyKey || todayKey())) : null,
       el('div', { style: { textAlign: 'center', fontStyle: 'italic', fontWeight: '600', marginBottom: '6px' } }, win ? 'Novaki relit every flame in the land. Not bad for a spent match.' : GAMEOVER_LINE.text),
       win ? el('div', { class: 'thanks' }, 'Thanks for playing! For a hotter challenge, try Inferno Mode or today\'s Daily Strike.') : null,
-      el('div', { class: 'scroll' }, grid, wt,
-        r.newUnlocks.length ? el('div', { class: 'unlock-note' }, 'Unlocked: ' + r.newUnlocks.join(', ') + '!') : null),
+      el('div', { class: 'scroll' },
+        r.achieved && r.achieved.length ? el('div', { class: 'ach-list' }, ...r.achieved.map((a: any) => el('div', { class: 'ach-got' },
+          el('span', { class: 'ach-star' }, '★'), el('b', {}, 'Achievement: ' + a.name), ` - ${a.desc} `, el('span', { class: 'ach-coin' }, `+${a.reward}`), el('img', { src: icon('coin'), alt: '' })))) : null,
+        grid, wt,
+        r.newUnlocks.length ? el('div', { class: 'unlock-note' }, 'Unlocked: ' + r.newUnlocks.join(', ') + '!') : null,
+),
       el('div', { class: 'footer' }, again, button('Workshop', () => this.show('shop')), button('Main Menu', () => this.show('menu'))),
     ));
     this.show(id as Screen);
     this.app.stage.visible = !win;
     this.nav.setRoot(s, () => this.show('menu'));
     audio.playMusic(win ? 'victory' : 'gameover', MUSIC[win ? 'victory' : 'gameover']);
-    if (!win) setTimeout(() => { if (this.screen === 'gameover') this.sayLine(GAMEOVER_LINE); }, 700);
+    // the narration repeats the panel's tagline, so no subtitle box over the buttons
+    if (!win) setTimeout(() => { if (this.screen === 'gameover') this.sayLine(GAMEOVER_LINE, false, false); }, 700);
   }
 
   /* ================================================================ hooks from the game */

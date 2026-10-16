@@ -67,8 +67,9 @@ hurts bosses more). A countdown auto-picks if you wait, so unattended runs never
 weapons unlock through achievements (beat bosses, reach levels, total kills, survive 10 minutes, win). Winning unlocks
 **Inferno Mode** (tougher enemies and bosses, +50% coins). **Daily Strike**: a run whose seed is the same for everyone
 on a given date (your Workshop upgrades and screen size still shape how it plays out), with your best result of the day
-saved. Records screen with lifetime stats, an illustrated
-bestiary that fills in as you meet each enemy, and credits.
+saved. Records screen with lifetime stats, 16 achievements
+that pay out coins (from "snuff 100 enemies" to "win in Inferno Mode"), an illustrated bestiary that fills in as you
+meet each enemy, and credits.
 
 **Story & voice:** a voiced, illustrated intro (4 panels) and ending (3 panels) with subtitles, an illustrated
 storybook interlude between chapters, a voiced narrator card for each chapter, voiced intro/defeat lines for every boss (plus the Snuffer's phase line), Novaki's own
