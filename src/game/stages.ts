@@ -54,7 +54,7 @@ export const STAGES: StageDef[] = [
       { tex: 'p1_log', size: 52 }, { tex: 'p1_fern', size: 60 }, { tex: 'p1_tree', size: 170 }, { tex: 'p1_fern', size: 50 }, { tex: 'p1_shrooms', size: 60, glow: 0x7ff0e0 },
       { tex: 'd1_moss', size: 100, flat: true }, { tex: 'd1_leaves', size: 85, flat: true }, { tex: 'd1_ring', size: 115, flat: true },
     ],
-    darkness: 0.22, ambient: [0.35, 0.55, 0.55], music: ['stage1_a', 'stage1_b', 'stage1_c'], bossMusic: ['boss1', 'boss1_b'],
+    darkness: 0.22, ambient: [0.35, 0.55, 0.55], music: ['stage1_a', 'stage1_b', 'stage1_c', 'stage1_d'], bossMusic: ['boss1', 'boss1_b'],
     hpMul: 1, dmgMul: 0.9, duration: 270, boss: 'duchess', arenaColor: 0xd9a35a, propEnemy: 'lanternprop', voice: 'chapter1', ambience: 'forest',
     waves: [
       { t: 0, rate: 1.2, max: 40, mix: { mold: 3, moth: 1 } },
@@ -81,7 +81,7 @@ export const STAGES: StageDef[] = [
       { tex: 'p2_hydrant', size: 50 }, { tex: 'p2_bollard', size: 60 }, { tex: 'p2_lamp', size: 120, lamp: [[0, 0.86]] }, { tex: 'p2_lamp', size: 125, lamp: [[0, 0.86]] },
       { tex: 'd2_puddle', size: 120, flat: true }, { tex: 'd2_manhole', size: 72, flat: true }, { tex: 'd2_net', size: 95, flat: true },
     ],
-    darkness: 0.4, ambient: [0.3, 0.4, 0.75], rain: true, music: ['stage2_a', 'stage2_b', 'stage2_c'], bossMusic: ['boss2', 'boss2_b'],
+    darkness: 0.4, ambient: [0.3, 0.4, 0.75], rain: true, music: ['stage2_a', 'stage2_b', 'stage2_c', 'stage2_d'], bossMusic: ['boss2', 'boss2_b'],
     hpMul: 2.3, dmgMul: 1.25, duration: 300, boss: 'baron', arenaColor: 0x7fb6e6, propEnemy: 'barrelprop', voice: 'chapter2', ambience: 'rain',
     waves: [
       { t: 0, rate: 1.9, max: 70, mix: { raindrop: 3, slime: 1 } },
@@ -108,7 +108,7 @@ export const STAGES: StageDef[] = [
       { tex: 'p3_brazier', size: 60, lamp: [[0, 0.78]] }, { tex: 'p3_books', size: 56 }, { tex: 'p3_candelabra', size: 95, lamp: [[-0.33, 0.9], [0, 0.97], [0.33, 0.9]] }, { tex: 'p3_brazier', size: 64, lamp: [[0, 0.78]] },
       { tex: 'd3_wax', size: 85, flat: true }, { tex: 'd3_rug', size: 140, flat: true }, { tex: 'd3_bones', size: 95, flat: true },
     ],
-    darkness: 0.58, ambient: [0.3, 0.22, 0.5], music: ['stage3_a', 'stage3_b', 'stage3_c'], bossMusic: ['boss3'],
+    darkness: 0.58, ambient: [0.3, 0.22, 0.5], music: ['stage3_a', 'stage3_b', 'stage3_c', 'stage3_d'], bossMusic: ['boss3'],
     hpMul: 4.6, dmgMul: 1.4, duration: 300, boss: 'snuffer', arenaColor: 0xb48aff, propEnemy: 'candleprop', voice: 'chapter3', ambience: 'tower',
     waves: [
       { t: 0, rate: 2.2, max: 80, mix: { waxghost: 2, snufflet: 2 } },
