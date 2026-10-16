@@ -177,9 +177,9 @@ exception in a frame is logged once instead of stopping PixiJS's ticker.
 
 ## Known issues
 
-- Balance was tuned with an automated bot that dodges worse than a person. With no Workshop upgrades it reaches stage 3 in nearly
-  every run and wins about one run in three (its wins took 18 and 21 minutes), so a first run is meant to be a real
-  challenge; Workshop upgrades, relics and evolutions make later runs much stronger. Real players may find it easier
-  or harder than intended.
+- Balance was tuned with an automated bot that dodges worse than a person. With no Workshop upgrades it reaches stage 3
+  in nearly every run; using the Flare-Up it wins about two runs in three (wins took 17.8 to 21 minutes), so a first
+  run is a real challenge but winnable. Workshop upgrades, relics and evolutions make later runs much stronger. Real
+  players may find it easier or harder than intended.
 - The `state().screen` value is `transition` for about 0.4 s while the screen fades between stages.
 - Each stage plays a playlist of three 30-second clips (bosses two), crossfaded; some repetition is still audible.
