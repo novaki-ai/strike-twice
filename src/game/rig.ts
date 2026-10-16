@@ -88,7 +88,13 @@ export class NovakiRig {
     const moving = speed > 20;
     const dashing = p.dashT > 0;
     const run = Math.min(1, speed / 150);
+    const prevStep = Math.floor(this.phase / Math.PI);
     this.phase += dt * (moving ? 2 * Math.PI * (1.6 + 1.2 * run) : 0);
+    // a puff of dust each time a foot lands
+    if (moving && !dashing && Math.floor(this.phase / Math.PI) !== prevStep && g.particles.length < 1300) {
+      const side = Math.floor(this.phase / Math.PI) % 2 ? 1 : -1;
+      g.particle(x + side * 6 * p.face, y + 1, this.fx.puff, { vx: -p.vx * 0.08 + vrange(-8, 8), vy: vrange(-12, -4), life: 0.45, s0: 0.1, s1: 0.24, a0: 0.35, tint: 0xc9bca4, drag: 3 });
+    }
     const t = p.animT;
     const ph = this.phase;
     const face = p.face;
