@@ -2008,11 +2008,23 @@ export class Game {
     s.alpha = a;
   }
 
+  /** the light map needs a GPU renderer; the Canvas2D fallback uses a plain darker vignette instead */
+  private gpuLighting(): boolean {
+    return (this.app.renderer.type & 3) !== 0; // RendererType.WEBGL | RendererType.WEBGPU
+  }
+
   private renderLight(frameDt: number) {
     // ease darkness
     const target = Math.min(0.95, this.darkTarget + this.extraDark);
     this.darkness += (target - this.darkness) * Math.min(1, frameDt * 2);
     const d = this.darkness;
+    if (!this.gpuLighting()) {
+      this.lightSprite.visible = false;
+      this.lights.length = 0;
+      this.lightUsed = 0;
+      this.vignette.alpha = Math.min(1, 0.7 + d * 0.6);
+      return;
+    }
     // transient lights
     for (let i = this.lights.length - 1; i >= 0; i--) {
       const L = this.lights[i];

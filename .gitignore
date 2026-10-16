@@ -4,3 +4,4 @@ assets-raw/
 *.log
 .DS_Store
 test-results/
+.pw-browsers/
