@@ -1,0 +1,13 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await page.addInitScript(() => { if (!sessionStorage.getItem('x')) { sessionStorage.setItem('x', '1'); localStorage.setItem('novaki-strike-twice-save-v1', JSON.stringify({ seenIntro: true, coins: 240, stats: { runs: 5 } })); } });
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+await page.evaluate(() => { window.__log = []; const A = window.__novaki; const orig = A.show.bind(A); A.show = (s) => { window.__log.push(s + ' @' + Math.round(performance.now())); return orig(s); }; });
+console.log('initial screen', await page.evaluate(() => window.__novaki.screen));
+await page.waitForTimeout(1200);
+await page.keyboard.press('Enter');
+await page.waitForTimeout(1500);
+console.log('after one Enter:', await page.evaluate(() => window.__novaki.screen), JSON.stringify(await page.evaluate(() => window.__log)));
+await browser.close();
