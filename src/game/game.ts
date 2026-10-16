@@ -1077,10 +1077,10 @@ export class Game {
     let b: Bullet | undefined;
     for (let i = 0; i < this.bullets.length; i++) if (!this.bullets[i].alive) { b = this.bullets[i]; break; }
     if (!b) {
-      b = { alive: true, x: 0, y: 0, px: 0, py: 0, vx: 0, vy: 0, r: 7, dmg: 8, life: 4, t: 0, acc: 0, turn: 0, homing: 0, sp: null as any, core: null as any, tint: 0xffffff, slow: 0, grow: 0 };
+      b = { alive: true, x: 0, y: 0, px: 0, py: 0, vx: 0, vy: 0, r: 7, dmg: 8, life: 4, t: 0, acc: 0, turn: 0, homing: 0, sp: null as any, core: null as any, tint: 0xffffff, slow: 0, grow: 0, src: 'bullet' };
       this.bullets.push(b);
     }
-    Object.assign(b, { alive: true, x, y, px: x, py: y, vx, vy, r: 7, dmg: 8, life: 4, t: 0, acc: 0, turn: 0, homing: 0, tint: 0xb9e3ff, slow: 0, grow: 0 }, o);
+    Object.assign(b, { alive: true, x, y, px: x, py: y, vx, vy, r: 7, dmg: 8, life: 4, t: 0, acc: 0, turn: 0, homing: 0, tint: 0xb9e3ff, slow: 0, grow: 0, src: this.boss && this.boss.alive && this.boss.boss?.attack ? this.boss.boss.id + ':' + this.boss.boss.attack : 'bullet' }, o);
     b.sp = this.pool('bullet', this.bulletLayer, this.fx.bullet);
     b.sp.anchor.set(0.5);
     b.sp.tint = b.tint;
@@ -1128,7 +1128,7 @@ export class Game {
       const rr = b.r + p.r * 0.75;
       if (dx * dx + dy * dy < rr * rr) {
         if (p.iframes <= 0 && !p.invincible && p.goldT <= 0) {
-          this.hurtPlayer(b.dmg, null);
+          this.hurtPlayer(b.dmg, null, { by: b.src });
           if (b.slow) { /* slow handled through iframes/hurt */ }
           this.spark(b.x, b.y, b.tint, 6, 120);
           this.killBullet(b);

@@ -142,6 +142,7 @@ export interface Bullet {
   sp: Sprite; core: Sprite;
   tint: number; slow: number;
   grow: number;
+  src: string;
 }
 
 export interface Tele {

@@ -37,7 +37,7 @@ export const BOSSES: Record<string, BossDef> = {
     phases: [0.5], desc: 'A vain moth duchess who hoards every light she can find.',
   },
   baron: {
-    name: 'Baron von Drizzle', title: 'Lord of the Endless Rain', tex: 'b_baron', atkTex: 'b_baron_atk', koTex: 'b_baron_ko', posed: ['lightning', 'umbrella', 'downpour', 'rain'], hp: 8000, size: 180, r: 58, speed: 60, dmg: 14, xp: 0,
+    name: 'Baron von Drizzle', title: 'Lord of the Endless Rain', tex: 'b_baron', atkTex: 'b_baron_atk', koTex: 'b_baron_ko', posed: ['lightning', 'umbrella', 'downpour', 'rain'], hp: 7200, size: 180, r: 58, speed: 60, dmg: 14, xp: 0,
     anim: 'float', noFlip: true, light: 0xbfe0ff, shadowW: 170, anchorY: 0.8,
     attacks: [['downpour', 'lightning', 'umbrella', 'summon'], ['downpour', 'lightning', 'umbrella', 'rain', 'summon', 'lightning']],
     phases: [0.5], desc: 'A pompous storm cloud who rains on every parade.',
@@ -263,7 +263,7 @@ const ATTACKS: Record<string, AttackFn> = {
         const delay = (0.9 + i * (1.4 / n)) / fast;
         g.tele({ kind: 'circle', x, y, r: 50, dur: delay, color: 0x7fb6e6, onDone: () => {
           const dx = g.player.x - x, dy = g.player.y - y;
-          if (dx * dx + dy * dy < 54 * 54) g.hurtPlayer(16, null);
+          if (dx * dx + dy * dy < 54 * 54) g.hurtPlayer(13, null, { by: 'baron:downpour' });
           splashFx(g, x, y, 50);
         } });
       }
@@ -284,7 +284,7 @@ const ATTACKS: Record<string, AttackFn> = {
           const dx = p.x - ox, dy = p.y - 26 - oy;
           const along = dx * Math.cos(a) + dy * Math.sin(a);
           const perp = Math.abs(-dx * Math.sin(a) + dy * Math.cos(a));
-          if (along > 0 && perp < 34) g.hurtPlayer(20, null);
+          if (along > 0 && perp < 34) g.hurtPlayer(16, null, { by: 'baron:lightning' });
           const pts = [ox, oy];
           for (let s = 1; s <= 10; s++) pts.push(ox + Math.cos(a) * s * 100 + vrange(-14, 14), oy + Math.sin(a) * s * 100 + vrange(-14, 14));
           g.bolt(pts, 0xfff3a0, 5);
@@ -312,7 +312,7 @@ const ATTACKS: Record<string, AttackFn> = {
       for (let i = 0; i < n; i++) {
         if (Math.abs(i - gap) <= 1) continue;
         const a = (i / n) * Math.PI * 2 + off;
-        g.spawnBullet(o.x, o.y, Math.cos(a) * 165, Math.sin(a) * 165, { r: 9, dmg: 12, life: 5, tint: 0x7fb6e6, turn: B.phase > 1 ? 0.35 * (B.count % 2 ? 1 : -1) : 0 });
+        g.spawnBullet(o.x, o.y, Math.cos(a) * 155, Math.sin(a) * 155, { r: 9, dmg: 10, life: 5, tint: 0x7fb6e6, turn: B.phase > 1 ? 0.35 * (B.count % 2 ? 1 : -1) : 0 });
       }
       audio.sfx('splash', 0.4, 1.3);
     }
@@ -341,8 +341,8 @@ const ATTACKS: Record<string, AttackFn> = {
       const a = g.arena!;
       const x = a.x + g.rng.range(-a.r, a.r) - 200;
       const y = a.y - a.r - 20;
-      g.spawnBullet(x, y, 110, 290, { r: 7, dmg: 10, life: 4.5, tint: 0x9fd0ff });
-      g.spawnBullet(x + g.rng.range(100, 300), y, 110, 290, { r: 7, dmg: 10, life: 4.5, tint: 0x9fd0ff });
+      g.spawnBullet(x, y, 110, 290, { r: 7, dmg: 8, life: 4.5, tint: 0x9fd0ff });
+      if (B.count++ % 2 === 0) g.spawnBullet(x + g.rng.range(100, 300), y, 110, 290, { r: 7, dmg: 8, life: 4.5, tint: 0x9fd0ff });
     }
     return B.at > 3.2;
   },
@@ -379,7 +379,7 @@ const ATTACKS: Record<string, AttackFn> = {
       e.hop = 0; e.alpha = 1;
       B.invuln = false;
       const dx = p.x - e.x, dy = p.y - e.y;
-      if (dx * dx + dy * dy < 130 * 130) g.hurtPlayer(26, null);
+      if (dx * dx + dy * dy < 130 * 130) g.hurtPlayer(26, null, { by: 'snuffer:slam' });
       audio.sfx('slam', 1);
       g.shake(16, 0.5);
       g.explosionFx(e.x, e.y, 110, 0xb48aff, true);
