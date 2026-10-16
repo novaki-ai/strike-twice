@@ -51,3 +51,6 @@ if want('decals'):
 if want('interludes'):
     picture('interlude_1', 1280, 720)
     picture('interlude_2', 1280, 720)
+
+if want('back'):
+    sprite('novaki_torso_back', 200, 320)

@@ -1,0 +1,15 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ args: ['--enable-gpu', '--ignore-gpu-blocklist', '--use-angle=vulkan', '--enable-features=Vulkan'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+await page.goto(process.env.URL || 'http://localhost:4317/games/novaki/');
+await page.waitForFunction(() => window.NOVAKI_QA, null, { timeout: 30000 });
+await page.evaluate(() => { window.NOVAKI_QA.start({ seed: 2 }); window.__novaki.game.player.invincible = true; window.__novaki.clearBanners(); window.__novaki.interruptBarks(); window.__novaki.game.director.update = () => {}; });
+await page.waitForTimeout(1200);
+const clip = { x: 560, y: 240, width: 160, height: 170 };
+await page.keyboard.down('KeyW'); await page.waitForTimeout(500);
+await page.screenshot({ path: process.env.OUT + '/back_up.png', clip });
+await page.keyboard.up('KeyW');
+await page.keyboard.down('KeyS'); await page.waitForTimeout(500);
+await page.screenshot({ path: process.env.OUT + '/back_down.png', clip });
+await page.keyboard.up('KeyS');
+await browser.close();

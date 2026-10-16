@@ -21,6 +21,7 @@ export class NovakiRig {
   y = 0;
   phase = 0;
   smokeT = 0;
+  showingBack = false;
   private torsoTex: Texture;
   private lastShadowParent = false;
 
@@ -108,7 +109,11 @@ export class NovakiRig {
     const breathe = moving ? 1 : 1 + Math.sin(t * 2.2) * 0.015;
     // expression: ouch when hit, determined scowl in boss fights / ablaze, deadpan otherwise
     let expr = this.torsoTex;
-    if (p.hurtT > 0 && g.T.tex.novaki_torso_ouch) expr = g.T.tex.novaki_torso_ouch;
+    // walking away from the camera shows his back (with a little hysteresis so it doesn't flicker)
+    const upward = moving && p.dirY < (this.showingBack ? -0.45 : -0.6) && Math.abs(p.dirX) < 0.85;
+    this.showingBack = upward && !dashing;
+    if (this.showingBack && g.T.tex.novaki_torso_back) expr = g.T.tex.novaki_torso_back;
+    else if (p.hurtT > 0 && g.T.tex.novaki_torso_ouch) expr = g.T.tex.novaki_torso_ouch;
     else if ((g.bossActive || p.goldT > 0 || p.ignite > 0.3) && g.T.tex.novaki_torso_angry) expr = g.T.tex.novaki_torso_angry;
     this.torso.texture = p.hurtT > 0.15 && Math.floor(t * 30) % 2 === 0 ? (g.T.flash.novaki_torso || this.torsoTex) : expr;
     this.torso.x = hurtJit;
