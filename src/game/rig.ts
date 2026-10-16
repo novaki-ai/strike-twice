@@ -15,6 +15,7 @@ export class NovakiRig {
   frontArm = new Graphics();
   torso: Sprite;
   flames: Sprite[] = [];
+  ember: Sprite;
   shadow: Sprite;
   x = 0;
   y = 0;
@@ -33,7 +34,13 @@ export class NovakiRig {
     this.shadow.anchor.set(0.5);
     this.shadow.width = 46;
     this.shadow.height = 16;
+    // the stubborn ember: glows brighter as Novaki levels up through the run
+    this.ember = new Sprite(fx.glow);
+    this.ember.anchor.set(0.5);
+    this.ember.blendMode = 'add';
+    this.ember.tint = 0xff7a2a;
     const flameBox = new Container();
+    flameBox.addChild(this.ember);
     for (let i = 0; i < 3; i++) {
       const f = new Sprite(fx.flame);
       f.anchor.set(0.5, 1);
@@ -143,10 +150,28 @@ export class NovakiRig {
     this.drawArm(this.backArm, -9, shY, -13 - swing * 0.6, shY + 17 + (moving ? -Math.abs(swing) * 0.2 : 0), dashing, true);
     this.drawArm(this.frontArm, 9, shY, 14 + swing, shY + 16 - (moving ? Math.abs(swing) * 0.25 : 0), dashing, false);
 
-    // head flame (level up / golden match / revive)
+    // head flame (level up / golden match / revive), and a small steady flame once he is well re-lit
     const fire = p.ignite > 0 || p.goldT > 0;
+    const relit = Math.min(1, Math.max(0, (p.level - 1) / 34));
+    const steady = !fire && p.level >= 22;
+    this.ember.x = Math.sin(lean) * 40;
+    this.ember.y = hipY + 2 - TORSO_H + 12;
+    const pulse = 0.8 + 0.2 * Math.sin(t * 5) + 0.1 * Math.sin(t * 13);
+    this.ember.scale.set((0.12 + 0.2 * relit) * pulse, (0.1 + 0.16 * relit) * pulse);
+    this.ember.alpha = 0.35 + 0.55 * relit;
     for (let i = 0; i < this.flames.length; i++) {
       const f = this.flames[i];
+      if (steady && i === 1) {
+        const sz = 0.1 + 0.1 * Math.min(1, (p.level - 22) / 18);
+        const k = 0.85 + 0.2 * Math.sin(t * 19) + 0.08 * Math.sin(t * 31);
+        f.visible = true;
+        f.x = Math.sin(lean) * 40;
+        f.y = hipY + 2 - TORSO_H + 14;
+        f.scale.set(sz * k, sz * 1.25 * k);
+        f.rotation = lean - p.vx * 0.0012;
+        f.tint = 0xffffff;
+        continue;
+      }
       f.visible = fire;
       if (!fire) continue;
       const k = 0.85 + 0.25 * Math.sin(t * 22 + i * 2.1);

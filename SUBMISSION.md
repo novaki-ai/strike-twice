@@ -71,7 +71,8 @@ deadpan quips (boss reactions, stage clear, death), and a voiced game-over line.
 
 **Presentation:** Novaki is a generated torso sprite with code-drawn, animated rubber-hose arms and legs (walk cycle,
 swinging gloves, dash pose, hurt flash, KO pose), three facial expressions (deadpan, "ouch" when hit, a determined
-scowl in boss fights or when ablaze), smoke curling from his charcoal head and a flame when he levels up. Bosses
+scowl in boss fights or when ablaze), smoke curling from his charcoal head and a flame when he levels up. As the run
+goes on, the ember in his head glows brighter until it becomes a small steady flame: the spent match visibly relights. Bosses
 switch to generated attack poses during their big attacks and to defeat poses when they fall. Snuffed street lamps,
 candelabras and braziers relight as Novaki walks past and light up the dark; glowing mushrooms, ground decals
 (puddles reflecting the moon, wax pools, rugs, leaf piles), off-screen chest arrows.
