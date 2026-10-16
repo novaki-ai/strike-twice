@@ -42,7 +42,7 @@ the **Flare-Up** meter; when it's full Novaki can "strike twice": a screen-wide 
 
 ## What I built
 
-**Structure of a run (about 18-22 minutes):** three stages, each about 4.5-5 minutes of escalating waves (with swarm
+**Structure of a run (about 17-21 minutes):** three stages, each about 4.5-5 minutes of escalating waves (with swarm
 migrations, encirclements, elites carrying treasure, a gilded moth that flees with a chest, and destructible props), then a boss in a closed arena.
 Your build carries over between stages. Beating the third boss plays the ending and wins the run.
 
@@ -56,7 +56,8 @@ Your build carries over between stages. Beating the third boss plays the ending 
 charger, knockback-resistant tank, fast chaser, splitter (splits in two), hopper, artillery cloud (telegraphed
 lightning), kamikaze (telegraphed burst), healer (heals allies), blinker (vanishes and reappears beside you),
 orbit-and-dive, ranged burst shooter, frontal shield (must be flanked), phasing wraith (intangible part of the
-time). Elite versions glow and drop a treasure matchbox.
+time). Elite versions glow and drop a treasure matchbox, and a gilded moth (a 17th, treasure-runner type) flees with
+a chest once per stage.
 
 **Build system:** 14 weapons x 8 levels, 15 trinkets (passives), and **14 evolutions** (weapon at level 8 + its partner
 trinket), e.g. Ember Toss + Sulfur Tip = Sulfur Storm, Smoke Rings + Ash Urn = Smog Cyclone, Static Crackle + Static Wool
@@ -72,7 +73,8 @@ hurts bosses more). A countdown auto-picks if you wait, so unattended runs never
 
 **Meta-progression (saved in `localStorage`):** cinder coins earned every run (kept on death) are spent in
 *Novaki's Workshop* on 13 permanent upgrades and 5 weapon blueprints that add new weapons to the pool. Nine starting
-weapons unlock through achievements (beat bosses, reach levels, total kills, survive 10 minutes, win). Winning unlocks
+weapons: Ember Toss plus eight unlocked through milestones (beat bosses, reach levels, total kills, survive 10
+minutes, win). Winning unlocks
 **Inferno Mode** (tougher enemies and bosses, +50% coins). **Daily Strike**: a run whose seed is the same for everyone
 on a given date (your Workshop upgrades and screen size still shape how it plays out), with your best result of the day
 saved. Records screen with lifetime stats, 16 achievements
@@ -173,8 +175,8 @@ open-source npm packages (`@fontsource`). Sound effects are synthesized in code.
 Playwright scripts in `tools/test/` drive the real game in headless Chromium on the GPU (serve `dist/` with
 `node tools/test/serve.mjs dist 4317`, which mounts it under a sub-path): screen flows on desktop and on phone
 portrait/landscape with touch, a simulated gamepad, a QA-interface spec test (`qa_spec.mjs`), every weapon and
-evolution, high-DPI sizing, a 1080p stress test, CPU-throttled runs, a 4-minute real-time soak (60 FPS minimum, stable
-heap), a determinism check, chaos tests (thousands of random inputs and QA calls on desktop and mobile, zero errors),
+evolution, high-DPI sizing, a 1080p stress test, CPU-throttled runs, real-time soaks of up to 7 minutes with a 450-enemy horde through the
+final boss (55-60 FPS minimum, heap stable at 17-42 MB), a determinism check, chaos tests (thousands of random inputs and QA calls on desktop and mobile, zero errors),
 and a fast-forward bot (`bot.mjs`) that plays complete runs to tune pacing and difficulty. `xbrowser.mjs` runs the
 menus, a 250-enemy run, stage/boss skips and the full victory flow in **Firefox** and **WebKit** as well (zero console
 errors in both; WebKit also passed the full touch screen flow with iPhone emulation). Headless Firefox on this machine
