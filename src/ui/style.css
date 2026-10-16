@@ -438,3 +438,5 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 
   background: conic-gradient(#ff9a2e calc(var(--ready, 0) * 360deg), rgba(243,230,196,0.35) 0); box-shadow: 3px 3px 0 var(--ink); opacity: 0.75; }
 .flare-btn.full { opacity: 1; animation: flare-pulse 0.7s ease-in-out infinite alternate; }
 @media (prefers-reduced-motion: reduce) { .flarebar.full, .flare-btn.full { animation: none; } }
+
+.thanks { margin-top: 10px; text-align: center; font-family: var(--font-h); font-size: 17px; color: #a8461a; }

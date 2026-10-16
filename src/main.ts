@@ -1207,7 +1207,8 @@ class App {
       g.daily ? el('div', { style: { textAlign: 'center', fontFamily: 'var(--font-h)', color: '#a8461a' } }, 'DAILY STRIKE ' + (this.dailyKey || todayKey())) : null,
       el('div', { style: { textAlign: 'center', fontStyle: 'italic', fontWeight: '600', marginBottom: '6px' } }, win ? 'Novaki relit every flame in the land. Not bad for a spent match.' : GAMEOVER_LINE.text),
       el('div', { class: 'scroll' }, grid, wt,
-        r.newUnlocks.length ? el('div', { class: 'unlock-note' }, 'Unlocked: ' + r.newUnlocks.join(', ') + '!') : null),
+        r.newUnlocks.length ? el('div', { class: 'unlock-note' }, 'Unlocked: ' + r.newUnlocks.join(', ') + '!') : null,
+        win ? el('div', { class: 'thanks' }, 'Thanks for playing! For a hotter challenge, try Inferno Mode or today\'s Daily Strike.') : null),
       el('div', { class: 'footer' }, again, button('Workshop', () => this.show('shop')), button('Main Menu', () => this.show('menu'))),
     ));
     this.show(id as Screen);
