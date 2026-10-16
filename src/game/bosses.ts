@@ -31,15 +31,15 @@ export interface BossDef {
 
 export const BOSSES: Record<string, BossDef> = {
   duchess: {
-    name: 'Duchess Dustwing', title: 'Matriarch of the Mothwood', tex: 'b_duchess', atkTex: 'b_duchess_atk', koTex: 'b_duchess_ko', posed: ['swoop', 'gust', 'brood'], hp: 3200, size: 175, r: 52, speed: 70, dmg: 10, xp: 0,
+    name: 'Duchess Dustwing', title: 'Matriarch of the Mothwood', tex: 'b_duchess', atkTex: 'b_duchess_atk', koTex: 'b_duchess_ko', posed: ['swoop', 'gust', 'brood', 'lamplure'], hp: 3200, size: 175, r: 52, speed: 70, dmg: 10, xp: 0,
     anim: 'fly', animSpeed: 5, noFlip: true, light: 0xe8c8ff, shadowW: 160, anchorY: 0.85,
-    attacks: [['spiral', 'swoop', 'gust', 'brood'], ['spiral', 'swoop', 'gust', 'brood', 'swoop']],
+    attacks: [['spiral', 'swoop', 'gust', 'brood'], ['spiral', 'swoop', 'gust', 'lamplure', 'brood', 'lamplure']],
     phases: [0.5], desc: 'A vain moth duchess who hoards every light she can find.',
   },
   baron: {
-    name: 'Baron von Drizzle', title: 'Lord of the Endless Rain', tex: 'b_baron', atkTex: 'b_baron_atk', koTex: 'b_baron_ko', posed: ['lightning', 'umbrella', 'downpour', 'rain'], hp: 7200, size: 180, r: 58, speed: 60, dmg: 14, xp: 0,
+    name: 'Baron von Drizzle', title: 'Lord of the Endless Rain', tex: 'b_baron', atkTex: 'b_baron_atk', koTex: 'b_baron_ko', posed: ['lightning', 'umbrella', 'downpour', 'rain', 'splash'], hp: 7200, size: 180, r: 58, speed: 60, dmg: 14, xp: 0,
     anim: 'float', noFlip: true, light: 0xbfe0ff, shadowW: 170, anchorY: 0.8,
-    attacks: [['downpour', 'lightning', 'umbrella', 'summon'], ['downpour', 'lightning', 'umbrella', 'rain', 'summon', 'lightning']],
+    attacks: [['downpour', 'lightning', 'umbrella', 'summon'], ['downpour', 'lightning', 'umbrella', 'rain', 'splash', 'summon', 'splash']],
     phases: [0.5], desc: 'A pompous storm cloud who rains on every parade.',
   },
   snuffer: {
@@ -249,6 +249,44 @@ const ATTACKS: Record<string, AttackFn> = {
     return B.at > 1.2;
   },
 
+  // phase 2: three lamps light up around the arena and spin out spirals of dust (moths can't resist a lamp)
+  lamplure(g, e, B, dt, fast) {
+    const a = g.arena!;
+    if (B.count === 0) {
+      B.count = 1;
+      B.data.lamps = [];
+      for (let i = 0; i < 3; i++) {
+        const ang = (i / 3) * Math.PI * 2 + g.rng.angle();
+        const r = g.rng.range(140, a.r - 130);
+        const x = a.x + Math.cos(ang) * r, y = a.y + Math.sin(ang) * r;
+        B.data.lamps.push({ x, y, a: g.rng.angle() });
+        g.tele({ kind: 'circle', x, y, r: 40, dur: 0.9, color: 0xffd27a });
+      }
+      audio.sfx('buzz', 0.5, 0.7);
+      g.hooks.toast('"Ooh, lamps! Shiny, shiny lamps!"', 'boss');
+    }
+    if (B.at > 0.9) {
+      B.data.t = (B.data.t ?? 0) - dt;
+      if (B.data.t <= 0) {
+        B.data.t = 0.17 / fast;
+        for (const L of B.data.lamps) {
+          L.a += 0.38;
+          for (let k = 0; k < 2; k++) {
+            const aa = L.a + k * Math.PI;
+            g.spawnBullet(L.x, L.y, Math.cos(aa) * 115, Math.sin(aa) * 115, { r: 8, dmg: 8, life: 3.4, tint: 0xffd27a });
+          }
+        }
+      }
+      if (g.frameCount % 3 === 0) {
+        for (const L of B.data.lamps) {
+          g.particle(L.x, L.y, g.fx.glow, { add: true, life: 0.3, s0: 0.7, s1: 0.45, tint: 0xffd27a });
+          g.addLight(L.x, L.y, 160, 0.1, 0xffd27a);
+        }
+      }
+    }
+    return B.at > 3.3;
+  },
+
   /* ---------------- Baron von Drizzle ---------------- */
   downpour(g, e, B, dt, fast) {
     const p = g.player;
@@ -345,6 +383,37 @@ const ATTACKS: Record<string, AttackFn> = {
       if (B.count++ % 2 === 0) g.spawnBullet(x + g.rng.range(100, 300), y, 110, 290, { r: 7, dmg: 8, life: 4.5, tint: 0x9fd0ff });
     }
     return B.at > 3.2;
+  },
+
+  // phase 2: puddles burst one after another around you, each throwing a ring of droplets
+  splash(g, e, B, dt, fast) {
+    const p = g.player;
+    if (B.count === 0) {
+      B.count = 1;
+      B.data.pts = [];
+      const base = g.rng.angle();
+      for (let i = 0; i < 4; i++) {
+        const ang = base + (i / 4) * Math.PI * 2;
+        const r = g.rng.range(80, 190);
+        const x = p.x + Math.cos(ang) * r, y = p.y + Math.sin(ang) * r;
+        const at = (0.75 + i * 0.32) / fast;
+        B.data.pts.push({ x, y, at, done: false });
+        g.tele({ kind: 'circle', x, y, r: 44, dur: at, color: 0x7fb6e6 });
+      }
+    }
+    for (const pt of B.data.pts) {
+      if (pt.done || B.at < pt.at) continue;
+      pt.done = true;
+      const dx = p.x - pt.x, dy = p.y - pt.y;
+      if (dx * dx + dy * dy < 48 * 48) g.hurtPlayer(12, null, { by: 'baron:splash' });
+      splashFx(g, pt.x, pt.y, 44);
+      const n = 12, off = g.rng.next();
+      for (let k = 0; k < n; k++) {
+        const aa = (k / n) * Math.PI * 2 + off;
+        g.spawnBullet(pt.x, pt.y, Math.cos(aa) * 125, Math.sin(aa) * 125, { r: 7, dmg: 8, life: 3, tint: 0x9fd0ff });
+      }
+    }
+    return B.at > (0.75 + 4 * 0.32) / fast + 0.6;
   },
 
   /* ---------------- The Snuffer ---------------- */

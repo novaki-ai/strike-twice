@@ -37,8 +37,8 @@ Your build carries over between stages. Beating the third boss plays the ending 
 
 | Stage | Look & music | Enemies | Boss |
 |---|---|---|---|
-| 1. The Mothwood | dusk forest, spooky-cute swing | Mothling, Mold Blob, Toadstool, Stag Beetle, Soggy Stump | **Duchess Dustwing** (dust spirals, telegraphed swoops, fan gusts, moth broods; enraged phase) |
-| 2. Drizzleport | rainy harbor at night, noir big band | Raindrop, Puddle Slime, Bullfrog, Storm Cloud, Water Balloon, Watering Can | **Baron von Drizzle** (downpour circles, lightning lines, umbrella bullet rings, slanted rain, summons; storm phase) |
+| 1. The Mothwood | dusk forest, spooky-cute swing | Mothling, Mold Blob, Toadstool, Stag Beetle, Soggy Stump | **Duchess Dustwing** (dust spirals, telegraphed swoops, fan gusts, moth broods; enraged phase adds double swoops and lamp lures that spin out dust spirals) |
+| 2. Drizzleport | rainy harbor at night, noir big band | Raindrop, Puddle Slime, Bullfrog, Storm Cloud, Water Balloon, Watering Can | **Baron von Drizzle** (downpour circles, lightning lines, umbrella bullet rings, summons; storm phase adds slanted rain, curving rings and staggered puddle bursts) |
 | 3. The Snuffer's Spire | dark candle castle, danse-macabre swing | Wax Ghost, Snufflet, Frost Wisp, Wax Knight, Smoke Wraith (+ returning foes) | **The Snuffer** (shadow-tracking slam with shockwave, rotating spokes, sweeping walls with gaps, "lights out" darkness + homing smoke, summons; 3 phases with voiced phase line and music change) |
 
 **Enemies (16 types, all with distinct behaviour, each with a two-frame walk / flap / leap animation):** chaser, sine-weaving flier, spore-ring shooter, telegraphed
@@ -164,7 +164,7 @@ and a fast-forward bot (`bot.mjs`) that plays complete runs to tune pacing and d
 
 - Longer animation cycles: enemies have two generated frames plus squash/bob/sway in code; bosses have idle, attack
   and defeat poses rather than full animation.
-- More bespoke visuals per weapon level, more boss attack variety in later phases, and an endless mode.
+- More bespoke visuals per weapon level, even more boss attacks, and an endless mode.
 - Real-device testing on Safari/iOS and Firefox (only Chromium was available here; the code avoids engine-specific APIs).
 - More balance passes with human players; I tuned with an automated bot, which plays worse than a decent human.
 
